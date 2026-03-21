@@ -1,82 +1,59 @@
 #include <Arduino.h>
+#include <SD.h>
+#include "HeartMonitor.h"
+#include "CsvWriter.h" 
 
-const int ADC_PIN = 34;
-const int LO_PLUS = 32;
-const int LO_MINUS = 33;
+CsvWriter holter; 
 
-float filteredValue = 0;
-
-unsigned long lastBeatTime = 0;
-bool firstBeat = true; 
-
-const int numReadings = 10;
-int readings[numReadings];
-int readIndex = 0;
-long totalBPM = 0;
-int averageBPM = 0;
-
-const float alpha = 0.3; 
-int threshold = 2050;   
-bool hbeat = false;
+void checkStorageStatus() {
+    if (!SD.begin()) {
+        Serial.println("ERROR: SD card not found!");
+        return;
+    }
+    Serial.println("SD card OK.");
+}
 
 void setup() {
-  Serial.begin(115200);
-  pinMode(LO_PLUS, INPUT); 
-  pinMode(LO_MINUS, INPUT);
-  analogSetAttenuation(ADC_11db);
-  analogReadResolution(12);
+    Serial.begin(115200);
+    delay(1000); 
+    
+    initHeartMonitor();
+    
+    Serial.println("Initializing SD card.");
+    if (!SD.begin()) {
+        Serial.println("ERROR: SD card does not work properly.");
+        return;
+    }
 
-  for (int i = 0; i < numReadings; i++) readings[i] = 0;
+    if (holter.begin("/test_ekg.csv")) {
+        Serial.println("File opened, press 's' to stop. Writing data...");
+    } else {
+        Serial.println("ERROR: File system dumped writing to the file.");
+    }
 }
 
 void loop() {
-  if ((digitalRead(LO_PLUS) == 1) || (digitalRead(LO_MINUS) == 1)) {
-    Serial.println(">EKG:0");
-    Serial.println(">BPM_Srednie:0");
-  } else {
-    int rawValue = analogRead(ADC_PIN);
-    filteredValue = (alpha * rawValue) + ((1.0 - alpha) * filteredValue);
-
-    if (filteredValue > threshold && !hbeat) {
-      unsigned long currentTime = millis();
-      
-      if (firstBeat) {
-        lastBeatTime = currentTime;
-        firstBeat = false;
-      
-      } else {
-        unsigned long duration = currentTime - lastBeatTime;
-        
-
-        if (duration > 270 && duration < 1500) { 
-          int currentBPM = 60000 / duration;
-
-          totalBPM = totalBPM - readings[readIndex];
-          readings[readIndex] = currentBPM;
-          totalBPM = totalBPM + readings[readIndex];
-          readIndex = (readIndex + 1) % numReadings;
-          
-          averageBPM = totalBPM / numReadings;
-          lastBeatTime = currentTime;
+    if (Serial.available()) {
+        char c = Serial.read();
+        if (c == 's' || c == 'S') {
+            if (holter.isRecording()) {
+                holter.closeFile();
+                Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
+            }
         }
-      }
-      hbeat = true;
-    } else if (filteredValue < (threshold - 100)){
-      hbeat = false;
     }
 
-    
-    Serial.print(">EKG:");
-    Serial.println(filteredValue);
-    
-    Serial.print(">Prog:"); 
-    Serial.println(threshold);
+    processHeartRate();
+    if (holter.isRecording()) {
+        int16_t val = isLeadOff() ? 0 : (int16_t)getFilteredValue();
+        holter.writeSample(val, getAverageBPM(), isLeadOff());
+        
+        static unsigned long lastTick = 0;
+        if (millis() - lastTick > 1000) {
+            Serial.print(".");
+            lastTick = millis();
+        }
+    }
 
-    Serial.print(">BPM_Srednie:");
-    Serial.println(averageBPM);
-    
-    Serial.print(">Trigger:");
-    Serial.println(hbeat ? 4000 : 0);
-  }
-  delay(4); 
+    delay(4); 
 }
