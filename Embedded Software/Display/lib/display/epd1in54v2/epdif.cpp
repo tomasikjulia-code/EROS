@@ -60,9 +60,6 @@ int EpdIf::IfInit(void) {
     pinMode(DC_PIN, OUTPUT);
     pinMode(BUSY_PIN, INPUT); 
 
-    pinMode(PWR_PIN, OUTPUT);
-    DigitalWrite(PWR_PIN, 1);
-
     hSPI.begin();
     hSPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
     return 0;
