@@ -13,8 +13,7 @@
 #define COLORED     0
 #define UNCOLORED   1
 
-extern Epd epd;
-
+extern Epd epd; 
 enum battery_level{
   FULL,
   THREE_QUARTERS,
@@ -23,6 +22,7 @@ enum battery_level{
   EMPTY
 };
 
+void mainScreen(uint8_t BPM, uint8_t hours_left, uint8_t minutes_left, battery_level batteryState, bool bluetoothState);
 void drawBitmap(int x, int y, int w, int h, const unsigned char* bitmap);
 void display_battery(battery_level level);
 void display_bluetooth();

@@ -1,5 +1,6 @@
 #include "display.h"
 
+Epd epd; //dodalem tutaj definicje obiektu epd jak cos szymek bo ona i tak byla globalna i nie moglem tego zrobic jako pole klasy Device manager
 unsigned char image[5000];
 Paint paint(image, 0, 0);
 
@@ -88,4 +89,13 @@ void clear_display(){
   epd.DisplayFrame();
 
   epd.Sleep();
+}
+void mainScreen(uint8_t BPM, uint8_t hours_left, uint8_t minutes_left, battery_level batteryState, bool bluetoothState){
+  display_battery(batteryState);
+  if(bluetoothState == 1){
+      display_bluetooth();
+  }
+  display_BPM(BPM);
+  displayTimeLeft(hours_left,minutes_left);
+  epd.DisplayPartFrame();
 }
