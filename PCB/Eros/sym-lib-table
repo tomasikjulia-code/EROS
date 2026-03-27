@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "CMT-8504-100-SMT-TR")(type "Legacy")(uri "${KIPRJMOD}/libs/CMT-8504.pretty/CMT-8504-100-SMT-TR.lib")(options "")(descr ""))
+)
