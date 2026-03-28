@@ -11,7 +11,6 @@ DeviceManager::DeviceManager(){
     SDcardEnabled = 0; //na początek nic nie ma i dopiero pozneij w inicie sprawdzam czy karta jest
     fileSystemEnabled = 0; //na poczatek nie ma systemu plikow bo nawet nie wiadomo czy jest karta
 
-
     EKGegzamineTime = 0; //na start czas badania ustawiany na zero jak cos bo pierwszy widok urzadzenia bedzie pozwalal ustawic ta wielkosc
 
 
@@ -44,13 +43,53 @@ void DeviceManager::init(){
 void DeviceManager::checkBluetooth(){
 
     if (btEnabled && SerialBT.hasClient())
-        {
-            Serial.println("Wysylanie pliku przez BT");
+    {
+        //fajnie by było jakby tutaj była jakas informacja ze po nacisnieciu przycisku zaczyna sie przesyl bluetooth 
 
-            /* TUTAJ KOD DO PRZESYLANIA PLIKU BLUETOOTH*/
-
-            vTaskDelay(pdMS_TO_TICKS(5000));
+        File file = SD.open("/test_ekg.csv"); // tutaj tworze sobie nowy uchwyt do pliku bo ten karoliny jest w prywatnych i nie da sie do niego odwolac
+        if (!file) {
+            Serial.println("Nie można otworzyć pliku!");
+            return;
         }
+
+        //Handshake do aplikacji czekajacy na potwierdzenie czy ta aplikacja jest gotowa na nasz plik
+        SerialBT.println("READY");  // wysyłamy sygnał gotowości
+
+        // czekamy na odpowiedź OK od aplikacji 
+        while (!SerialBT.available()) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+
+        String response = SerialBT.readStringUntil('\n');
+        response.trim();
+        if (response != "OK") {
+            Serial.println("Aplikacja nie jest gotowa na potezny plik!");
+            file.close();
+            return;
+        }
+
+        // Najpierw wysyłamy nagłowek pliku czyli jego nazwe oraz wielkosc tak zeby aplikacja wiedziala kiedy juz wszystko dostala 
+        String header = String(file.name()) + ":" + String(file.size());
+        SerialBT.println(header);
+        Serial.println("Wysyłanie nagłówka: \n" + header);
+
+        // wysyłanie danych w fajnych pakietach po 512
+        const size_t bufferSize = 512;
+        uint8_t buffer[bufferSize];
+        size_t bytesRead;
+
+        while ((bytesRead = file.read(buffer, bufferSize)) > 0) {
+            SerialBT.write(buffer, bytesRead);
+            vTaskDelay(pdMS_TO_TICKS(10)); // krótkie opóźnienie dla dzialania RTOS
+        }
+
+        file.close();
+
+        // --- ZAKOŃCZENIE TRANSMISJI ---
+        SerialBT.println("DONE");
+        Serial.println("Plik wysłany!");
+        btEnabled = false; //to robimy na false bo chcemy tylko wysylac jak przycisk byl nacisniety
+    }
 }
 
 void DeviceManager::waitingForSDcard(){
