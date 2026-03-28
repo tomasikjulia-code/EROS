@@ -40,7 +40,6 @@ void btTask(void *parameter)
     {
         if (xSemaphoreTake(btMutex, portMAX_DELAY))
         {
-            HolterDevice.checkButtons();
             HolterDevice.checkBluetooth();
             vTaskDelay(pdMS_TO_TICKS(200));
             xSemaphoreGive(btMutex);
@@ -83,6 +82,7 @@ void setup()
     xTaskCreatePinnedToCore(displayTask,"Display Task",8192,NULL,1,&displayTaskHandle,0);
 }
 void loop(){
+    HolterDevice.checkButtons(); //sprawdzam sobie tutaj przyciski bo to troche dziala jak dodatkowy task a nigdzie indziej nie mialem jak
     vTaskDelay(pdMS_TO_TICKS(200));
     //pusto bo tutaj nie ma co wstawiac
 }
