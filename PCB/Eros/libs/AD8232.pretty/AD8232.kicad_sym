@@ -7,23 +7,23 @@
 		(in_bom yes)
 		(on_board yes)
 		(property "Reference" "U"
-			(at -2.286 -11.43 0)
+			(at 1.016 -9.652 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" ""
-			(at 0 0 0)
+		(property "Value" "AD8232ACPZ"
+			(at 19.304 -9.906 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" ""
-			(at 0 0 0)
+		(property "Footprint" "AD8232:QFN-20_EP_4x4_Pitch0.5mm"
+			(at 11.176 19.812 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -31,8 +31,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 0 0 0)
+		(property "Datasheet" "https://www.analog.com/en/products/ad8232.html"
+			(at 8.382 22.606 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -253,7 +253,7 @@
 						)
 					)
 				)
-				(number ""
+				(number "21"
 					(effects
 						(font
 							(size 1.27 1.27)
