@@ -2,4 +2,5 @@
   (version 7)
   (lib (name "CMT-8504-100-SMT-TR")(type "Legacy")(uri "${KIPRJMOD}/libs/CMT-8504.pretty/CMT-8504-100-SMT-TR.lib")(options "")(descr ""))
   (lib (name "AD8232")(type "KiCad")(uri "${KIPRJMOD}/libs/AD8232.pretty/AD8232.kicad_sym")(options "")(descr ""))
+  (lib (name "Moje_symbole")(type "KiCad")(uri "${KIPRJMOD}/Moje_symbole.kicad_sym")(options "")(descr ""))
 )
