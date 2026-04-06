@@ -30,6 +30,8 @@
 
 SPIClass hSPI(HSPI);
 
+bool EpdIf::SpiInitialized=false;
+
 EpdIf::EpdIf() {
 };
 
@@ -59,8 +61,8 @@ int EpdIf::IfInit(void) {
     pinMode(RST_PIN, OUTPUT);
     pinMode(DC_PIN, OUTPUT);
     pinMode(BUSY_PIN, INPUT); 
-
     hSPI.begin();
     hSPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE0));
+    SpiInitialized=true;
     return 0;
 }

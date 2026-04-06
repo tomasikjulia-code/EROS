@@ -34,6 +34,9 @@ w miare sekwencyjnie czyli na tą chwile:
 #define BTN_BT 2
 #define BTN_LCD 21
 #define BTN_MIN 3
+#define BTN_T_UP 2
+#define BTN_T_DOWN 21
+#define BTN_T_CONFIRM 3
 
 class DeviceManager{
     public:
@@ -44,7 +47,12 @@ class DeviceManager{
         bool fileSystemEnabled;
 
         //zmienne potrzebne do obliczania czasu trwania badania
-        uint8_t EKGegzamineTime;
+        uint8_t EKGTestTime;
+        bool testTimeChosen; // Zmienna określająca czy zakońcono wybór czasu trwania testu
+
+        unsigned long upPressStart = 0; //zmienna do zliczania czasu nacisku przycisku zwiekszajacego czas badania
+        unsigned long downPressStart = 0; //zmienna do zliczania czasu nacisku przycisku zmniejszajacego czas badania
+        unsigned long confirmPressStart = 0; //zmienna do zliczania czasu nacisku przycisku zapisujacego czas badania
 
         unsigned long btPressStart = 0; //zmienna do zliczania czasu nacisku przycisku bluetooth
         unsigned long lcdPressStart = 0; //zmienna do zliczania czasu nacisku przycisku wysweitlacza
@@ -55,10 +63,12 @@ class DeviceManager{
 
         DeviceManager();
         void init();
+        void chooseTestTime();
         void checkBluetooth();
         void EKGReadingAndSending();
         void updateDisplay(uint32_t timeInMs); //funkcja odświerzająca wyświetlacz tyle czasu ile trzeba (pozniej go wylacza) (czas podany w milisekundach)
         void checkButtons(); //funkcja sprawdzajaca przyciski i ustawiajace displayEnabled oraz btEnabled
+        void checkTestTimeButtons(); //funkcja sprawdzajaca przyciski podczas wyboru czasu trwania badania
         void waitingForSDcard(); //funkcja działająca w nieskończonej pętli zeby program nie szedl dalej puki nie bedzie karty SD
 
     private:

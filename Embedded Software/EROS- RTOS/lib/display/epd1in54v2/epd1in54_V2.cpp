@@ -119,7 +119,8 @@ void Epd::WaitUntilIdle(void)
 	while(DigitalRead(busy_pin) == 1) {      //LOW: idle, HIGH: busy
 		DelayMs(100);
 	}
-	DelayMs(200);
+	DelayMs(50);  //Modified
+	// DelayMs(200); //Original
 }
 
 void Epd::Lut(unsigned char* lut)
@@ -208,12 +209,15 @@ int Epd::HDirInit(void)
 int Epd::LDirInit(void)
 {
 	/* this calls the peripheral hardware interface, see epdif */
-	if (IfInit() != 0) {
-		return -1;
+	if(!SpiInitialized){
+		if (IfInit() != 0) {
+			return -1;
+		}
 	}
+
 	/* EPD hardware init start */
 	Reset();
-
+	
 	WaitUntilIdle();
 	SendCommand(0x12);  //SWRESET
 	WaitUntilIdle();
