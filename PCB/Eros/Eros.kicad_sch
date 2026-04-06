@@ -1344,6 +1344,213 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Connector:Conn_01x03_Socket"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "J"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x03_Socket"
+				(at 0 -5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x03, script generated"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_locked" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "Conn_01x03_Socket_1_1"
+				(polyline
+					(pts
+						(xy -1.27 2.54) (xy -0.508 2.54)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 0) (xy -0.508 0)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -2.54) (xy -0.508 -2.54)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start 0 2.032)
+					(mid -0.5058 2.54)
+					(end 0 3.048)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start 0 -0.508)
+					(mid -0.5058 0)
+					(end 0 0.508)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start 0 -3.048)
+					(mid -0.5058 -2.54)
+					(end 0 -2.032)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Connector:Conn_01x04_Pin"
 			(pin_names
 				(offset 1.016)
@@ -6748,7 +6955,7 @@
 		)
 		(uuid "4e32407d-b175-40d1-9fc7-b36395aea51c")
 	)
-	(text "PINY DO PERYFERIÓW:\n - CZYTNIK KARTY SD: MISO -> GPIO19, MOSI -> GPIO23, SS/CS -> GPIO5, SCK -> GPIO18, \n - MODUŁ EKG: LO+ -> GPIO36 (SENSOR_VP), LO- -> GPIO39(SENSOR_VN), OUTPUT -> GPIO34 (to sie zmieni jak bedzie zewnetrzny ADC do I2C najlepiej chyba gpio22 i gpio21 bo sa obok siebie),\n - WYŚWIETLACZ: Busy_pin -> GPIO4, CS_pin -> GPIO15, DC_Pin -> GPIO17, RST_Pin -> GPIO16, SCK_Pin -> GPIO14 , MOSI_pin -> GPIO13;\n - PRZYCISKI: 3 przyciski dodać tam gdzie są wolne GPIO. Teraz są do pinów GPIO25, GPIO26, GPIO27.\n - AKCELEROMETR: Dałam na I2C to co będzie EKG, czyli GPIO21 i GPIO22. "
+	(text "PINY DO PERYFERIÓW:\n - CZYTNIK KARTY SD: MISO -> GPIO19, MOSI -> GPIO23, SS/CS -> GPIO5, SCK -> GPIO18, \n - MODUŁ EKG: OUTPUT -> ADIN0 / SENSOR_VP\n - WYŚWIETLACZ: Busy_pin -> GPIO4, CS_pin -> GPIO15, DC_Pin -> GPIO17, RST_Pin -> GPIO16, SCK_Pin -> GPIO14 , MOSI_pin -> GPIO13;\n - PRZYCISKI: 3 przyciski dodać tam gdzie są wolne GPIO. Teraz są do pinów GPIO25, GPIO26, GPIO27.\n - AKCELEROMETR: Dałam na I2C to co będzie EKG, czyli GPIO21 i GPIO22. "
 		(exclude_from_sim no)
 		(at 17.272 -20.066 0)
 		(effects
@@ -6939,12 +7146,6 @@
 		(uuid "15799326-2357-4f6f-87a1-cb7e43ff2c9e")
 	)
 	(junction
-		(at 21.59 40.64)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "160db559-aabf-4826-b2c7-c9d0a296c0de")
-	)
-	(junction
 		(at 152.4 119.38)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -6985,12 +7186,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "26e08e6e-44af-4cad-be0c-1e7bc9efa4de")
-	)
-	(junction
-		(at 21.59 38.1)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "2815a89b-dd98-49e9-a2ac-c3bea553c587")
 	)
 	(junction
 		(at 30.48 154.94)
@@ -7409,16 +7604,8 @@
 		(uuid "32d6a210-3c36-466f-8ccb-30f0aa984d59")
 	)
 	(no_connect
-		(at 190.5 184.15)
-		(uuid "6d008d4e-789f-4f09-98e8-260210fcd514")
-	)
-	(no_connect
 		(at 228.6 251.46)
 		(uuid "762ad719-0be4-4c42-adf9-5f14621ae251")
-	)
-	(no_connect
-		(at 160.02 133.35)
-		(uuid "829c16f0-7317-4b04-921b-a9e763edc74e")
 	)
 	(no_connect
 		(at 228.6 256.54)
@@ -7451,6 +7638,16 @@
 			(type default)
 		)
 		(uuid "01aa638e-36e2-46c2-8e3a-529fb9b130c9")
+	)
+	(wire
+		(pts
+			(xy 111.76 81.28) (xy 114.3 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "01c5d854-2545-4a0a-923b-97588b27dc97")
 	)
 	(wire
 		(pts
@@ -8054,6 +8251,16 @@
 	)
 	(wire
 		(pts
+			(xy 190.5 184.15) (xy 194.31 184.15)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "23a120bb-4cc7-4ab9-80b4-ae1655822781")
+	)
+	(wire
+		(pts
 			(xy 215.9 270.51) (xy 215.9 271.78)
 		)
 		(stroke
@@ -8074,7 +8281,7 @@
 	)
 	(wire
 		(pts
-			(xy 21.59 38.1) (xy 34.29 38.1)
+			(xy 20.32 38.1) (xy 34.29 38.1)
 		)
 		(stroke
 			(width 0)
@@ -9174,7 +9381,7 @@
 	)
 	(wire
 		(pts
-			(xy 24.13 52.07) (xy 25.4 52.07)
+			(xy 20.32 52.07) (xy 25.4 52.07)
 		)
 		(stroke
 			(width 0)
@@ -9184,7 +9391,7 @@
 	)
 	(wire
 		(pts
-			(xy 20.32 40.64) (xy 21.59 40.64)
+			(xy 20.32 40.64) (xy 29.21 40.64)
 		)
 		(stroke
 			(width 0)
@@ -9464,16 +9671,6 @@
 	)
 	(wire
 		(pts
-			(xy 21.59 40.64) (xy 29.21 40.64)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "85de61e4-ea69-4af3-88ba-c2be97d4b2e4")
-	)
-	(wire
-		(pts
 			(xy 201.93 256.54) (xy 203.2 256.54)
 		)
 		(stroke
@@ -9701,6 +9898,16 @@
 			(type default)
 		)
 		(uuid "95ebeea6-06dc-41dd-aeef-abf99a0cecd3")
+	)
+	(wire
+		(pts
+			(xy 111.76 78.74) (xy 114.3 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "96255db1-db21-4940-bda4-282f26d84204")
 	)
 	(wire
 		(pts
@@ -9971,6 +10178,16 @@
 			(type default)
 		)
 		(uuid "b47e5af7-1e32-4b77-9eb1-cb6f0cb69ffc")
+	)
+	(wire
+		(pts
+			(xy 147.32 133.35) (xy 149.86 133.35)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b4fc4246-c6c8-43da-9049-89e3c776cca8")
 	)
 	(wire
 		(pts
@@ -10364,16 +10581,6 @@
 	)
 	(wire
 		(pts
-			(xy 363.22 152.4) (xy 369.57 152.4)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d37ffd9c-93da-4703-b80d-91b34ad717b5")
-	)
-	(wire
-		(pts
 			(xy 134.62 43.18) (xy 127 43.18)
 		)
 		(stroke
@@ -10391,16 +10598,6 @@
 			(type default)
 		)
 		(uuid "d4be3f4a-45bc-49fa-9544-061ac4d3d06f")
-	)
-	(wire
-		(pts
-			(xy 20.32 38.1) (xy 21.59 38.1)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d4f36a30-ae33-4e73-b82d-e524f85b480f")
 	)
 	(wire
 		(pts
@@ -10461,6 +10658,16 @@
 			(type default)
 		)
 		(uuid "d7891658-5a8f-4924-b625-cb5600a9b948")
+	)
+	(wire
+		(pts
+			(xy 157.48 133.35) (xy 160.02 133.35)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d90bffa9-b452-425f-8301-48795838f720")
 	)
 	(wire
 		(pts
@@ -10944,6 +11151,16 @@
 	)
 	(wire
 		(pts
+			(xy 111.76 76.2) (xy 114.3 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fca25311-ae29-4979-9a51-fc01dec72fcf")
+	)
+	(wire
+		(pts
 			(xy 133.35 237.49) (xy 138.43 237.49)
 		)
 		(stroke
@@ -10997,6 +11214,28 @@
 		(uuid "0763db35-881d-4ae0-9938-6bbe787b8327")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 202.2542 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LOD-"
+		(shape input)
+		(at 194.31 184.15 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "0de73cfa-d4fd-45ff-821d-b39cb1e4571b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 202.4962 184.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11134,6 +11373,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "OUTPUT"
+		(shape input)
+		(at 147.32 133.35 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "1c22c47f-b660-4e10-a10a-819859b20de1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 137.1381 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -11332,28 +11593,6 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "HSPI_MISO"
-		(shape input)
-		(at 194.31 143.51 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "3da41035-a24c-4a3d-a101-3e539b47c307")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 207.2738 143.51 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
 				(hide yes)
 			)
 		)
@@ -11732,6 +11971,28 @@
 			)
 		)
 	)
+	(global_label "RL"
+		(shape input)
+		(at 111.76 81.28 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "828f0ded-eeda-44ea-bdc8-a86a7ba332a1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 106.4767 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "HSPI_CS"
 		(shape output)
 		(at 232.41 151.13 0)
@@ -11750,28 +12011,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "HSPI_MISO"
-		(shape output)
-		(at 363.22 152.4 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "884ca268-4627-4549-9a74-b3a6e3ee902e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 350.2562 152.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -11888,7 +12127,7 @@
 	)
 	(global_label "RL"
 		(shape input)
-		(at 24.13 52.07 180)
+		(at 20.32 52.07 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -11898,7 +12137,29 @@
 		)
 		(uuid "9b26a4d4-f808-49f8-9c28-ed00a3eeade3")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 18.8467 52.07 0)
+			(at 15.0367 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "RA"
+		(shape input)
+		(at 111.76 76.2 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "9d57e0a6-ce35-4c85-9069-13405a28e4da")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 106.4162 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12119,6 +12380,28 @@
 		(uuid "b9424cd4-bede-404a-bfaf-647f9408cf2f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 248.4748 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LA"
+		(shape input)
+		(at 111.76 78.74 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ba1c0026-b6d8-431b-866e-bf4b2ade7e98")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 106.6581 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12427,6 +12710,28 @@
 		(uuid "dd3f32e3-7bf4-44db-81b1-db39db4da950")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 206.669 171.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LOD+"
+		(shape input)
+		(at 194.31 143.51 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "dd69b222-bee7-4a77-b45b-21a10c783f9c")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 202.4962 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14224,6 +14529,79 @@
 			(project "Eros"
 				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
 					(reference "#PWR041")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Conn_01x03_Socket")
+		(at 119.38 78.74 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "235e7d70-1c05-4366-bb6d-2e96f982955c")
+		(property "Reference" "J5"
+			(at 120.65 77.4699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_01x03_Socket"
+			(at 120.65 80.0099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x03_P2.54mm_Vertical"
+			(at 119.38 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 119.38 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x03, script generated"
+			(at 119.38 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "71ccffbf-62ae-4f15-b63f-e05ba2069c26")
+		)
+		(pin "3"
+			(uuid "ab2294ee-0464-46a1-89c6-bad490e824fe")
+		)
+		(pin "2"
+			(uuid "6e9e4329-c617-4c53-ab06-e0c704ef37cb")
+		)
+		(instances
+			(project "Eros"
+				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
+					(reference "J5")
 					(unit 1)
 				)
 			)
@@ -17938,73 +18316,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 21.59 38.1 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "70dd09a5-b092-4578-b6ab-fa048ccea41e")
-		(property "Reference" "TP12"
-			(at 21.59 33.528 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 21.59 28.448 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
-			(at 26.67 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 26.67 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 21.59 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e395e428-e93d-4c2d-a2bb-18bdccf9c1ab")
-		)
-		(instances
-			(project "Eros"
-				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
-					(reference "TP12")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 29.21 269.24 0)
 		(unit 1)
@@ -20401,6 +20712,73 @@
 		)
 	)
 	(symbol
+		(lib_id "Jumper:SolderJumper_2_Open")
+		(at 153.67 133.35 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "b490cf92-673c-4c45-b025-c5ec486fe923")
+		(property "Reference" "JP3"
+			(at 153.67 136.652 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SolderJumper_2_Open"
+			(at 153.67 139.192 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm"
+			(at 153.67 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 153.67 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Solder Jumper, 2-pole, open"
+			(at 153.67 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8170fa39-7b2b-475a-965c-add18e73e77f")
+		)
+		(pin "2"
+			(uuid "e8d35b54-fd30-4fd0-b572-c9230a69aa18")
+		)
+		(instances
+			(project "Eros"
+				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
+					(reference "JP3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 41.91 38.1 90)
 		(unit 1)
@@ -22266,73 +22644,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 21.59 40.64 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "da4f1f49-35e7-4bc1-b190-4b7270e8ece8")
-		(property "Reference" "TP13"
-			(at 21.59 45.212 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 19.304 42.418 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
-			(at 16.51 40.64 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 16.51 40.64 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 21.59 40.64 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "751b4fd6-b9fa-4165-b07d-b66db7e09864")
-		)
-		(instances
-			(project "Eros"
-				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
-					(reference "TP13")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 44.45 173.99 0)
 		(unit 1)
@@ -23025,72 +23336,6 @@
 			(project "Eros"
 				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
 					(reference "D2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 369.57 152.4 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "edfb3873-c5dd-452a-b6c8-1dbe5e38bf21")
-		(property "Reference" "TP6"
-			(at 374.142 152.4 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 379.476 152.4 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
-			(at 369.57 157.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 369.57 157.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 369.57 152.4 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "9d76e1fb-cc21-4dab-bb81-e5d671d014af")
-		)
-		(instances
-			(project "Eros"
-				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
-					(reference "TP6")
 					(unit 1)
 				)
 			)

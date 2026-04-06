@@ -226,7 +226,12 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      [
+        "lib_symbol_mismatch|2717800|2603500|ff397695-fecf-4f04-975c-4a63c49594c5|00000000-0000-0000-0000-000000000000|||",
+        "custom transistor footprint"
+      ]
+    ],
     "meta": {
       "version": 0
     },
