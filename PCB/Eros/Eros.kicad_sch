@@ -7017,12 +7017,6 @@
 		(uuid "2f51e6b0-5cad-4712-a991-0cc6945b6c8c")
 	)
 	(junction
-		(at 38.1 214.63)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "2f96fcf1-52db-4e6b-b541-e061289b10db")
-	)
-	(junction
 		(at 116.84 43.18)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7179,12 +7173,6 @@
 		(uuid "8c372ec7-de8a-4046-a854-f0177ad29af8")
 	)
 	(junction
-		(at 33.02 214.63)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "8dfd136d-7c02-48d4-ba07-cc1dde7f3ed2")
-	)
-	(junction
 		(at 231.14 260.35)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7269,10 +7257,22 @@
 		(uuid "b652248f-cef3-4d02-984b-03e447079efe")
 	)
 	(junction
+		(at 38.1 214.63)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "bcaec5ba-9b49-49f9-8122-e6f71b0bf703")
+	)
+	(junction
 		(at 276.86 154.94)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "c4c9dc1e-a286-4077-8f3d-eb6f75996d90")
+	)
+	(junction
+		(at 34.29 214.63)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c8ff5e3a-dd83-412c-93d1-b7161d773dbf")
 	)
 	(junction
 		(at 78.74 35.56)
@@ -7443,6 +7443,16 @@
 	(no_connect
 		(at 203.2 251.46)
 		(uuid "f3e157d2-cc01-4b37-b268-6bdd0f0c210a")
+	)
+	(wire
+		(pts
+			(xy 34.29 214.63) (xy 38.1 214.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0063533a-9260-4f23-9173-1cffb3b82419")
 	)
 	(wire
 		(pts
@@ -7633,6 +7643,16 @@
 			(type default)
 		)
 		(uuid "0f978ba9-2a08-427c-9770-d02ce73895d2")
+	)
+	(wire
+		(pts
+			(xy 34.29 214.63) (xy 33.02 214.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "100957de-62dc-421f-9dfc-61d5544f453c")
 	)
 	(wire
 		(pts
@@ -7876,7 +7896,7 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 219.71) (xy 33.02 214.63)
+			(xy 33.02 222.25) (xy 33.02 217.17)
 		)
 		(stroke
 			(width 0)
@@ -7926,7 +7946,7 @@
 	)
 	(wire
 		(pts
-			(xy 27.94 219.71) (xy 33.02 219.71)
+			(xy 27.94 222.25) (xy 33.02 222.25)
 		)
 		(stroke
 			(width 0)
@@ -8166,7 +8186,7 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 208.28) (xy 27.94 208.28)
+			(xy 34.29 210.82) (xy 27.94 210.82)
 		)
 		(stroke
 			(width 0)
@@ -8726,16 +8746,6 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 214.63) (xy 38.1 214.63)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "56d78315-0ad2-4153-a344-46e1fe8a5602")
-	)
-	(wire
-		(pts
 			(xy 102.87 58.42) (xy 109.22 58.42)
 		)
 		(stroke
@@ -8866,7 +8876,7 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 212.09) (xy 33.02 208.28)
+			(xy 34.29 214.63) (xy 34.29 210.82)
 		)
 		(stroke
 			(width 0)
@@ -16950,7 +16960,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 27.94 208.28 0)
+		(at 27.94 210.82 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -16958,7 +16968,7 @@
 		(dnp no)
 		(uuid "61b7192a-2e62-4221-9f43-53321849c797")
 		(property "Reference" "#PWR024"
-			(at 27.94 212.09 0)
+			(at 27.94 214.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16967,7 +16977,7 @@
 			)
 		)
 		(property "Value" "Acc"
-			(at 25.908 207.518 0)
+			(at 25.908 210.058 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16975,7 +16985,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 27.94 208.28 0)
+			(at 27.94 210.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16984,7 +16994,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 27.94 208.28 0)
+			(at 27.94 210.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16993,7 +17003,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 27.94 208.28 0)
+			(at 27.94 210.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18599,7 +18609,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x02_Pin")
-		(at 27.94 212.09 0)
+		(at 27.94 214.63 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -18607,7 +18617,7 @@
 		(dnp no)
 		(uuid "8cdbee3b-7544-47ee-b650-a5db9e4115a6")
 		(property "Reference" "J3"
-			(at 26.67 212.852 0)
+			(at 26.67 215.392 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18615,7 +18625,7 @@
 			)
 		)
 		(property "Value" "Li-ion"
-			(at 28.194 216.154 0)
+			(at 28.194 218.694 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18623,7 +18633,7 @@
 			)
 		)
 		(property "Footprint" "BHC-18650-1P COMF:BatteryHolder_MPD_BH-18650-PC"
-			(at 27.94 212.09 0)
+			(at 27.94 214.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18632,7 +18642,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 27.94 212.09 0)
+			(at 27.94 214.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18641,7 +18651,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x02, script generated"
-			(at 27.94 212.09 0)
+			(at 27.94 214.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19361,7 +19371,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 27.94 219.71 0)
+		(at 27.94 222.25 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -19369,7 +19379,7 @@
 		(dnp no)
 		(uuid "a4c41bc4-2249-4e4b-be23-add082ea2fc7")
 		(property "Reference" "#PWR025"
-			(at 27.94 226.06 0)
+			(at 27.94 228.6 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19378,7 +19388,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 24.892 221.742 0)
+			(at 24.892 224.282 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19386,7 +19396,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 27.94 219.71 0)
+			(at 27.94 222.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19395,7 +19405,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 27.94 219.71 0)
+			(at 27.94 222.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19404,7 +19414,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 27.94 219.71 0)
+			(at 27.94 222.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
