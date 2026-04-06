@@ -1,4 +1,4 @@
-27941834283525457
+27943611107711088
 AD8232
 QFN-20_EP_4x4_Pitch0.5mm
 
@@ -20,6 +20,13 @@ audio belton reverb
 0
 7
 7
+BHC-18650-1P COMF
+BatteryHolder_MPD_BH-18650-PC
+Battery holder, MPD BH-18650, battery type 1x18650, https://www.batteryholders.com/uploads/parts/BH-18650-PC/datasheets/BH-18650-PC-datasheet.pdf, generated with kicad-footprint-generator StandardBox_generator.py
+horizontal single
+0
+2
+2
 Battery
 BatteryClip_Keystone_54_D16-19mm
 Battery clip for batteries with a diameter between 16-19 mm: https://www.keyelco.com/product.cfm/product_id/826
