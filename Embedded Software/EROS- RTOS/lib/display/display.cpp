@@ -164,43 +164,50 @@ void updateTimeChoice(uint8_t hours){
   epd.DisplayPartFrame();
 }
 
-void displayWarningPopUp(const char* message){
-  drawBitmap(36, 17, 128, 112, WARNING);
+void splitText(const char* message){
   char message1[19];
   char message2[19];
   int splitPosition, maxCharsInLine=18;
+
+  for(int i=maxCharsInLine;i>=0;i--){
+    if(message[i]==' '){
+      splitPosition=i;
+      break;
+    }
+  }
+
+  strncpy(message1,message,splitPosition);
+  message1[splitPosition]='\0';
+  Serial.println(message1);
+  strncpy(message2,message + splitPosition + 1,strlen(message)-splitPosition);
+  Serial.println(message2);
+
+  uint8_t x_pos1=(200-strlen(message1)*11)/2;
+
+  paint.SetWidth(200);
+  paint.SetHeight(24);
+
+  paint.Clear(COLORED);
+  paint.DrawStringAt(x_pos1, 5, message1, &Font16, UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 152, paint.GetWidth(), paint.GetHeight());
+
+  uint8_t x_pos2=(200-strlen(message2)*11)/2;
+
+  paint.SetWidth(200);
+  paint.SetHeight(24);
+
+  paint.Clear(COLORED);
+  paint.DrawStringAt(x_pos2, 5, message2, &Font16, UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 176, paint.GetWidth(), paint.GetHeight());
+  }
+
+void displayWarningPopUp(const char* message){
+  drawBitmap(36, 17, 128, 112, WARNING);
+
+  int maxCharsInLine=18;
   
   if(strlen(message)>maxCharsInLine){
-    for(int i=maxCharsInLine;i>=0;i--){
-      if(message[i]==' '){
-        splitPosition=i;
-        break;
-      }
-    }
-
-    strncpy(message1,message,splitPosition);
-    message1[splitPosition]='\0';
-    Serial.println(message1);
-    strncpy(message2,message + splitPosition + 1,strlen(message)-splitPosition);
-    Serial.println(message2);
-
-    uint8_t x_pos1=(200-strlen(message1)*11)/2;
-
-    paint.SetWidth(200);
-    paint.SetHeight(24);
-
-    paint.Clear(COLORED);
-    paint.DrawStringAt(x_pos1, 5, message1, &Font16, UNCOLORED);
-    epd.SetFrameMemoryPartial(paint.GetImage(), 0, 152, paint.GetWidth(), paint.GetHeight());
-
-    uint8_t x_pos2=(200-strlen(message2)*11)/2;
-
-    paint.SetWidth(200);
-    paint.SetHeight(24);
-
-    paint.Clear(COLORED);
-    paint.DrawStringAt(x_pos2, 5, message2, &Font16, UNCOLORED);
-    epd.SetFrameMemoryPartial(paint.GetImage(), 0, 176, paint.GetWidth(), paint.GetHeight());
+    splitText(message);
   }
   else{
     uint8_t x_pos=(200-strlen(message)*11)/2;
@@ -215,4 +222,31 @@ void displayWarningPopUp(const char* message){
 
 
   epd.DisplayPartFrame();
+}
+
+void displayEndScreen(){
+  std::string message1="Test has ended";
+  std::string message2="You can see";
+  std::string message3="first results in the mobile app";
+  drawBitmap(52, 30, 96, 96, CHECK_MARK);
+
+  uint8_t x_pos1=(200-strlen(message1.c_str())*11)/2;
+  uint8_t x_pos2=(200-strlen(message2.c_str())*11)/2;
+
+  paint.SetWidth(200);
+  paint.SetHeight(24);
+
+  paint.Clear(COLORED);
+  paint.DrawStringAt(x_pos1, 5, message1.c_str(), &Font16, UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 0, paint.GetWidth(), paint.GetHeight());
+
+  paint.SetWidth(200);
+  paint.SetHeight(24);
+
+  paint.Clear(COLORED);
+  paint.DrawStringAt(x_pos2, 5, message2.c_str(), &Font16, UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 128, paint.GetWidth(), paint.GetHeight());
+
+  splitText(message3.c_str());
+  epd.DisplayPartFrame(); 
 }

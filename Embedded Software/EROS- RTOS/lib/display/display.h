@@ -37,6 +37,8 @@ void clearDisplay();
 void wakeUpDisplay();
 void updateBPM(uint8_t BPM);
 void updateTimeChoice(uint8_t hours);
+void splitText(const char* message);
+void displayEndScreen();
 
 
 #endif

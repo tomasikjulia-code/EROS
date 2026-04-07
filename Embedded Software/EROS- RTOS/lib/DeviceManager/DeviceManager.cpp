@@ -146,6 +146,7 @@ void DeviceManager::EKGReadingAndSending(){
             if (holter.isRecording()) {
                 holter.closeFile();
                 Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
+                displayEndScreen();
             }
         }
         processHeartRate();

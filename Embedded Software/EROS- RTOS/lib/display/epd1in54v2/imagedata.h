@@ -36,6 +36,7 @@ extern const unsigned char LETTER_M[];
 extern const unsigned char LETTER_h[];
 extern const unsigned char Font48_Table[];
 extern const unsigned char WARNING[];
+extern const unsigned char CHECK_MARK[];
 
 
 /* FILE END */
