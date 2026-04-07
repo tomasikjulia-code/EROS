@@ -3355,7 +3355,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Connector_Audio:AudioJack3_Ground"
+		(symbol "Connector_Audio:AudioJack3"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -3367,7 +3367,7 @@
 					)
 				)
 			)
-			(property "Value" "AudioJack3_Ground"
+			(property "Value" "AudioJack3"
 				(at 0 6.35 0)
 				(effects
 					(font
@@ -3393,7 +3393,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Audio Jack, 3 Poles (Stereo / TRS), Grounded Sleeve"
+			(property "Description" "Audio Jack, 3 Poles (Stereo / TRS)"
 				(at 0 0 0)
 				(effects
 					(font
@@ -3420,10 +3420,10 @@
 					(hide yes)
 				)
 			)
-			(symbol "AudioJack3_Ground_0_1"
+			(symbol "AudioJack3_0_1"
 				(rectangle
-					(start -5.08 -2.54)
-					(end -6.35 -5.08)
+					(start -5.08 -5.08)
+					(end -6.35 -2.54)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -3480,25 +3480,7 @@
 					)
 				)
 			)
-			(symbol "AudioJack3_Ground_1_1"
-				(pin passive line
-					(at 0 -7.62 90)
-					(length 2.54)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "G"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
+			(symbol "AudioJack3_1_1"
 				(pin passive line
 					(at 5.08 2.54 180)
 					(length 2.54)
@@ -4502,6 +4484,89 @@
 								(size 1.27 1.27)
 							)
 						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Mechanical:MountingHole"
+			(pin_names
+				(offset 1.016)
+			)
+			(exclude_from_sim no)
+			(in_bom no)
+			(on_board yes)
+			(property "Reference" "H"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MountingHole"
+				(at 0 3.175 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Mounting Hole without connection"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "mounting hole"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "MountingHole*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "MountingHole_0_1"
+				(circle
+					(center 0 0)
+					(radius 1.27)
+					(stroke
+						(width 1.27)
+						(type default)
+					)
+					(fill
+						(type none)
 					)
 				)
 			)
@@ -8458,6 +8523,16 @@
 	)
 	(wire
 		(pts
+			(xy 83.82 81.28) (xy 86.36 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "166c0377-4e6f-4bdc-ace4-eccc3e4112d3")
+	)
+	(wire
+		(pts
 			(xy 36.83 267.97) (xy 36.83 269.24)
 		)
 		(stroke
@@ -10028,16 +10103,6 @@
 	)
 	(wire
 		(pts
-			(xy 85.09 76.2) (xy 87.63 76.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "788e72a6-648c-42ce-abb0-1c4272312664")
-	)
-	(wire
-		(pts
 			(xy 160.02 119.38) (xy 167.64 119.38)
 		)
 		(stroke
@@ -10325,6 +10390,16 @@
 			(type default)
 		)
 		(uuid "8c88c574-eaeb-41eb-967e-9f74e13d8ed4")
+	)
+	(wire
+		(pts
+			(xy 83.82 76.2) (xy 86.36 76.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8d8b88b3-fd4e-440d-a5dc-e2ec1fccd3f5")
 	)
 	(wire
 		(pts
@@ -10698,16 +10773,6 @@
 	)
 	(wire
 		(pts
-			(xy 92.71 83.82) (xy 92.71 86.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ad615d2d-f912-41bf-a733-81c18c86fed6")
-	)
-	(wire
-		(pts
 			(xy 274.32 238.76) (xy 274.32 240.03)
 		)
 		(stroke
@@ -10795,16 +10860,6 @@
 			(type default)
 		)
 		(uuid "b6128949-a2d0-43c5-97b5-68d16bffe704")
-	)
-	(wire
-		(pts
-			(xy 85.09 73.66) (xy 87.63 73.66)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b6490de0-0e92-4481-ad7b-3abbf7f1f79a")
 	)
 	(wire
 		(pts
@@ -10928,13 +10983,13 @@
 	)
 	(wire
 		(pts
-			(xy 85.09 78.74) (xy 87.63 78.74)
+			(xy 83.82 78.74) (xy 86.36 78.74)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "bcdece6c-dab3-401a-94a4-2e9a1e0683c3")
+		(uuid "becb7af9-8e73-42e4-b7f2-17995400100b")
 	)
 	(wire
 		(pts
@@ -12266,6 +12321,28 @@
 			)
 		)
 	)
+	(global_label "LA"
+		(shape input)
+		(at 83.82 78.74 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "3d7a11ee-3a9b-4d75-be72-4bf2a1af9a44")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 78.7181 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "VSPI_SCK"
 		(shape output)
 		(at 194.31 158.75 0)
@@ -12521,6 +12598,28 @@
 		(uuid "66f194dd-ba1d-4176-841d-5ce4107bfa48")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 238.7381 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "RL"
+		(shape input)
+		(at 83.82 76.2 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "6812abfc-696b-48f8-bf7b-cf9d7923e692")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 78.5367 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13366,28 +13465,6 @@
 			)
 		)
 	)
-	(global_label "RA"
-		(shape input)
-		(at 85.09 73.66 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "ceb46e32-f0cf-45a5-a54e-d8020280515d")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 79.7462 73.66 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "LOD-"
 		(shape output)
 		(at 78.74 55.88 0)
@@ -13472,6 +13549,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "RA"
+		(shape input)
+		(at 83.82 81.28 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "e68a6e70-c26b-45a6-97cb-62a8691827db")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 78.4762 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -13564,28 +13663,6 @@
 			)
 		)
 	)
-	(global_label "LA"
-		(shape input)
-		(at 85.09 76.2 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "f0208284-5a95-4ca1-b7f9-4c498892d98e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 79.9881 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "IAOUT"
 		(shape input)
 		(at 29.21 58.42 180)
@@ -13599,28 +13676,6 @@
 		(uuid "f14ebee5-ae4d-4e41-a7c7-78c4d2e67261")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 20.9028 58.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "RL"
-		(shape input)
-		(at 85.09 78.74 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "f3f800b1-665a-4668-9843-1907157fe424")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 79.8067 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14638,7 +14693,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_JST:JST_PH_S8B-PH-K_1x08_P2.00mm_Horizontal"
+		(property "Footprint" "Connector_JST:JST_PH_B8B-PH-K_1x08_P2.00mm_Vertical"
 			(at 368.3 217.17 0)
 			(effects
 				(font
@@ -15064,81 +15119,6 @@
 			(project "Eros"
 				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
 					(reference "U7")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Audio:AudioJack3_Ground")
-		(at 92.71 76.2 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "1bc73396-4397-4928-9091-bdf980df413f")
-		(property "Reference" "J7"
-			(at 94.615 67.31 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "AudioJack3_Ground"
-			(at 94.615 69.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Connector_Audio:Jack_3.5mm_Lumberg_1503_03_Horizontal"
-			(at 92.71 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 92.71 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Audio Jack, 3 Poles (Stereo / TRS), Grounded Sleeve"
-			(at 92.71 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "T"
-			(uuid "7e2f2ff8-958a-4dbc-8ed0-8e5e533c489a")
-		)
-		(pin "G"
-			(uuid "3b2e4be0-a5da-4d8c-8d38-ee7a9626bcf7")
-		)
-		(pin "R"
-			(uuid "bbaafb70-babd-49b4-9ae1-216fe4a078ed")
-		)
-		(pin "S"
-			(uuid "b632d940-ae2c-4a96-b4f6-ae39991b30d3")
-		)
-		(instances
-			(project "Eros"
-				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
-					(reference "J7")
 					(unit 1)
 				)
 			)
@@ -15684,6 +15664,70 @@
 			(project "Eros"
 				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
 					(reference "C20")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 83.82 102.87 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "254df948-0fe0-4f3f-87ae-54e4f5c96b3c")
+		(property "Reference" "H7"
+			(at 86.36 101.5999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 86.36 104.1399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 83.82 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 83.82 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 83.82 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project ""
+				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
+					(reference "H7")
 					(unit 1)
 				)
 			)
@@ -19254,6 +19298,70 @@
 		)
 	)
 	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 66.04 110.49 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "6942237c-c101-45a6-9f09-f4629a914b5e")
+		(property "Reference" "H6"
+			(at 68.58 109.2199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 68.58 111.7599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 66.04 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 66.04 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 66.04 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project ""
+				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
+					(reference "H6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 36.83 269.24 0)
 		(unit 1)
@@ -19461,6 +19569,78 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector_Audio:AudioJack3")
+		(at 91.44 78.74 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6ec49965-25b3-43ab-9457-16611e93ebc9")
+		(property "Reference" "J7"
+			(at 97.282 72.644 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "AudioJack3"
+			(at 89.662 83.566 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Connector_Audio:Jack_3.5mm_Lumberg_1503_03_Horizontal"
+			(at 91.44 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 91.44 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Audio Jack, 3 Poles (Stereo / TRS)"
+			(at 91.44 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "R"
+			(uuid "73d733d0-3443-4341-9fdb-b0e21e08f9e1")
+		)
+		(pin "S"
+			(uuid "f41fc56e-47e6-4899-a61a-4460164cdf4b")
+		)
+		(pin "T"
+			(uuid "b2466863-54a6-40e8-93bf-08039f74cde2")
+		)
+		(instances
+			(project ""
+				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
+					(reference "J7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 29.21 269.24 0)
 		(unit 1)
@@ -19659,6 +19839,70 @@
 			(project "Eros"
 				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
 					(reference "J2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 83.82 110.49 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "773591c2-f97e-415b-b29d-06d3c7eb2120")
+		(property "Reference" "H8"
+			(at 86.36 109.2199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 86.36 111.7599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 83.82 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 83.82 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 83.82 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project ""
+				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
+					(reference "H8")
 					(unit 1)
 				)
 			)
@@ -20087,72 +20331,6 @@
 			(project "Eros"
 				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
 					(reference "SW6")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 92.71 86.36 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "84aa5def-3d7e-4bc3-b1a1-3698c67ce55c")
-		(property "Reference" "#PWR062"
-			(at 92.71 92.71 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 92.71 90.678 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 92.71 86.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 92.71 86.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 92.71 86.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "eab8f955-6f50-4efd-a10e-1efe8590a9db")
-		)
-		(instances
-			(project "Eros"
-				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
-					(reference "#PWR062")
 					(unit 1)
 				)
 			)
@@ -24724,6 +24902,70 @@
 			(project "Eros"
 				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
 					(reference "#PWR04")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 66.04 102.87 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "eb68b6d8-a9ce-4fe0-9b53-6d2752c7bf5a")
+		(property "Reference" "H5"
+			(at 68.58 101.5999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 68.58 104.1399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_Pad"
+			(at 66.04 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 66.04 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 66.04 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(instances
+			(project ""
+				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
+					(reference "H5")
 					(unit 1)
 				)
 			)
