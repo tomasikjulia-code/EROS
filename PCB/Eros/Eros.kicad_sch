@@ -16385,7 +16385,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "346c6be3-f081-4365-b19a-6f0af2bfd661")
-		(property "Reference" "TP11"
+		(property "Reference" "TP6"
 			(at 202.692 49.53 90)
 			(effects
 				(font
@@ -16436,7 +16436,7 @@
 		(instances
 			(project "Eros"
 				(path "/0de1f6b5-5206-4036-b96d-057d224718dc"
-					(reference "TP11")
+					(reference "TP6")
 					(unit 1)
 				)
 			)
@@ -19926,7 +19926,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "1M"
 			(at 127.254 249.428 0)
 			(effects
 				(font
@@ -23436,7 +23436,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "1M"
 			(at 139.7 243.332 0)
 			(effects
 				(font
