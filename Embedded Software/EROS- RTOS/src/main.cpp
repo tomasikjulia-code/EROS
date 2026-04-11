@@ -22,7 +22,8 @@ SemaphoreHandle_t sdMutex;
 DeviceManager HolterDevice;
 
 void measureTask(void *parameter)
-{
+{   
+    HolterDevice.setStartTime(); //ustawiam sobie start badania na aktualna wartosc millis() zeby pozniej moc sprawdzac ile czasu zostalo do konca badania
     while (true)
     {
         if (xSemaphoreTake(sdMutex, portMAX_DELAY))
@@ -54,7 +55,7 @@ void displayTask(void *parameter)
     {
         if (xSemaphoreTake(displayMutex, portMAX_DELAY))
         {   
-            HolterDevice.updateDisplay(1000);
+            HolterDevice.updateDisplay(2000);
             xSemaphoreGive(displayMutex);
         }
     }
