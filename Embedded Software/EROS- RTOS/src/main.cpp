@@ -39,7 +39,7 @@ void btTask(void *parameter)
     while (true)
     {
         if (xSemaphoreTake(btMutex, portMAX_DELAY))
-        {
+        {   
             HolterDevice.checkBluetooth();
             vTaskDelay(pdMS_TO_TICKS(200));
             xSemaphoreGive(btMutex);
@@ -53,8 +53,8 @@ void displayTask(void *parameter)
     while (true)
     {
         if (xSemaphoreTake(displayMutex, portMAX_DELAY))
-        {
-            HolterDevice.updateDisplay(3000);
+        {   
+            HolterDevice.updateDisplay(1000);
             xSemaphoreGive(displayMutex);
         }
     }
@@ -69,12 +69,13 @@ void setup()
     displayMutex = xSemaphoreCreateMutex();
     btMutex = xSemaphoreCreateMutex();
     sdMutex = xSemaphoreCreateMutex();
+    
+    //wybór czasu trwania badania
 
-    //czekanie na karte SD
+    HolterDevice.chooseTestTime();
+    
+    // czekanie na karte SD
     HolterDevice.waitingForSDcard();
-
-    // tutaj fajnie by bylo stworzyc funkcje ktora ustawia czas trwania badania (to jest pole EKGEgzamineTime)
-    // za pomocą wyświetlania prostego menu wyświetlacza i poruszania sie po nim za pomoca przyciskow.
 
     //tworzenie taskow
     xTaskCreatePinnedToCore(measureTask,"Measure Task",4096,NULL,2,&measureTaskHandle,1);

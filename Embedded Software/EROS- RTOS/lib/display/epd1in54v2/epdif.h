@@ -46,6 +46,7 @@ public:
     static int  DigitalRead(int pin);
     static void DelayMs(unsigned int delaytime);
     static void SpiTransfer(unsigned char data);
+    static bool SpiInitialized;
 };
 
 #endif
