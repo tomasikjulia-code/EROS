@@ -74,7 +74,7 @@ void setup()
 
     HolterDevice.chooseTestTime();
     
-    // czekanie na karte SD
+    // // czekanie na karte SD
     HolterDevice.waitingForSDcard();
 
     //tworzenie taskow

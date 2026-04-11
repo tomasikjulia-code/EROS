@@ -153,11 +153,18 @@ void DeviceManager::EKGReadingAndSending(){
         if (holter.isRecording()) {
             int16_t val = isLeadOff() ? 0 : (int16_t)getFilteredValue();
             holter.writeSample(val, getAverageBPM(), isLeadOff());
-            
+
+            //// Odkomentuj jak chcesz wyplotować wykres
+            // Serial.print(">FiltredValue:");
+            // Serial.println(getFilteredValue());
+            // Serial.print(">IntegretedSignal:");
+            // Serial.print(getIntegratedSignal()); 
+
             //to trzeba bedzie usunac w finalnej wersji
             static unsigned long lastTick = 0;
             if (millis() - lastTick > 1000) {
-                Serial.print(".");
+                
+                
                 lastTick = millis();
             }
         }

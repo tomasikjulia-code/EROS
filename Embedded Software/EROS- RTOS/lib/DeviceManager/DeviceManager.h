@@ -32,10 +32,10 @@ w miare sekwencyjnie czyli na tą chwile:
 
 //definicje pinow do przyciskow
 #define BTN_BT 2
-#define BTN_LCD 21
+#define BTN_LCD 27
 #define BTN_MIN 3
 #define BTN_T_UP 2
-#define BTN_T_DOWN 21
+#define BTN_T_DOWN 27
 #define BTN_T_CONFIRM 3
 
 class DeviceManager{
