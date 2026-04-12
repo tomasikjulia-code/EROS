@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ScrollView, Animated, View, Text, TouchableOpacity, StatusBar, Platform } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { AlertCircle, CheckCircle2, Home, History, Settings } from 'lucide-react-native';
 import { styles } from './src/constants/Theme';
 import { initialHistory, generateHourlyTrend, generateMockEcgStrip } from './src/utils/Generators';
+import { requestBluetoothPermissions, getPairedDevices, connectToDevice, disconnectDevice, receiveData, sendData } from './src/utils/BluetoothSerial';
 
 import HomeScreen from './src/screens/HomeScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
@@ -22,20 +23,14 @@ export default function App() {
   const [view, setView] = useState('home'); 
   const [bleState, setBleState] = useState('disconnected'); 
   const [syncState, setSyncState] = useState('idle'); 
+
+  const deviceRef = useRef(null);
+  const subscriptionRef = useRef(null)
   
   const [records, setRecords] = useState(initialHistory);
   const [deviceData, setDeviceData] = useState(initialHistory[0]); 
   
-  const [diagnostics, setDiagnostics] = useState({
-    battery: 85,
-    isMeasuring: true,
-    signalQuality: "Stabilny",
-    electrodes: [
-      { name: "RA (Prawy)", ok: true },
-      { name: "LA (Lewy)", ok: true },
-      { name: "V1 (Klatka)", ok: true }
-    ]
-  });
+  const [diagnostics, setDiagnostics] = useState(null);
 
   const [activeReportRecord, setActiveReportRecord] = useState(null);
   const [aiReport, setAiReport] = useState(null);
@@ -74,14 +69,40 @@ export default function App() {
     }
   };
 
-  const toggleBluetooth = () => {
+  //Włączanie i wyłączanie bluetooth, będzie trzeba dodać rozróżnienie na ble i serial
+  const toggleBluetooth = async () => {
     if (bleState === 'disconnected') {
+      const hasPermissions = await requestBluetoothPermissions();
+      if(!hasPermissions){
+        showToast("Brak uprawnień Bluetooth.","error");
+        return;
+      }
+
+      const paired = await getPairedDevices();
+      const eros = paired.find(device => device.name === "EROS");
+      if(!eros){
+        showToast("Nie znaleziono urządzenia. Sparuj je w ustawieniach telefonu.","error");
+        return;
+      }
+
+      const device = await connectToDevice(eros.address);
+      if(!device){
+        showToast("Nie udało połączyć się z urządzeniem.","error");
+        return;
+      }
+
+      deviceRef.current = device;
       setBleState('connected');
-      showToast('Nawiązano bezpieczne połączenie z EROS PRO');
+      showToast('Nawiązano bezpieczne połączenie z EROS.');
 
-      mockHardware.start();
-
+      subscriptionRef.current = receiveData(eros.address, (rawData) => {
+        handleIncomingData(rawData);
+      });
     } else {
+      subscriptionRef.current?.remove();
+      await disconnectDevice(deviceRef.current?.address);
+      deviceRef.current=null;
+
       setBleState('disconnected');
       setSyncState('idle');
       showToast('Rozłączono urządzenie. Tryb odczytu lokalnego.', 'info');
@@ -89,6 +110,25 @@ export default function App() {
       mockHardware.stop();
     }
   };
+
+  function handleIncomingData(rawData){
+    try{
+      const trimmed = rawData.trim();
+      if (!trimmed) return;
+
+      const parsed = JSON.parse(trimmed);
+      
+      setDeviceData(parsed);
+      setDiagnostics({
+        battery: parsed.battery,
+        signalQuality: parsed.signalQuality,
+        isMeasuring: parsed.isMeasuring,
+        electrodes: parsed.electrodes,
+      });
+    } catch(e) {
+      console.warn('Failed to parse data from EROS:', rawData);
+    }
+  }
 
   const syncData = () => {
     if (bleState !== 'connected') {

@@ -6,6 +6,11 @@ import LiveEcgChart from './LiveEcgChart';
 
 const DeviceDiagnostics = ({ bleState, diagnostics }) => {
   if (bleState !== 'connected') return null;
+  if (!diagnostics) return (
+    <View style={styles.diagContainer}>
+      <Text style={styles.diagLabel}>Oczekiwanie na dane urządzenia...</Text>
+    </View>
+  );
 
   return (
     <View style={styles.diagContainer}>
