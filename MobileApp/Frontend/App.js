@@ -9,6 +9,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import ReportScreen from './src/screens/ReportScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import { mockHardware } from './src/utils/MockHardware'; // tymczasowo
 
 let Speech;
 try {
@@ -77,10 +78,15 @@ export default function App() {
     if (bleState === 'disconnected') {
       setBleState('connected');
       showToast('Nawiązano bezpieczne połączenie z EROS PRO');
+
+      mockHardware.start();
+
     } else {
       setBleState('disconnected');
       setSyncState('idle');
       showToast('Rozłączono urządzenie. Tryb odczytu lokalnego.', 'info');
+      
+      mockHardware.stop();
     }
   };
 

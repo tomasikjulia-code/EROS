@@ -22,14 +22,23 @@ enum battery_level{
   EMPTY
 };
 
-void mainScreen(uint8_t BPM, uint8_t hours_left, uint8_t minutes_left, battery_level batteryState, bool bluetoothState);
+void displayFirstScreen(uint8_t hours);
+void displayMainScreen(uint8_t BPM, uint8_t hours_left, uint8_t minutes_left, battery_level batteryState, bool bluetoothState);
 void drawBitmap(int x, int y, int w, int h, const unsigned char* bitmap);
-void display_battery(battery_level level);
-void display_bluetooth();
-void display_BPM_value(uint8_t number);
-void display_BPM(uint8_t number);
+void displayBattery(battery_level level);
+void displayBluetooth();
+void displayWarningPopUp(const char* message);
+void displayBPMValue(uint8_t number);
+void displayBPM(uint8_t number);
 void displayTimeLeft(uint8_t hours, uint8_t minutes);
-void clear_display();
+void displayTimeChoice();
+void displayTimeChoiceValue(uint8_t hours);
+void clearDisplay();
+void wakeUpDisplay();
+void updateBPM(uint8_t BPM);
+void updateTimeChoice(uint8_t hours);
+void splitText(const char* message);
+void displayEndScreen();
 
 
 #endif

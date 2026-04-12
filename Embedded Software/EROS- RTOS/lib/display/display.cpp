@@ -6,25 +6,31 @@ Paint paint(image, 0, 0);
 
 
 void drawBitmap(int x, int y, int w, int h, const unsigned char* bitmap) {
-    paint.SetWidth(w);
-    paint.SetHeight(h);
-    paint.Clear(UNCOLORED);
-    
-    int bytesPerRow = (w + 7) / 8;
-    for (int row = 0; row < h; row++) {
-        for (int col = 0; col < w; col++) {
-            int byteIndex = row * bytesPerRow + col / 8;
-            int bitIndex = 7 - (col % 8);
-            int pixel = (bitmap[byteIndex] >> bitIndex) & 1;
-            if (pixel == 1) {
-                paint.DrawPixel(col, row, COLORED);
-            }
-        }
-    }
-    epd.SetFrameMemory(paint.GetImage(), x, y, w, h);
+  int xOffset = x % 8;
+  int alignedX = x - xOffset;
+  int alignedW = w + xOffset;
+  alignedW = (alignedW + 7) & ~7;
+
+  paint.SetWidth(alignedW);
+  paint.SetHeight(h);
+  paint.Clear(UNCOLORED);
+
+  int bytesPerRow = (w + 7) / 8;
+  for (int row = 0; row < h; row++) {
+      for (int col = 0; col < w; col++) {
+          int byteIndex = row * bytesPerRow + col / 8;
+          int bitIndex = 7 - (col % 8);
+          int pixel = (bitmap[byteIndex] >> bitIndex) & 1;
+          if (pixel == 1) {
+              paint.DrawPixel(col + xOffset, row, COLORED);
+          }
+      }
+  }
+
+  epd.SetFrameMemoryPartial(paint.GetImage(), alignedX, y, alignedW, h);
 }
 
-void display_battery(battery_level level){
+void displayBattery(battery_level level){
 switch (level)
 {
 case FULL:
@@ -43,28 +49,28 @@ default:
 }
 }
 
-void display_bluetooth(){
+void displayBluetooth(){
   drawBitmap(140, 0, 16, 32, BLUETOOTH);
 }
 
-void display_BPM_value(uint8_t number){
+void displayBPMValue(uint8_t number){
   std::string number_str=std::to_string(number);
   uint8_t number_to_display;
   uint8_t number_length=strlen(number_str.c_str());
-  uint8_t x_pos=(200-32*number_length)/2;
+  uint8_t x_pos=(200-36*number_length)/2-2;
   for(int i=0;i<strlen(number_str.c_str());i++){
     number_to_display=std::stoi(std::to_string(number_str[i]-'0'));
-    drawBitmap(x_pos+32*i, 96, 40, 48, &Font48_Table[number_to_display*240]);
+    drawBitmap(x_pos+36*i, 96, 40, 48, &Font48_Table[number_to_display*240]);
   }
 
 }
 
-void display_BPM(uint8_t number){
+void displayBPM(uint8_t number){
   drawBitmap(52, 48, 32, 48, LETTER_B);
   drawBitmap(80, 48, 48, 48, LETTER_P);
-  drawBitmap(118, 48, 48, 48, LETTER_M);
+  drawBitmap(112, 48, 48, 48, LETTER_M);
 
-  display_BPM_value(number);
+  displayBPMValue(number);
 }
 
 void displayTimeLeft(uint8_t hours, uint8_t minutes){
@@ -76,26 +82,171 @@ void displayTimeLeft(uint8_t hours, uint8_t minutes){
 
   paint.Clear(COLORED);
   paint.DrawStringAt(x_pos, 5, text.c_str(), &Font16, UNCOLORED);
-  epd.SetFrameMemory(paint.GetImage(), 0, 176, paint.GetWidth(), paint.GetHeight());
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 176, paint.GetWidth(), paint.GetHeight());
 }
 
-void clear_display(){
-  Serial.println("e-Paper clear and goto sleep");
+void clearDisplay(){
   paint.SetWidth(200);
   paint.SetHeight(200);
   paint.Clear(UNCOLORED);
 
-  epd.SetFrameMemory(paint.GetImage(), 0, 0, 200, 200);
-  epd.DisplayFrame();
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 0, 200, 200);
+  epd.DisplayPartFrame();
+  epd.WaitUntilIdle();
+  
+  epd.DisplayPartBaseWhiteImage();
+  epd.WaitUntilIdle();
 
   epd.Sleep();
+
 }
-void mainScreen(uint8_t BPM, uint8_t hours_left, uint8_t minutes_left, battery_level batteryState, bool bluetoothState){
-  display_battery(batteryState);
-  if(bluetoothState == 1){
-      display_bluetooth();
+
+void displayTimeChoice(){
+  paint.SetWidth(200);
+  paint.SetHeight(24);
+
+  std::string text="Choose test time:";
+  uint8_t x_pos=(200-strlen(text.c_str())*11)/2;
+
+  paint.Clear(COLORED);
+  paint.DrawStringAt(x_pos, 5, text.c_str(), &Font16, UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 0, paint.GetWidth(), paint.GetHeight());
+}
+
+void displayTimeChoiceValue(uint8_t hours){
+  int i;
+  std::string number_str=std::to_string(hours);
+  uint8_t number_to_display;
+  uint8_t number_length=strlen(number_str.c_str());
+  uint8_t x_pos=(200-36*(number_length+1))/2-6;
+
+  paint.SetWidth(40);
+  paint.SetHeight(48);
+  paint.Clear(UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), x_pos+40*(number_length+1), 96, 40, 48);
+
+  for(i=0;i<strlen(number_str.c_str());i++){
+    number_to_display=std::stoi(std::to_string(number_str[i]-'0'));
+    drawBitmap(x_pos+36*i, 96, 40, 48, &Font48_Table[number_to_display*240]);
   }
-  display_BPM(BPM);
+  drawBitmap(x_pos+40*number_length, 96, 40, 48, LETTER_h);
+}
+
+void displayFirstScreen(uint8_t hours){
+  displayTimeChoice();
+  displayTimeChoiceValue(hours);
+  epd.DisplayPartFrame();
+  epd.WaitUntilIdle();
+}
+
+void displayMainScreen(uint8_t BPM, uint8_t hours_left, uint8_t minutes_left, battery_level batteryState, bool bluetoothState){
+  displayBattery(batteryState);
+  if(bluetoothState == 1){
+      displayBluetooth();
+  }
+  displayBPM(BPM);
   displayTimeLeft(hours_left,minutes_left);
   epd.DisplayPartFrame();
+}
+
+void wakeUpDisplay(){
+  epd.LDirInit();
+  epd.Clear();
+}
+
+void updateBPM(uint8_t BPM){
+  displayBPMValue(BPM);
+  epd.DisplayPartFrame();
+}
+
+void updateTimeChoice(uint8_t hours){
+  displayTimeChoiceValue(hours);
+  epd.DisplayPartFrame();
+}
+
+void splitText(const char* message){
+  char message1[19];
+  char message2[19];
+  int splitPosition, maxCharsInLine=18;
+
+  for(int i=maxCharsInLine;i>=0;i--){
+    if(message[i]==' '){
+      splitPosition=i;
+      break;
+    }
+  }
+
+  strncpy(message1,message,splitPosition);
+  message1[splitPosition]='\0';
+  Serial.println(message1);
+  strncpy(message2,message + splitPosition + 1,strlen(message)-splitPosition);
+  Serial.println(message2);
+
+  uint8_t x_pos1=(200-strlen(message1)*11)/2;
+
+  paint.SetWidth(200);
+  paint.SetHeight(24);
+
+  paint.Clear(COLORED);
+  paint.DrawStringAt(x_pos1, 5, message1, &Font16, UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 152, paint.GetWidth(), paint.GetHeight());
+
+  uint8_t x_pos2=(200-strlen(message2)*11)/2;
+
+  paint.SetWidth(200);
+  paint.SetHeight(24);
+
+  paint.Clear(COLORED);
+  paint.DrawStringAt(x_pos2, 5, message2, &Font16, UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 176, paint.GetWidth(), paint.GetHeight());
+  }
+
+void displayWarningPopUp(const char* message){
+  drawBitmap(36, 17, 128, 112, WARNING);
+
+  int maxCharsInLine=18;
+  
+  if(strlen(message)>maxCharsInLine){
+    splitText(message);
+  }
+  else{
+    uint8_t x_pos=(200-strlen(message)*11)/2;
+
+    paint.SetWidth(200);
+    paint.SetHeight(24);
+
+    paint.Clear(COLORED);
+    paint.DrawStringAt(x_pos, 5, message, &Font16, UNCOLORED);
+    epd.SetFrameMemoryPartial(paint.GetImage(), 0, 176, paint.GetWidth(), paint.GetHeight());
+  }
+
+
+  epd.DisplayPartFrame();
+}
+
+void displayEndScreen(){
+  std::string message1="Test has ended";
+  std::string message2="You can see";
+  std::string message3="first results in the mobile app";
+  drawBitmap(52, 30, 96, 96, CHECK_MARK);
+
+  uint8_t x_pos1=(200-strlen(message1.c_str())*11)/2;
+  uint8_t x_pos2=(200-strlen(message2.c_str())*11)/2;
+
+  paint.SetWidth(200);
+  paint.SetHeight(24);
+
+  paint.Clear(COLORED);
+  paint.DrawStringAt(x_pos1, 5, message1.c_str(), &Font16, UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 0, paint.GetWidth(), paint.GetHeight());
+
+  paint.SetWidth(200);
+  paint.SetHeight(24);
+
+  paint.Clear(COLORED);
+  paint.DrawStringAt(x_pos2, 5, message2.c_str(), &Font16, UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 128, paint.GetWidth(), paint.GetHeight());
+
+  splitText(message3.c_str());
+  epd.DisplayPartFrame(); 
 }

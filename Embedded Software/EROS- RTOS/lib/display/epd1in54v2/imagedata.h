@@ -33,7 +33,10 @@ extern const unsigned char BLUETOOTH[];
 extern const unsigned char LETTER_B[];
 extern const unsigned char LETTER_P[];
 extern const unsigned char LETTER_M[];
+extern const unsigned char LETTER_h[];
 extern const unsigned char Font48_Table[];
+extern const unsigned char WARNING[];
+extern const unsigned char CHECK_MARK[];
 
 
 /* FILE END */

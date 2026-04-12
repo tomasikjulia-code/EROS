@@ -2,8 +2,9 @@
 
 DeviceManager::DeviceManager(){
 
-    btEnabled = false; //na poczatek nie dziala bluetooth
+    btEnabled = false; //na poczatek nikt nie klikal przycisku
     displayEnabled = false; //na poczatek wyswietlacz wylaczony
+    btStarted = false; //na poczatek bluetooth nie jest jeszcze wystartowany
 
     btPressStart = 0;
     lcdPressStart = 0;
@@ -11,8 +12,8 @@ DeviceManager::DeviceManager(){
     SDcardEnabled = 0; //na początek nic nie ma i dopiero pozneij w inicie sprawdzam czy karta jest
     fileSystemEnabled = 0; //na poczatek nie ma systemu plikow bo nawet nie wiadomo czy jest karta
 
-    EKGegzamineTime = 0; //na start czas badania ustawiany na zero jak cos bo pierwszy widok urzadzenia bedzie pozwalal ustawic ta wielkosc
-
+    EKGTestTime = 0; //na start czas badania ustawiany na zero jak cos bo pierwszy widok urzadzenia bedzie pozwalal ustawic ta wielkosc
+    testTimeChosen = false;
 
 }
 
@@ -21,10 +22,6 @@ void DeviceManager::init(){
     //SETUP MIKROKONTROLERA 
 
     Serial.begin(115200);
-
-    //inicjalizacja Bluetooth
-    SerialBT.begin("HolterEkg");
-    delay(1000); //troche poczekamy bo czemu nie bo to inicjalizacja przeciez
 
     //inicjalizacja wyswietlacza
     epd.LDirInit();
@@ -38,17 +35,97 @@ void DeviceManager::init(){
     pinMode(BTN_BT, INPUT_PULLUP);
     pinMode(BTN_LCD, INPUT_PULLUP);
     pinMode(BTN_MIN, INPUT_PULLUP);
+
+}
+
+void DeviceManager::setStartTime(){
+    startTime = millis();
+}
+
+void DeviceManager::chooseTestTime(){
+    if(testTimeChosen) return;
+    uint8_t lastDisplayedTime=EKGTestTime;
+    displayFirstScreen(EKGTestTime);
+    displayFirstScreen(EKGTestTime);
+
+    while(!testTimeChosen){
+        checkTestTimeButtons();
+        if(EKGTestTime!=lastDisplayedTime){
+            updateTimeChoice(EKGTestTime);
+            lastDisplayedTime=EKGTestTime;
+        }
+    }
+    clearDisplay();
 }
 
 void DeviceManager::checkBluetooth(){
 
-    if (btEnabled && SerialBT.hasClient())
+    if (btEnabled)
     {
-        //fajnie by było jakby tutaj była jakas informacja ze po nacisnieciu przycisku zaczyna sie przesyl bluetooth 
+        //inicjalizacja Bluetooth
+        //czekamy jakis tam czas i sprawdzamy czy ktos sie polaczy do naszego holtera a jesli enabled juz jest wlaczony to nie wlaczaj
+        if(!btStarted){
+            SerialBT.begin("HolterEkg");
+            btStarted = true;
+        }
+        
+        SerialBT.begin("HolterEkg");
+
+        for (int i = 0; i < 10; i++)
+        {
+            if(SerialBT.hasClient()) break; // jak ma klienta to od razu uciekam z petli bo po co
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            //wychodzimy z petli jak znalazlo klienta
+        }
+
+        //sprawdzamy czy znalazlo klienta
+        if(!SerialBT.hasClient()){
+            SerialBT.end(); //wylaczamy BT
+            btEnabled = false; //ustawiamy bt enabled na false bo nie ma klienta do wysylania danych i wychodzimy z funkcji zeby nie blokowac innych rzeczy w programie
+            btStarted = false; //ustawiamy bt started na false zeby mozna bylo potem ponownie wlaczyc BT bez problemu
+            return;
+        }
+
+        if (SerialBT.hasClient())
+        {
+            // czekamy na jakis komunikat od aplikacji zeby wyslac albo na bierzaco EKG albo plik z badaniem
+            while (!SerialBT.available()) {
+                vTaskDelay(pdMS_TO_TICKS(100));
+            }
+
+            String response = SerialBT.readStringUntil('\n');
+            response.trim();
+            if (response == "GET_EKG") {
+            //wysylamy tutaj na bierzaco probki EKG do momentu uzyskania komunikatu STOP od aplikacji
+                while (SerialBT.hasClient()) {
+                    if (SerialBT.available()) {
+                        String command = SerialBT.readStringUntil('\n');
+                        command.trim();
+                        if (command == "STOP") {
+                            break;
+                        }
+                    }
+                    SerialBT.println(getFilteredValue()); //tutaj wysylamy probke EKG 
+                    vTaskDelay(pdMS_TO_TICKS(4)); //odstep czasowy miedzy probkami, zeby nie zalewac aplikacji danymi
+                }
+
+            //jak ESP zobaczy taka komende to wysyla plik z danym lub jego czesc
+            } else if (response == "GET_FILE") {
+                BTSendingFile();
+            } else {
+                //tutaj moze w przyszlosci obsluga w przypadku nieznanej komendy
+                Serial.println("nieznana komenda: " + response);
+            }
+        }
+    }
+}
+
+void DeviceManager::BTSendingFile(){
+    if (SerialBT.hasClient()) {
 
         File file = SD.open("/test_ekg.csv"); // tutaj tworze sobie nowy uchwyt do pliku bo ten karoliny jest w prywatnych i nie da sie do niego odwolac
         if (!file) {
-            Serial.println("Nie można otworzyć pliku!");
+            //nie mozna otworzyc pliku
             return;
         }
 
@@ -88,9 +165,10 @@ void DeviceManager::checkBluetooth(){
         // --- ZAKOŃCZENIE TRANSMISJI ---
         SerialBT.println("DONE");
         Serial.println("Plik wysłany!");
-        btEnabled = false; //to robimy na false bo chcemy tylko wysylac jak przycisk byl nacisniety
     }
 }
+
+
 
 void DeviceManager::waitingForSDcard(){
 
@@ -106,59 +184,93 @@ void DeviceManager::waitingForSDcard(){
         if (!SDcardEnabled) {
             Serial.println("ERROR: SD card does not work properly.");
             delay(1000);
-            //tutaj fajnie by było dać wyświetlanie na ekranie ze nie ma karty
+            displayWarningPopUp("SD card not working");
             continue;
         }
 
         if (!fileSystemEnabled) {
             Serial.println("ERROR: File system problem writing to file.");
             delay(1000);
-            //tutaj fajnie by było dać info ze blad systemu plikow na wyswietlaczu
+            displayWarningPopUp("Writing to file error");
             continue;
         }
 
         Serial.println("File opened, press middle button to stop. Writing data...");
-
+        
+        clearDisplay();
     }while(!SDcardEnabled || !fileSystemEnabled);
 }
 
 void DeviceManager::EKGReadingAndSending(){
             /* Kod do pomiarow na karte SD */
-        if (digitalRead(BTN_MIN) == LOW) { //tutaj trzba dodac ze holter ma skonczyc pomiar w chwili kiedy czas dobiegnie końca (zamiast środkowego przycisku)
+        if (digitalRead(BTN_MIN) == LOW || isTimeEnded()) {
             if (holter.isRecording()) {
                 holter.closeFile();
                 Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
+                displayEndScreen();
             }
         }
         processHeartRate();
         if (holter.isRecording()) {
             int16_t val = isLeadOff() ? 0 : (int16_t)getFilteredValue();
             holter.writeSample(val, getAverageBPM(), isLeadOff());
-            
+
+            //// Odkomentuj jak chcesz wyplotować wykres
+            // Serial.print(">FiltredValue:");
+            // Serial.println(getFilteredValue());
+            // Serial.print(">IntegretedSignal:");
+            // Serial.print(getIntegratedSignal()); 
+
             //to trzeba bedzie usunac w finalnej wersji
             static unsigned long lastTick = 0;
             if (millis() - lastTick > 1000) {
-                Serial.print(".");
+                
+                
                 lastTick = millis();
             }
         }
         vTaskDelay(pdMS_TO_TICKS(4));
 }
 
+uint8_t DeviceManager::calculateLeftHours()
+{
+    uint32_t elapsedHours = (millis() - startTime) / MS_PER_HOUR;
+    return (elapsedHours >= EKGTestTime)
+           ? 0
+           : (EKGTestTime - elapsedHours);
+}
+
+uint8_t DeviceManager::calculateLeftMinutes()
+{
+    uint32_t elapsedTime = millis() - startTime;
+    uint32_t totalTimeMs = EKGTestTime * MS_PER_HOUR;
+    if (elapsedTime >= totalTimeMs)
+        return 0;
+    uint32_t remainingTimeMs = totalTimeMs - elapsedTime;
+    return (remainingTimeMs % MS_PER_HOUR) / MS_PER_MINUTE;
+}
+
+bool DeviceManager::isTimeEnded()
+{
+    return (millis() - startTime) >= (EKGTestTime * MS_PER_HOUR);
+}
 
 void DeviceManager::updateDisplay(uint32_t timeInMs){
 
-
     if (displayEnabled){
-
         uint16_t refreshTime = 200; //jesli warunek spelniony to ustawiam sobie refresh time na wyswietlacz
+        uint8_t BPM=getAverageBPM();
+        wakeUpDisplay();
+        displayMainScreen(BPM, calculateLeftHours(),calculateLeftMinutes(), EMPTY, btEnabled);
+        displayMainScreen(BPM, calculateLeftHours(),calculateLeftMinutes(), EMPTY, btEnabled);
 
-        for(int i = 0; i<=timeInMs/refreshTime; i++){ //licze sobie ile razy ma wykonac się petla odświerzania zeby czas wyświetlania był spełniony
-            mainScreen(getAverageBPM(), 10,15, EMPTY, 1);  //to trzeba uzupelnic ladnie o czas trwania do konca badania ktory bedzie obliczny
+        for(int i = 0; i<=timeInMs/refreshTime; i++){ //licze sobie ile razy ma wykonac się petla odświeżania zeby czas wyświetlania był spełniony
+            displayMainScreen(getAverageBPM(), calculateLeftHours(),calculateLeftMinutes(), EMPTY, btEnabled);  //to trzeba uzupelnic ladnie o czas trwania do konca badania ktory bedzie obliczny
             vTaskDelay(pdMS_TO_TICKS(refreshTime));
         }
+        clearDisplay();
         displayEnabled = false;
-        epd.Clear();
+
     }else{
         vTaskDelay(pdMS_TO_TICKS(200)); //jesli wyswietlacz nie dziala to i tak sprawdzaj czy nie powinien co 200ms
     }
@@ -205,5 +317,69 @@ void DeviceManager::checkButtons()
     {
         lcdPressStart = 0;
         lcdTriggered = false;
+    }
+}
+
+void DeviceManager::checkTestTimeButtons()
+{
+    //Przycisk który zwieksza czas trwania testu
+    static bool upTriggered = false;
+    if (digitalRead(BTN_T_UP) == LOW)
+    {
+        if (upPressStart == 0)
+            upPressStart = millis();
+
+        if (!upTriggered && millis() - upPressStart > 100)
+        {
+            EKGTestTime++;
+            Serial.println(EKGTestTime);
+            upPressStart = 0;
+            return;
+        }
+    }
+    else
+    {
+        upPressStart = 0;
+        upTriggered = false;
+    }
+
+    //Przycisk który zmniejsza czas trwania testu
+    static bool downTriggered = false;
+    if (digitalRead(BTN_T_DOWN) == LOW && EKGTestTime>0)
+    {
+        if (downPressStart == 0)
+            downPressStart = millis();
+
+        if (!downTriggered && millis() - downPressStart > 100)
+        {
+            EKGTestTime--;
+            Serial.println(EKGTestTime);
+            downPressStart = 0;
+            return;
+        }
+    }
+    else
+    {
+        downPressStart = 0;
+        downTriggered = false;
+    }
+
+    //Przycisk który zatwierdza czas trwania testu
+    static bool confirmTriggered = false;
+    if(digitalRead(BTN_T_CONFIRM)==LOW){
+        if (confirmPressStart == 0)
+            confirmPressStart = millis();
+
+        if (!downTriggered && millis() - confirmPressStart > 1000)
+        {
+            testTimeChosen=true;
+            confirmPressStart = 0;
+            return;
+        }
+    }
+    else
+    {
+        confirmPressStart = 0;
+        confirmTriggered = false;
     }
 }
