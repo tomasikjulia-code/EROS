@@ -11,6 +11,7 @@ import HistoryScreen from './src/screens/HistoryScreen';
 import ReportScreen from './src/screens/ReportScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import { mockHardware } from './src/utils/MockHardware'; // tymczasowo
+import { ecgBuffer } from './src/utils/EcgBuffer.js'
 
 let Speech;
 try {
@@ -95,9 +96,11 @@ export default function App() {
       setBleState('connected');
       showToast('Nawiązano bezpieczne połączenie z EROS.');
 
+      sendData(eros.address,"GET_STATE");
       subscriptionRef.current = receiveData(eros.address, (rawData) => {
         handleIncomingData(rawData);
       });
+
     } else {
       subscriptionRef.current?.remove();
       await disconnectDevice(deviceRef.current?.address);
@@ -116,6 +119,12 @@ export default function App() {
       const trimmed = rawData.trim();
       if (!trimmed) return;
 
+      if (trimmed.startsWith('E')){
+        const sample = parseEcgPacket(trimmed);
+        ecgBuffer.pushData(sample);
+        return;
+      }
+
       const parsed = JSON.parse(trimmed);
       
       setDeviceData(parsed);
@@ -123,10 +132,17 @@ export default function App() {
         battery: parsed.battery,
         signalQuality: parsed.signalQuality,
         isMeasuring: parsed.isMeasuring,
-        electrodes: parsed.electrodes,
+        electrodes: Array.isArray(parsed.electrodes) ? parsed.electrodes: [],
       });
     } catch(e) {
       console.warn('Failed to parse data from EROS:', rawData);
+    }
+  }
+
+  function parseEcgPacket(raw){
+    const sample = parseInt(raw.trim().slice(1),10);
+    if (!isNaN(sample)){
+      return sample;
     }
   }
 
