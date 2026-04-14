@@ -87,5 +87,5 @@ Otwórz terminal w folderze `Mobile App/Frontend` i jeżeli jeszcze tego nie rob
 ### Znane błędy
 
 * Jeżeli projekt znajduje się w mocno zagnieżdżonym folderze, niektóre ścieżki plików mogą być za długie dla systemu Windows. Zaleca się w takim wypadku przeniesienie projektu do mniej zagnieżdżonego folderu i powtórzenie kroku 4.
-* Jeżeli plik był już zainstalowany na telefonie, po skończeniu budowania instalacja nie powiedzie się. Należy odinstalować plik na telefonie i ponownie wpisać "npx expo run:android".
+* Jeżeli plik był już zainstalowany na telefonie, po skończeniu budowania instalacja może się powieść. Należy odinstalować plik na telefonie i ponownie wpisać "npx expo run:android".
 

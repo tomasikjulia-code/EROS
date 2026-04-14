@@ -125,25 +125,36 @@ export default function App() {
         return;
       }
 
-      const parsed = JSON.parse(trimmed);
+
+      if(trimmed.startsWith('D')){
+        parseDiagnostics(trimmed);
+
+      //To jest do zmiany, GET_ECG będzie wysyłane na przycisk a nie po odebraniu diganostics
+      sendData(deviceRef.current?.address, "GET_ECG");
+      //
+      }
       
-      setDeviceData(parsed);
-      setDiagnostics({
-        battery: parsed.battery,
-        signalQuality: parsed.signalQuality,
-        isMeasuring: parsed.isMeasuring,
-        electrodes: Array.isArray(parsed.electrodes) ? parsed.electrodes: [],
-      });
     } catch(e) {
       console.warn('Failed to parse data from EROS:', rawData);
     }
   }
 
-  function parseEcgPacket(raw){
-    const sample = parseInt(raw.trim().slice(1),10);
+  function parseEcgPacket(trimmed){
+    const sample = parseInt(trimmed.slice(1),10);
     if (!isNaN(sample)){
       return sample;
     }
+  }
+
+  function parseDiagnostics(trimmed){
+    const parsed = JSON.parse(trimmed.trim().slice(1));
+    setDeviceData(parsed);
+    setDiagnostics({
+      battery: parsed.battery,
+      signalQuality: parsed.signalQuality,
+      isMeasuring: parsed.isMeasuring,
+      electrodes: Array.isArray(parsed.electrodes) ? parsed.electrodes: [],
+    });
   }
 
   const syncData = () => {
