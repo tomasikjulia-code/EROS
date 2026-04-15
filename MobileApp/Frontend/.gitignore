@@ -735,4 +735,8 @@ fabric.properties
 .expo/
 node_modules/
 
+# Expo generated native folders
+android/
+ios/
+
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node,Linux,macOS,Windows,Intellij+all,VisualStudio,JetBrains+all,VisualStudioCode,expo

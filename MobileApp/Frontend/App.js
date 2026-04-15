@@ -1,14 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ScrollView, Animated, View, Text, TouchableOpacity, StatusBar, Platform } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { AlertCircle, CheckCircle2, Home, History, Settings } from 'lucide-react-native';
 import { styles } from './src/constants/Theme';
 import { initialHistory, generateHourlyTrend, generateMockEcgStrip } from './src/utils/Generators';
+import { requestBluetoothPermissions, getPairedDevices, connectToDevice, disconnectDevice, receiveData, sendData } from './src/utils/BluetoothSerial';
 
 import HomeScreen from './src/screens/HomeScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import ReportScreen from './src/screens/ReportScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import { mockHardware } from './src/utils/MockHardware'; // tymczasowo
+import { ecgBuffer } from './src/utils/EcgBuffer.js'
 
 let Speech;
 try {
@@ -21,20 +24,14 @@ export default function App() {
   const [view, setView] = useState('home'); 
   const [bleState, setBleState] = useState('disconnected'); 
   const [syncState, setSyncState] = useState('idle'); 
+
+  const deviceRef = useRef(null);
+  const subscriptionRef = useRef(null)
   
   const [records, setRecords] = useState(initialHistory);
   const [deviceData, setDeviceData] = useState(initialHistory[0]); 
   
-  const [diagnostics, setDiagnostics] = useState({
-    battery: 85,
-    isMeasuring: true,
-    signalQuality: "Stabilny",
-    electrodes: [
-      { name: "RA (Prawy)", ok: true },
-      { name: "LA (Lewy)", ok: true },
-      { name: "V1 (Klatka)", ok: true }
-    ]
-  });
+  const [diagnostics, setDiagnostics] = useState(null);
 
   const [activeReportRecord, setActiveReportRecord] = useState(null);
   const [aiReport, setAiReport] = useState(null);
@@ -73,16 +70,92 @@ export default function App() {
     }
   };
 
-  const toggleBluetooth = () => {
+  //Włączanie i wyłączanie bluetooth, będzie trzeba dodać rozróżnienie na ble i serial
+  const toggleBluetooth = async () => {
     if (bleState === 'disconnected') {
+      const hasPermissions = await requestBluetoothPermissions();
+      if(!hasPermissions){
+        showToast("Brak uprawnień Bluetooth.","error");
+        return;
+      }
+
+      const paired = await getPairedDevices();
+      const eros = paired.find(device => device.name === "EROS");
+      if(!eros){
+        showToast("Nie znaleziono urządzenia. Sparuj je w ustawieniach telefonu.","error");
+        return;
+      }
+
+      const device = await connectToDevice(eros.address);
+      if(!device){
+        showToast("Nie udało połączyć się z urządzeniem.","error");
+        return;
+      }
+
+      deviceRef.current = device;
       setBleState('connected');
-      showToast('Nawiązano bezpieczne połączenie z EROS PRO');
+      showToast('Nawiązano bezpieczne połączenie z EROS.');
+
+      sendData(eros.address,"GET_STATE");
+      subscriptionRef.current = receiveData(eros.address, (rawData) => {
+        handleIncomingData(rawData);
+      });
+
     } else {
+      subscriptionRef.current?.remove();
+      await disconnectDevice(deviceRef.current?.address);
+      deviceRef.current=null;
+
       setBleState('disconnected');
       setSyncState('idle');
       showToast('Rozłączono urządzenie. Tryb odczytu lokalnego.', 'info');
+      
+      mockHardware.stop();
     }
   };
+
+  function handleIncomingData(rawData){
+    try{
+      const trimmed = rawData.trim();
+      if (!trimmed) return;
+
+      if (trimmed.startsWith('E')){
+        const sample = parseEcgPacket(trimmed);
+        ecgBuffer.pushData(sample);
+        return;
+      }
+
+
+      if(trimmed.startsWith('D')){
+        parseDiagnostics(trimmed);
+
+      //To jest do zmiany, GET_ECG będzie wysyłane na przycisk a nie po odebraniu diganostics
+      sendData(deviceRef.current?.address, "GET_ECG");
+      //
+      }
+      
+    } catch(e) {
+      console.warn('Failed to parse data from EROS:', rawData);
+    }
+  }
+
+  function parseEcgPacket(trimmed){
+    const sample = parseInt(trimmed.slice(1),10);
+    if (!isNaN(sample)){
+      return sample;
+    }
+  }
+
+  function parseDiagnostics(trimmed){
+    const parsed = JSON.parse(trimmed.trim().slice(1));
+    setDeviceData(parsed);
+    setDiagnostics({
+      battery: parsed.battery,
+      signalQuality: parsed.signalQuality,
+      isMeasuring: parsed.isMeasuring,
+      electrodes: Array.isArray(parsed.electrodes) ? parsed.electrodes: [],
+    });
+  }
 
   const syncData = () => {
     if (bleState !== 'connected') {

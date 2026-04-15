@@ -101,12 +101,13 @@ const HomeScreen = ({
       </View>
 
       <DeviceDiagnostics bleState={bleState} diagnostics={diagnostics} />
+      
 
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
           <View style={styles.statIconBg}><Clock size={18} color="#60a5fa" /></View>
           <View>
-            <Text style={styles.statValue}>{deviceData?.duration.substring(0,5) || '--'}</Text>
+            <Text style={styles.statValue}>{deviceData?.duration?.substring(0,5) || '--'}</Text>
             <Text style={styles.statLabel}>Czas zapisu</Text>
           </View>
         </View>

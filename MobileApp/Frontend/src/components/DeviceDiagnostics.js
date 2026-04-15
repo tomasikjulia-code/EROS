@@ -1,10 +1,16 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { BatteryMedium, Waves, Activity } from 'lucide-react-native';
-import { styles } from '../constants/Theme';
+import { styles } from '../constants/Theme'; // Zgodnie z wielkością liter w Twoim projekcie!
+import LiveEcgChart from './LiveEcgChart';
 
 const DeviceDiagnostics = ({ bleState, diagnostics }) => {
   if (bleState !== 'connected') return null;
+  if (!diagnostics) return (
+    <View style={styles.diagContainer}>
+      <Text style={styles.diagLabel}>Oczekiwanie na dane urządzenia...</Text>
+    </View>
+  );
 
   return (
     <View style={styles.diagContainer}>
@@ -33,6 +39,9 @@ const DeviceDiagnostics = ({ bleState, diagnostics }) => {
           <Text style={styles.diagValue}>{diagnostics.signalQuality}</Text>
         </View>
       </View>
+
+      <Text style={[styles.electrodesTitle, { marginTop: 8 }]}>Podgląd sygnału EKG:</Text>
+      <LiveEcgChart isMeasuring={diagnostics.isMeasuring} />
 
       <View style={styles.electrodesBox}>
         <Text style={styles.electrodesTitle}>Stan podpięcia elektrod:</Text>
