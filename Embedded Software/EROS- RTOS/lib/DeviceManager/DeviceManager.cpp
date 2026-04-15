@@ -65,11 +65,11 @@ void DeviceManager::checkBluetooth(){
         //inicjalizacja Bluetooth
         //czekamy jakis tam czas i sprawdzamy czy ktos sie polaczy do naszego holtera a jesli enabled juz jest wlaczony to nie wlaczaj
         if(!btStarted){
-            SerialBT.begin("HolterEkg");
+            SerialBT.begin("EROS");
             btStarted = true;
         }
         
-        SerialBT.begin("HolterEkg");
+        SerialBT.begin("EROS");
 
         for (int i = 0; i < 10; i++)
         {
@@ -95,7 +95,7 @@ void DeviceManager::checkBluetooth(){
 
             String response = SerialBT.readStringUntil('\n');
             response.trim();
-            if (response == "GET_EKG") {
+            if (response == "GET_ECG") {
             //wysylamy tutaj na bierzaco probki EKG do momentu uzyskania komunikatu STOP od aplikacji
                 while (SerialBT.hasClient()) {
                     if (SerialBT.available()) {
@@ -105,6 +105,7 @@ void DeviceManager::checkBluetooth(){
                             break;
                         }
                     }
+                    SerialBT.print('E'); // 'E' to prefix oznaczajacy ze to jest probka EKG a nie jakis inny komunikat, potem idzie wartosc probki
                     SerialBT.println(getFilteredValue()); //tutaj wysylamy probke EKG 
                     vTaskDelay(pdMS_TO_TICKS(4)); //odstep czasowy miedzy probkami, zeby nie zalewac aplikacji danymi
                 }
@@ -112,6 +113,8 @@ void DeviceManager::checkBluetooth(){
             //jak ESP zobaczy taka komende to wysyla plik z danym lub jego czesc
             } else if (response == "GET_FILE") {
                 BTSendingFile();
+            } else if(response == "GET_STATE") {
+                BTSendingState();
             } else {
                 //tutaj moze w przyszlosci obsluga w przypadku nieznanej komendy
                 Serial.println("nieznana komenda: " + response);
@@ -168,7 +171,37 @@ void DeviceManager::BTSendingFile(){
     }
 }
 
+void DeviceManager::BTSendingState()
+{
+    JsonDocument doc;
 
+    doc["battery"] = getBatteryLevel();
+    doc["signalQuality"] = "Stabilny";
+    doc["isMeasuring"] = holter.isRecording();
+
+    JsonArray electrodes = doc["electrodes"].to<JsonArray>();
+
+    JsonObject e1 = electrodes.add<JsonObject>();
+    e1["name"] = "RA (prawy)";
+    e1["status"] = !isLeadOff();
+
+    JsonObject e2 = electrodes.add<JsonObject>();
+    e2["name"] = "LA (Lewy)";
+    e2["status"] = !isLeadOff();
+
+    JsonObject e3 = electrodes.add<JsonObject>();
+    e3["name"] = "RL (brzuch)";
+    e3["status"] = !isLeadOff();
+
+    SerialBT.print('D');
+    serializeJson(doc, SerialBT);
+    SerialBT.println();
+}
+
+uint8_t DeviceManager::getBatteryLevel(){
+    //tutaj kod do odczytu poziomu baterii i zwrocenia go w procentach
+    return 75; //na razie zwracam jakas tam wartosc do testow
+}
 
 void DeviceManager::waitingForSDcard(){
 
@@ -215,7 +248,7 @@ void DeviceManager::EKGReadingAndSending(){
             int16_t val = isLeadOff() ? 0 : (int16_t)getFilteredValue();
             holter.writeSample(val, getAverageBPM(), isLeadOff());
 
-            //// Odkomentuj jak chcesz wyplotować wykres
+            // // Odkomentuj jak chcesz wyplotować wykres
             // Serial.print(">FiltredValue:");
             // Serial.println(getFilteredValue());
             // Serial.print(">IntegretedSignal:");

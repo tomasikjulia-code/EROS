@@ -3,6 +3,7 @@
 #include "display.h"
 #include "HeartMonitor.h"
 #include "CsvWriter.h" 
+#include <ArduinoJson.h>
 /*
 =========================/KROTKI OPIS URZADZENIA NA TA CHWILE/============================================
 
@@ -71,11 +72,13 @@ class DeviceManager{
         void checkBluetooth(); // fucnkja sprawdzajaca czy bluetooth m klienta i sprawdzajaca czy on przypadkiem nic nie wyslal
         void EKGReadingAndSending(); //funkcja odpowiedzialna za czytanie oraz zapis na karcie SD probek badania
         void BTSendingFile();//funkcja wysylajaca caly plik lub jego czesc przez bluetooth
+        void BTSendingState(); //funkcja wysylajaca stan elektrod oraz stan baterii przez bluetooth
         void updateDisplay(uint32_t timeInMs); //funkcja odświerzająca wyświetlacz tyle czasu ile trzeba (pozniej go wylacza) (czas podany w milisekundach)
         void checkButtons(); //funkcja sprawdzajaca przyciski i ustawiajace displayEnabled oraz btEnabled
         void checkTestTimeButtons(); //funkcja sprawdzajaca przyciski podczas wyboru czasu trwania badania
         void waitingForSDcard(); //funkcja działająca w nieskończonej pętli zeby program nie szedl dalej puki nie bedzie karty SD
 
+        uint8_t getBatteryLevel(); //funkcja zwracajaca poziom baterii w procentach
         uint8_t calculateLeftMinutes(); //funkcja obliczajaca ile minyt zostalo do konca badania 
         uint8_t calculateLeftHours(); //funkcja obliczajaca ile godzin zostalo do konca badania
         bool isTimeEnded(); //funkcja sprawdzajaca czy czas badania dobiegł już końca
