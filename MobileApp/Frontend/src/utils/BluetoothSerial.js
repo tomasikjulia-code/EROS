@@ -7,12 +7,23 @@ import { PermissionsAndroid, Platform } from 'react-native';
 
 export async function requestBluetoothPermissions() {
     if(Platform.OS == 'android'){
-        const granted = await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-    ]);
-    return Object.values(granted).every(v => v === PermissionsAndroid.RESULTS.GRANTED);
+        if (Platform.Version >= 31) {
+            // Android 12+ 
+            const granted = await PermissionsAndroid.requestMultiple([
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+            ]);
+            return (
+                granted['android.permission.BLUETOOTH_SCAN'] === PermissionsAndroid.RESULTS.GRANTED &&
+                granted['android.permission.BLUETOOTH_CONNECT'] === PermissionsAndroid.RESULTS.GRANTED
+            );
+        } else {
+            // Starsze Androidy potrzebują lokalizacji
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+            );
+            return granted === PermissionsAndroid.RESULTS.GRANTED;
+        }
     }
     return true;
 }

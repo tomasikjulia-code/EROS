@@ -3,12 +3,13 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { 
   HeartPulse, Bluetooth, BluetoothConnected, CheckCircle2, 
   AlertCircle, BatteryMedium, Clock, RefreshCw, Heart, 
-  Zap, ShieldCheck, ChevronRight 
+  Zap, ShieldCheck, ChevronRight, Activity, FileDown, Database
 } from 'lucide-react-native';
 
 import { styles } from '../constants/Theme';
 import DeviceDiagnostics from '../components/DeviceDiagnostics';
 import TrendChart from '../components/TrendChart';
+import LiveEcgChart from '../components/LiveEcgChart'; 
 
 const HomeScreen = ({ 
   bleState, 
@@ -16,9 +17,14 @@ const HomeScreen = ({
   syncState, 
   diagnostics, 
   toggleBluetooth, 
-  syncData, 
+  syncData,
+  refreshDiagnostics, 
   openReport, 
-  formatDate 
+  formatDate,
+  toggleLiveEcg,
+  isLiveEcgActive,
+  sendFileToDevice,
+  lastConnectedTime
 }) => {
   return (
     <View style={styles.screenContent}>
@@ -51,43 +57,34 @@ const HomeScreen = ({
             {bleState === 'connected' ? (
               <View style={[styles.badge, styles.badgeBlue]}>
                 <View style={styles.dotPulse} />
-                <Text style={styles.badgeTextBlue}>Połączono z Holterem</Text>
-              </View>
-            ) : deviceData ? (
-              <View style={[styles.badge, styles.badgeEmerald]}>
-                <CheckCircle2 size={12} color="#34d399" />
-                <Text style={styles.badgeTextEmerald}>Tryb Offline (Ostatni)</Text>
+                <Text style={styles.badgeTextBlue}>Monitorowanie Aktywne</Text>
               </View>
             ) : (
               <View style={[styles.badge, styles.badgeZinc]}>
                 <AlertCircle size={12} color="#a1a1aa" />
-                <Text style={styles.badgeTextZinc}>Brak danych</Text>
+                <Text style={styles.badgeTextZinc}>Tryb Offline</Text>
               </View>
             )}
             
             <View style={[styles.row, { marginTop: 8 }]}>
-              {bleState === 'connected' ? (
-                <>
-                  <BatteryMedium size={14} color="#34d399"/>
-                  <Text style={styles.subText}>EROS PRO v2.1</Text>
-                </>
-              ) : deviceData ? (
-                <>
-                  <Clock size={12} color="#a1a1aa"/>
-                  <Text style={styles.subText}>{formatDate(deviceData.date)}</Text>
-                </>
-              ) : (
-                <Text style={styles.subText}>Urządzenie niepołączone</Text>
-              )}
+               <Clock size={12} color="#a1a1aa"/>
+               <Text style={styles.subText}>
+                 {deviceData ? formatDate(deviceData.date) : 'Brak badania'}
+                 {lastConnectedTime && ` • Widziano: ${lastConnectedTime}`}
+               </Text>
             </View>
           </View>
           
           <TouchableOpacity 
-            onPress={syncData} 
-            disabled={syncState === 'syncing' || bleState === 'disconnected'} 
-            style={[styles.btnSync, (syncState === 'syncing' || bleState === 'disconnected') && styles.btnSyncDisabled]}
+            onPress={refreshDiagnostics} 
+            disabled={bleState === 'disconnected'} 
+            style={[styles.btnSync, bleState === 'disconnected' && styles.btnSyncDisabled]}
           >
-             <RefreshCw size={20} color={bleState === 'disconnected' ? '#52525b' : '#fff'} />
+             <RefreshCw 
+               size={20} 
+               color={bleState === 'disconnected' ? '#52525b' : '#fff'} 
+               style={syncState === 'syncing' ? { transform: [{ rotate: '45deg' }] } : {}}
+             />
           </TouchableOpacity>
         </View>
         
@@ -100,49 +97,114 @@ const HomeScreen = ({
         </View>
       </View>
 
+      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+        <TouchableOpacity 
+          onPress={toggleLiveEcg}
+          disabled={bleState !== 'connected'}
+          style={{
+            flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+            padding: 16, borderRadius: 16, borderWidth: 1,
+            backgroundColor: isLiveEcgActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(39, 39, 42, 0.6)',
+            borderColor: isLiveEcgActive ? '#10b981' : '#27272a',
+            opacity: bleState !== 'connected' ? 0.4 : 1
+          }}
+        >
+          <Activity size={18} color={isLiveEcgActive ? "#34d399" : "#a1a1aa"} />
+          <Text style={{
+            color: isLiveEcgActive ? '#34d399' : '#a1a1aa',
+            fontSize: 12, fontWeight: '800', marginLeft: 8, letterSpacing: 0.5
+          }}>
+            {isLiveEcgActive ? 'ZATRZYMAJ LIVE' : 'NA ŻYWO'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          onPress={sendFileToDevice}
+          disabled={bleState !== 'connected'}
+          style={{
+            flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+            padding: 16, borderRadius: 16, borderWidth: 1,
+            backgroundColor: bleState === 'connected' ? 'rgba(129, 140, 248, 0.15)' : 'rgba(39, 39, 42, 0.6)',
+            borderColor: bleState === 'connected' ? 'rgba(99, 102, 241, 0.4)' : '#27272a',
+            opacity: bleState !== 'connected' ? 0.4 : 1
+          }}
+        >
+          <FileDown size={18} color={bleState === 'connected' ? "#818cf8" : "#a1a1aa"} />
+          <Text style={{
+            color: bleState === 'connected' ? '#818cf8' : '#a1a1aa',
+            fontSize: 12, fontWeight: '800', marginLeft: 8, letterSpacing: 0.5
+          }}>
+            PRZEŚLIJ PLIK
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <DeviceDiagnostics bleState={bleState} diagnostics={diagnostics} />
-      
 
-      <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
-          <View style={styles.statIconBg}><Clock size={18} color="#60a5fa" /></View>
-          <View>
-            <Text style={styles.statValue}>{deviceData?.duration?.substring(0,5) || '--'}</Text>
-            <Text style={styles.statLabel}>Czas zapisu</Text>
-          </View>
+      {isLiveEcgActive && (
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ color: '#a1a1aa', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginLeft: 8, marginBottom: 4 }}>
+            MONITORING EKG NA ŻYWO
+          </Text>
+          <LiveEcgChart isMeasuring={isLiveEcgActive} />
         </View>
-        <View style={styles.statCard}>
-          <View style={styles.statIconBg}><AlertCircle size={18} color="#fb7185" /></View>
-          <View>
-            <Text style={styles.statValue}>
-              {deviceData?.arrhythmiaEvents ?? '--'} <Text style={styles.statUnit}>{deviceData ? 'zdarzeń' : ''}</Text>
-            </Text>
-            <Text style={styles.statLabel}>Epizody Arytmii</Text>
-          </View>
-        </View>
-        <View style={styles.statCard}>
-          <View style={styles.statIconBg}><Heart size={18} color="#34d399" /></View>
-          <View>
-            <Text style={styles.statValue}>
-              {deviceData?.minBpm || '--'} <Text style={styles.statUnit}>{deviceData ? 'BPM' : ''}</Text>
-            </Text>
-            <Text style={styles.statLabel}>Najniższe Tętno</Text>
-          </View>
-        </View>
-        <View style={styles.statCard}>
-          <View style={styles.statIconBg}><Zap size={18} color="#fbbf24" /></View>
-          <View>
-            <Text style={styles.statValue}>
-              {deviceData?.maxBpm || '--'} <Text style={styles.statUnit}>{deviceData ? 'BPM' : ''}</Text>
-            </Text>
-            <Text style={styles.statLabel}>Najwyższe Tętno</Text>
-          </View>
-        </View>
-      </View>
+      )}
 
-      <View style={{ marginTop: 16 }}>
-        <TrendChart data={deviceData?.hourlyTrend} />
-      </View>
+      {!deviceData ? (
+        <View style={{
+          alignItems: 'center', padding: 32, backgroundColor: 'rgba(24, 24, 27, 0.4)', 
+          borderRadius: 20, borderWidth: 1, borderColor: '#27272a', marginTop: 8, marginBottom: 20
+        }}>
+          <Database size={32} color="#52525b" style={{ marginBottom: 12 }} />
+          <Text style={{ color: '#a1a1aa', fontSize: 14, fontWeight: '700' }}>Brak wczytanego badania</Text>
+          <Text style={{ color: '#71717a', fontSize: 12, textAlign: 'center', marginTop: 8, lineHeight: 18 }}>
+            Połącz się z urządzeniem i użyj przycisku "PRZEŚLIJ PLIK", aby załadować i przeanalizować dane EKG.
+          </Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.statsGrid}>
+            <View style={styles.statCard}>
+              <View style={styles.statIconBg}><Clock size={18} color="#60a5fa" /></View>
+              <View>
+                <Text style={styles.statValue}>{deviceData.duration?.substring(0,5)}</Text>
+                <Text style={styles.statLabel}>Czas zapisu</Text>
+              </View>
+            </View>
+            <View style={styles.statCard}>
+              <View style={styles.statIconBg}><AlertCircle size={18} color="#fb7185" /></View>
+              <View>
+                <Text style={styles.statValue}>
+                  {deviceData.arrhythmiaEvents} <Text style={styles.statUnit}>zdarzeń</Text>
+                </Text>
+                <Text style={styles.statLabel}>Epizody Arytmii</Text>
+              </View>
+            </View>
+            <View style={styles.statCard}>
+              <View style={styles.statIconBg}><Heart size={18} color="#34d399" /></View>
+              <View>
+                <Text style={styles.statValue}>
+                  {deviceData.minBpm} <Text style={styles.statUnit}>BPM</Text>
+                </Text>
+                <Text style={styles.statLabel}>Najniższe Tętno</Text>
+              </View>
+            </View>
+            <View style={styles.statCard}>
+              <View style={styles.statIconBg}><Zap size={18} color="#fbbf24" /></View>
+              <View>
+                <Text style={styles.statValue}>
+                  {deviceData.maxBpm} <Text style={styles.statUnit}>BPM</Text>
+                </Text>
+                <Text style={styles.statLabel}>Najwyższe Tętno</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={{ marginTop: 16 }}>
+            <TrendChart data={deviceData.hourlyTrend} />
+          </View>
+        </>
+      )}
 
       <View style={styles.bottomAction}>
         <TouchableOpacity 

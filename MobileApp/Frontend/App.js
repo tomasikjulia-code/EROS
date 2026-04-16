@@ -10,7 +10,6 @@ import HomeScreen from './src/screens/HomeScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import ReportScreen from './src/screens/ReportScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import { mockHardware } from './src/utils/MockHardware'; // tymczasowo
 import { ecgBuffer } from './src/utils/EcgBuffer.js'
 
 let Speech;
@@ -29,7 +28,7 @@ export default function App() {
   const subscriptionRef = useRef(null)
   
   const [records, setRecords] = useState(initialHistory);
-  const [deviceData, setDeviceData] = useState(initialHistory[0]); 
+  const [deviceData, setDeviceData] = useState(null); 
   
   const [diagnostics, setDiagnostics] = useState(null);
 
@@ -43,6 +42,9 @@ export default function App() {
 
   const [toastMessage, setToastMessage] = useState(null);
   const toastAnim = useRef(new Animated.Value(200)).current;
+
+  const [isLiveEcgActive, setIsLiveEcgActive] = useState(false);
+  const [lastConnectedTime, setLastConnectedTime] = useState(null); 
 
   const showToast = (message, type = 'success') => {
     setToastMessage({ message, type });
@@ -70,7 +72,6 @@ export default function App() {
     }
   };
 
-  //Włączanie i wyłączanie bluetooth, będzie trzeba dodać rozróżnienie na ble i serial
   const toggleBluetooth = async () => {
     if (bleState === 'disconnected') {
       const hasPermissions = await requestBluetoothPermissions();
@@ -96,6 +97,9 @@ export default function App() {
       setBleState('connected');
       showToast('Nawiązano bezpieczne połączenie z EROS.');
 
+      setIsLiveEcgActive(false);
+      setLastConnectedTime(new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }));
+
       sendData(eros.address,"GET_STATE");
       subscriptionRef.current = receiveData(eros.address, (rawData) => {
         handleIncomingData(rawData);
@@ -110,7 +114,7 @@ export default function App() {
       setSyncState('idle');
       showToast('Rozłączono urządzenie. Tryb odczytu lokalnego.', 'info');
       
-      mockHardware.stop();
+      setIsLiveEcgActive(false);
     }
   };
 
@@ -125,13 +129,8 @@ export default function App() {
         return;
       }
 
-
       if(trimmed.startsWith('D')){
         parseDiagnostics(trimmed);
-
-      //To jest do zmiany, GET_ECG będzie wysyłane na przycisk a nie po odebraniu diganostics
-      sendData(deviceRef.current?.address, "GET_ECG");
-      //
       }
       
     } catch(e) {
@@ -148,7 +147,6 @@ export default function App() {
 
   function parseDiagnostics(trimmed){
     const parsed = JSON.parse(trimmed.trim().slice(1));
-    setDeviceData(parsed);
     setDiagnostics({
       battery: parsed.battery,
       signalQuality: parsed.signalQuality,
@@ -180,6 +178,36 @@ export default function App() {
       setAiReport(null); 
       showToast('Dane pomyślnie zsynchronizowane.');
     }, 2500);
+  };
+
+  const handleToggleLiveEcg = () => {
+    if (isLiveEcgActive) {
+      if (bleState === 'connected' && deviceRef.current) sendData(deviceRef.current.address, "STOP");
+      setIsLiveEcgActive(false);
+    } else {
+      if (bleState === 'connected' && deviceRef.current) sendData(deviceRef.current.address, "GET_EKG");
+      setIsLiveEcgActive(true);
+    }
+  };
+
+  const refreshDiagnostics = () => {
+    if (bleState === 'connected' && deviceRef.current) {
+      setSyncState('syncing');
+      showToast('Odświeżam status urządzenia...', 'info');
+      sendData(deviceRef.current.address, "GET_STATE");
+      setTimeout(() => setSyncState('idle'), 1000);
+    }
+  };
+
+  const sendFileToDevice = () => {
+    if (bleState !== 'connected') {
+      showToast('Najpierw połącz urządzenie.', 'error');
+      return;
+    }
+    setSyncState('syncing');
+    showToast('Wysyłam komendę pobrania badania...', 'info');
+    
+    if (deviceRef.current) sendData(deviceRef.current.address, "GET_FILE");
   };
 
   const openReport = (record) => {
@@ -232,9 +260,19 @@ export default function App() {
         >
           {view === 'home' && (
             <HomeScreen 
-              bleState={bleState} deviceData={deviceData} syncState={syncState} 
-              diagnostics={diagnostics} toggleBluetooth={toggleBluetooth} 
-              syncData={syncData} openReport={openReport} formatDate={formatDate} 
+              bleState={bleState} 
+              deviceData={deviceData} 
+              syncState={syncState} 
+              diagnostics={diagnostics} 
+              toggleBluetooth={toggleBluetooth} 
+              syncData={syncData}
+              refreshDiagnostics={refreshDiagnostics} 
+              sendFileToDevice={sendFileToDevice}
+              isLiveEcgActive={isLiveEcgActive}
+              toggleLiveEcg={handleToggleLiveEcg}
+              lastConnectedTime={lastConnectedTime}
+              openReport={openReport} 
+              formatDate={formatDate} 
             />
           )}
           {view === 'history' && (
