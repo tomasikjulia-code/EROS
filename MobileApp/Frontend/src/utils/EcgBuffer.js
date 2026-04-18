@@ -42,4 +42,4 @@ class CircularEcgBuffer {
   }
 }
 
-export const ecgBuffer = new CircularEcgBuffer(150);
+export const ecgBuffer = new CircularEcgBuffer(1000);
