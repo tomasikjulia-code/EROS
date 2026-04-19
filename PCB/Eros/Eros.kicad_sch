@@ -19675,7 +19675,8 @@
 	)
 	(symbol
 		(lib_id "Moje_symbole:SW_Push")
-		(at 58.42 163.83 270)
+		(at 58.42 163.83 90)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -19683,7 +19684,7 @@
 		(dnp no)
 		(uuid "6b792184-41ca-48e3-a6ed-800377aed82a")
 		(property "Reference" "SW2"
-			(at 62.738 160.02 90)
+			(at 54.102 160.02 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19692,7 +19693,7 @@
 			)
 		)
 		(property "Value" "SW_Push"
-			(at 56.642 168.656 0)
+			(at 60.198 168.656 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19701,7 +19702,7 @@
 			)
 		)
 		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T-SH_NO_CK_KMR2xxG"
-			(at 63.5 163.83 0)
+			(at 53.34 163.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19710,7 +19711,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 63.5 163.83 0)
+			(at 53.34 163.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)
