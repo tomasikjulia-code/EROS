@@ -23,7 +23,7 @@ const HomeScreen = ({
   formatDate,
   toggleLiveEcg,
   isLiveEcgActive,
-  getFileFromDevice, 
+  sendFileToDevice,
   lastConnectedTime
 }) => {
   return (
@@ -119,7 +119,7 @@ const HomeScreen = ({
         </TouchableOpacity>
 
         <TouchableOpacity 
-          onPress={getFileFromDevice} // <--- ZMIANA 2: Podpięto nową funkcję
+          onPress={sendFileToDevice}
           disabled={bleState !== 'connected'}
           style={{
             flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
@@ -134,7 +134,7 @@ const HomeScreen = ({
             color: bleState === 'connected' ? '#818cf8' : '#a1a1aa',
             fontSize: 12, fontWeight: '800', marginLeft: 8, letterSpacing: 0.5
           }}>
-            POBIERZ BADANIE {/* <--- ZMIANA 3: Bardziej logiczny tekst na przycisku */}
+            PRZEŚLIJ PLIK
           </Text>
         </TouchableOpacity>
       </View>
@@ -158,7 +158,7 @@ const HomeScreen = ({
           <Database size={32} color="#52525b" style={{ marginBottom: 12 }} />
           <Text style={{ color: '#a1a1aa', fontSize: 14, fontWeight: '700' }}>Brak wczytanego badania</Text>
           <Text style={{ color: '#71717a', fontSize: 12, textAlign: 'center', marginTop: 8, lineHeight: 18 }}>
-            Połącz się z urządzeniem i użyj przycisku "POBIERZ BADANIE", aby załadować i przeanalizować dane EKG.
+            Połącz się z urządzeniem i użyj przycisku "PRZEŚLIJ PLIK", aby załadować i przeanalizować dane EKG.
           </Text>
         </View>
       ) : (
@@ -167,7 +167,7 @@ const HomeScreen = ({
             <View style={styles.statCard}>
               <View style={styles.statIconBg}><Clock size={18} color="#60a5fa" /></View>
               <View>
-                <Text style={styles.statValue}>{deviceData.duration}</Text>
+                <Text style={styles.statValue}>{deviceData.duration?.substring(0,5)}</Text>
                 <Text style={styles.statLabel}>Czas zapisu</Text>
               </View>
             </View>
