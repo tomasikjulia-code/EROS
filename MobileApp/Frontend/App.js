@@ -10,8 +10,11 @@ import HomeScreen from './src/screens/HomeScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import ReportScreen from './src/screens/ReportScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import { mockHardware } from './src/utils/MockHardware'; // tymczasowo
 import { ecgBuffer } from './src/utils/EcgBuffer.js'
+import { parseEcgFileToTrend } from './src/utils/CsvParser';
+
+import * as FileSystem from 'expo-file-system/legacy';
+import { Asset } from 'expo-asset';
 
 let Speech;
 try {
@@ -29,7 +32,7 @@ export default function App() {
   const subscriptionRef = useRef(null)
   
   const [records, setRecords] = useState(initialHistory);
-  const [deviceData, setDeviceData] = useState(initialHistory[0]); 
+  const [deviceData, setDeviceData] = useState(null); 
   
   const [diagnostics, setDiagnostics] = useState(null);
 
@@ -43,6 +46,9 @@ export default function App() {
 
   const [toastMessage, setToastMessage] = useState(null);
   const toastAnim = useRef(new Animated.Value(200)).current;
+
+  const [isLiveEcgActive, setIsLiveEcgActive] = useState(false);
+  const [lastConnectedTime, setLastConnectedTime] = useState(null); 
 
   const showToast = (message, type = 'success') => {
     setToastMessage({ message, type });
@@ -70,7 +76,6 @@ export default function App() {
     }
   };
 
-  //Włączanie i wyłączanie bluetooth, będzie trzeba dodać rozróżnienie na ble i serial
   const toggleBluetooth = async () => {
     if (bleState === 'disconnected') {
       const hasPermissions = await requestBluetoothPermissions();
@@ -96,6 +101,9 @@ export default function App() {
       setBleState('connected');
       showToast('Nawiązano bezpieczne połączenie z EROS.');
 
+      setIsLiveEcgActive(false);
+      setLastConnectedTime(new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }));
+
       sendData(eros.address,"GET_STATE");
       subscriptionRef.current = receiveData(eros.address, (rawData) => {
         handleIncomingData(rawData);
@@ -110,7 +118,7 @@ export default function App() {
       setSyncState('idle');
       showToast('Rozłączono urządzenie. Tryb odczytu lokalnego.', 'info');
       
-      mockHardware.stop();
+      setIsLiveEcgActive(false);
     }
   };
 
@@ -125,13 +133,8 @@ export default function App() {
         return;
       }
 
-
       if(trimmed.startsWith('D')){
         parseDiagnostics(trimmed);
-
-      //To jest do zmiany, GET_ECG będzie wysyłane na przycisk a nie po odebraniu diganostics
-      sendData(deviceRef.current?.address, "GET_ECG");
-      //
       }
       
     } catch(e) {
@@ -148,7 +151,6 @@ export default function App() {
 
   function parseDiagnostics(trimmed){
     const parsed = JSON.parse(trimmed.trim().slice(1));
-    setDeviceData(parsed);
     setDiagnostics({
       battery: parsed.battery,
       signalQuality: parsed.signalQuality,
@@ -180,6 +182,103 @@ export default function App() {
       setAiReport(null); 
       showToast('Dane pomyślnie zsynchronizowane.');
     }, 2500);
+  };
+
+  const handleToggleLiveEcg = () => {
+    if (isLiveEcgActive) {
+      if (bleState === 'connected' && deviceRef.current) sendData(deviceRef.current.address, "STOP");
+      setIsLiveEcgActive(false);
+    } else {
+      if (bleState === 'connected' && deviceRef.current) sendData(deviceRef.current.address, "GET_EKG");
+      setIsLiveEcgActive(true);
+    }
+  };
+
+  const refreshDiagnostics = () => {
+    if (bleState === 'connected' && deviceRef.current) {
+      setSyncState('syncing');
+      showToast('Odświeżam status urządzenia...', 'info');
+      sendData(deviceRef.current.address, "GET_STATE");
+      setTimeout(() => setSyncState('idle'), 1000);
+    }
+  };
+
+const getFileFromDevice = async () => {
+
+    if (bleState !== 'connected') {
+      showToast('Najpierw połącz urządzenie.', 'error');
+      return;
+    }
+
+
+    setSyncState('syncing');
+    showToast('Pobieranie badania z Holtera...', 'info');
+
+    try {
+      const fileUri = FileSystem.documentDirectory + 'current_examination.csv';
+      if (deviceRef.current) sendData(deviceRef.current.address, "GET_FILE");
+
+      // (Symulacja transferu pliku - do wywalenia potem)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      if (!fileInfo.exists) {
+        console.log("Brak pliku badania, wstrzykuję plik testowy...");
+        const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
+        await FileSystem.copyAsync({ from: localUri, to: fileUri });
+      }
+      
+      
+      showToast('Trwa analiza EKG...', 'info');
+
+      const fileContent = await FileSystem.readAsStringAsync(fileUri, { 
+        encoding: FileSystem.EncodingType.UTF8 
+      });
+
+      const parsedTrend = parseEcgFileToTrend(fileContent);
+
+      if (!parsedTrend || parsedTrend.length === 0) {
+        showToast('Błąd: Plik jest pusty lub uszkodzony.', 'error');
+        setSyncState('idle');
+        return;
+      }
+
+      const allBpms = parsedTrend.map(d => d.bpm);
+      const minBpm = Math.floor(Math.min(...allBpms));
+      const maxBpm = Math.ceil(Math.max(...allBpms));
+      const avgBpm = Math.round(allBpms.reduce((a, b) => a + b, 0) / allBpms.length);
+      
+      const lastTimeMs = parsedTrend[parsedTrend.length - 1].timeMs;
+      const durationMins = Math.floor(lastTimeMs / 60000);
+      const durationSecs = Math.floor((lastTimeMs % 60000) / 1000);
+
+      const newData = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        duration: `${durationMins}m ${durationSecs}s`, 
+        totalBeats: parsedTrend.length, 
+        avgBpm: avgBpm, 
+        minBpm: minBpm, 
+        minBpmTime: "--:--:--", 
+        maxBpm: maxBpm, 
+        maxBpmTime: "--:--:--",
+        veb: { total: 0, pairs: 0, runs: 0, burden: "0%" }, 
+        sveb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
+        pauses: { count: 0, longest: "0", longestTime: "--" }, 
+        arrhythmiaEvents: 0, 
+        hourlyTrend: parsedTrend 
+      };
+      
+      setDeviceData(newData);
+      setRecords(prev => [newData, ...prev]); 
+      setSyncState('synced');
+      setAiReport(null); 
+      showToast('Badanie odebrane i przeanalizowane!');
+
+    } catch (error) {
+      console.error("Błąd czytania pliku:", error);
+      showToast('Wystąpił błąd podczas analizy pliku.', 'error');
+      setSyncState('idle');
+    }
   };
 
   const openReport = (record) => {
@@ -232,9 +331,19 @@ export default function App() {
         >
           {view === 'home' && (
             <HomeScreen 
-              bleState={bleState} deviceData={deviceData} syncState={syncState} 
-              diagnostics={diagnostics} toggleBluetooth={toggleBluetooth} 
-              syncData={syncData} openReport={openReport} formatDate={formatDate} 
+              bleState={bleState} 
+              deviceData={deviceData} 
+              syncState={syncState} 
+              diagnostics={diagnostics} 
+              toggleBluetooth={toggleBluetooth} 
+              syncData={syncData}
+              refreshDiagnostics={refreshDiagnostics} 
+              getFileFromDevice={getFileFromDevice}
+              isLiveEcgActive={isLiveEcgActive}
+              toggleLiveEcg={handleToggleLiveEcg}
+              lastConnectedTime={lastConnectedTime}
+              openReport={openReport} 
+              formatDate={formatDate} 
             />
           )}
           {view === 'history' && (
