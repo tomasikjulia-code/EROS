@@ -11,10 +11,6 @@ import HistoryScreen from './src/screens/HistoryScreen';
 import ReportScreen from './src/screens/ReportScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import { ecgBuffer } from './src/utils/EcgBuffer.js'
-import { parseEcgFileToTrend } from './src/utils/CsvParser';
-
-import * as FileSystem from 'expo-file-system/legacy';
-import { Asset } from 'expo-asset';
 
 let Speech;
 try {
@@ -203,82 +199,15 @@ export default function App() {
     }
   };
 
-const getFileFromDevice = async () => {
-
+  const sendFileToDevice = () => {
     if (bleState !== 'connected') {
       showToast('Najpierw połącz urządzenie.', 'error');
       return;
     }
-
-
     setSyncState('syncing');
-    showToast('Pobieranie badania z Holtera...', 'info');
-
-    try {
-      const fileUri = FileSystem.documentDirectory + 'current_examination.csv';
-      if (deviceRef.current) sendData(deviceRef.current.address, "GET_FILE");
-
-      // (Symulacja transferu pliku - do wywalenia potem)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      if (!fileInfo.exists) {
-        console.log("Brak pliku badania, wstrzykuję plik testowy...");
-        const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
-        await FileSystem.copyAsync({ from: localUri, to: fileUri });
-      }
-      
-      
-      showToast('Trwa analiza EKG...', 'info');
-
-      const fileContent = await FileSystem.readAsStringAsync(fileUri, { 
-        encoding: FileSystem.EncodingType.UTF8 
-      });
-
-      const parsedTrend = parseEcgFileToTrend(fileContent);
-
-      if (!parsedTrend || parsedTrend.length === 0) {
-        showToast('Błąd: Plik jest pusty lub uszkodzony.', 'error');
-        setSyncState('idle');
-        return;
-      }
-
-      const allBpms = parsedTrend.map(d => d.bpm);
-      const minBpm = Math.floor(Math.min(...allBpms));
-      const maxBpm = Math.ceil(Math.max(...allBpms));
-      const avgBpm = Math.round(allBpms.reduce((a, b) => a + b, 0) / allBpms.length);
-      
-      const lastTimeMs = parsedTrend[parsedTrend.length - 1].timeMs;
-      const durationMins = Math.floor(lastTimeMs / 60000);
-      const durationSecs = Math.floor((lastTimeMs % 60000) / 1000);
-
-      const newData = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        duration: `${durationMins}m ${durationSecs}s`, 
-        totalBeats: parsedTrend.length, 
-        avgBpm: avgBpm, 
-        minBpm: minBpm, 
-        minBpmTime: "--:--:--", 
-        maxBpm: maxBpm, 
-        maxBpmTime: "--:--:--",
-        veb: { total: 0, pairs: 0, runs: 0, burden: "0%" }, 
-        sveb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
-        pauses: { count: 0, longest: "0", longestTime: "--" }, 
-        arrhythmiaEvents: 0, 
-        hourlyTrend: parsedTrend 
-      };
-      
-      setDeviceData(newData);
-      setRecords(prev => [newData, ...prev]); 
-      setSyncState('synced');
-      setAiReport(null); 
-      showToast('Badanie odebrane i przeanalizowane!');
-
-    } catch (error) {
-      console.error("Błąd czytania pliku:", error);
-      showToast('Wystąpił błąd podczas analizy pliku.', 'error');
-      setSyncState('idle');
-    }
+    showToast('Wysyłam komendę pobrania badania...', 'info');
+    
+    if (deviceRef.current) sendData(deviceRef.current.address, "GET_FILE");
   };
 
   const openReport = (record) => {
@@ -338,7 +267,7 @@ const getFileFromDevice = async () => {
               toggleBluetooth={toggleBluetooth} 
               syncData={syncData}
               refreshDiagnostics={refreshDiagnostics} 
-              getFileFromDevice={getFileFromDevice}
+              sendFileToDevice={sendFileToDevice}
               isLiveEcgActive={isLiveEcgActive}
               toggleLiveEcg={handleToggleLiveEcg}
               lastConnectedTime={lastConnectedTime}
