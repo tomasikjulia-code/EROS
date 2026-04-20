@@ -152,7 +152,6 @@ export default function App() {
       }
 
       if(trimmed.startsWith('S')){
-        console.log("STOPPING");
         transferResolveRef.current?.();
         transferResolveRef.current = null;
         isReceivingFileRef.current = false;
@@ -275,7 +274,6 @@ const getFileFromDevice = async () => {
     isReceivingFileRef.current = true;
       
     const transferComplete = new Promise((resolve, reject) => {
-      console.log("STOPPING3");
       const timeout = setTimeout(() => reject(new Error("Error: Transfer timeout")), 300000);
           transferResolveRef.current = () => {
             clearTimeout(timeout);
@@ -284,9 +282,7 @@ const getFileFromDevice = async () => {
     });
 
     sendData(deviceRef.current.address, `OK${lastSavedTS}`);
-    console.log("STOPPING2");
     await transferComplete;
-    console.log("STOPPING4");
     // // (Symulacja transferu pliku - do wywalenia potem)
     // await new Promise(resolve => setTimeout(resolve, 2000));
     // const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
@@ -298,14 +294,9 @@ const getFileFromDevice = async () => {
     
     showToast('Trwa analiza EKG...', 'info');
 
-    // const fileContent = await FileSystem.readAsStringAsync(FILE_URI, { 
-    //   encoding: FileSystem.EncodingType.UTF8 
-    // });
-
-    const fileContent = await FileSystem.readAsStringAsync(FILE_URI);
-    console.log("--- FULL FILE START ---");
-    console.log(fileContent);
-    console.log("--- FULL FILE END ---");
+    const fileContent = await FileSystem.readAsStringAsync(FILE_URI, { 
+      encoding: FileSystem.EncodingType.UTF8 
+    });
 
     const parsedTrend = parseEcgFileToTrend(fileContent);
 
