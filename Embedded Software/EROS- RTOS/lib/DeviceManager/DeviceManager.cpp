@@ -36,6 +36,9 @@ void DeviceManager::init(){
     pinMode(BTN_LCD, INPUT_PULLUP);
     pinMode(BTN_MIN, INPUT_PULLUP);
 
+    //ustawienie atenuacji dla ADC zeby moc mierzyc do 3.6V co jest potrzebne do poprawnego zczytywania procentow
+    analogSetAttenuation(ADC_11db); // Pozwala mierzyć do ok. 3.6V
+
 }
 
 void DeviceManager::setStartTime(){
@@ -88,6 +91,7 @@ void DeviceManager::checkBluetooth(){
 
         if (SerialBT.hasClient())
         {
+            Serial.println("Mam klienta");
             // czekamy na jakis komunikat od aplikacji zeby wyslac albo na bierzaco EKG albo plik z badaniem
             while (!SerialBT.available()) {
                 vTaskDelay(pdMS_TO_TICKS(100));
@@ -95,6 +99,9 @@ void DeviceManager::checkBluetooth(){
 
             String response = SerialBT.readStringUntil('\n');
             response.trim();
+
+            Serial.println("Otrzymano komendę: " + response);
+
             if (response == "GET_ECG") {
             //wysylamy tutaj na bierzaco probki EKG do momentu uzyskania komunikatu STOP od aplikacji
                 while (SerialBT.hasClient()) {
@@ -126,6 +133,7 @@ void DeviceManager::checkBluetooth(){
 void DeviceManager::BTSendingFile(){
     if (SerialBT.hasClient()) {
 
+        uint32_t lastSampleReceived = 0; // Zmienna do przechowywania numeru ostatniej próbki, którą otrzymała aplikacja
         File file = SD.open("/test_ekg.csv"); // tutaj tworze sobie nowy uchwyt do pliku bo ten karoliny jest w prywatnych i nie da sie do niego odwolac
         if (!file) {
             //nie mozna otworzyc pliku
@@ -142,32 +150,87 @@ void DeviceManager::BTSendingFile(){
 
         String response = SerialBT.readStringUntil('\n');
         response.trim();
-        if (response != "OK") {
-            Serial.println("Aplikacja nie jest gotowa na potezny plik!");
-            file.close();
-            return;
+
+        Serial.println("Otrzymano odpowiedź: " + response);
+
+        //sprawdzamy jaka ostatnia probke ma aplikacja zeby wiedziec od czego wysylac plik
+        if(response.startsWith("OK")){
+            lastSampleReceived=response.substring(2).toInt();
+            Serial.println(lastSampleReceived);
         }
 
-        // Najpierw wysyłamy nagłowek pliku czyli jego nazwe oraz wielkosc tak zeby aplikacja wiedziala kiedy juz wszystko dostala 
-        String header = String(file.name()) + ":" + String(file.size());
-        SerialBT.println(header);
-        Serial.println("Wysyłanie nagłówka: \n" + header);
+        //szukanie miejsca w pliku od ktorego zaczyna sie wysylanie danch ktorych nie ma aplikacja 
+        bool found = false;
+        unsigned long lastPosition = 0;
+        if(lastSampleReceived > 0){
+             //szukamy probki tylko jesli ta liczba ostatniej probki jest wieksza od zera
+            while (file.available()) {
+                lastPosition = file.position(); // Zapamiętaj początek aktualnej linii
+                String line = file.readStringUntil('\n');
+                
+                if (line.length() > 0) {
+                    // Wyciągamy pierwszą wartość (millis) do pierwszego przecinka
+                    int commaIndex = line.indexOf(',');
+                    if (commaIndex != -1) {
+                        unsigned long currentMillis = line.substring(0, commaIndex).toInt();
+                        
+                        if (currentMillis == lastSampleReceived) {
+                            //Ustawiamy kursor na początku TEJ linii jesli znalezlismy 
+                            file.seek(lastPosition);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!found) {
+                //jesli nie znalezlismy to znaczy ze aplikacja cos wymysla i nie ma tej probki w pliku wiec wysylamy wszystko od poczatku
+                file.seek(0);
+            }
+        }
+        //w chuj klamerek ale nie wiem jak inaczej zrobic zeby to dzialalo dobrze
 
-        // wysyłanie danych w fajnych pakietach po 512
+        //tutaj kod na wysylanie printem
+
+        // size_t fileEnd = file.size();
+
+        // while(file.position() < fileEnd){
+        //     SerialBT.print(file.readStringUntil('\n'));
+        //     vTaskDelay(pdMS_TO_TICKS(2));
+        // }
+
+        //tutaj wysylanie zostawiam paczkami po 512 bajtow
+  
         const size_t bufferSize = 512;
         uint8_t buffer[bufferSize];
         size_t bytesRead;
 
-        while ((bytesRead = file.read(buffer, bufferSize)) > 0) {
-            SerialBT.write(buffer, bytesRead);
-            vTaskDelay(pdMS_TO_TICKS(10)); // krótkie opóźnienie dla dzialania RTOS
+        size_t fileSize = file.size(); // Pobierz rozmiar w momencie otwarcia
+        size_t totalRead = 0;
+
+        while (totalRead < fileSize) {
+            size_t remainingInFile = fileSize - totalRead;
+            size_t toRead = std::min((size_t)bufferSize, remainingInFile);
+
+            //tutaj jest pętla ktora odpowiada za oczekiwanie na to czy w buforze jest wystarczajaco duzo miejsca zeby wyslac kolejna paczke
+            while (SerialBT.availableForWrite() < toRead) {
+                vTaskDelay(pdMS_TO_TICKS(1)); // Bardzo krótkie uśpienie, by nie blokować CPU
+            }
+
+            bytesRead = file.read(buffer, toRead);
+            if (bytesRead <= 0) break;
+
+            size_t written = SerialBT.write(buffer, bytesRead); 
+            totalRead += written;
+
         }
+
+        Serial.println("Wysyłanie zakończone. Zamykam plik.");
 
         file.close();
 
         // --- ZAKOŃCZENIE TRANSMISJI ---
-        SerialBT.println("DONE");
-        Serial.println("Plik wysłany!");
+        SerialBT.println("S");
     }
 }
 
@@ -183,24 +246,44 @@ void DeviceManager::BTSendingState()
 
     JsonObject e1 = electrodes.add<JsonObject>();
     e1["name"] = "RA (prawy)";
-    e1["status"] = !isLeadOff();
+    e1["ok"] = !isLeadOff();
 
     JsonObject e2 = electrodes.add<JsonObject>();
     e2["name"] = "LA (Lewy)";
-    e2["status"] = !isLeadOff();
+    e2["ok"] = !isLeadOff();
 
     JsonObject e3 = electrodes.add<JsonObject>();
     e3["name"] = "RL (brzuch)";
-    e3["status"] = !isLeadOff();
+    e3["ok"] = !isLeadOff();
 
     SerialBT.print('D');
     serializeJson(doc, SerialBT);
     SerialBT.println();
 }
 
-uint8_t DeviceManager::getBatteryLevel(){
-    //tutaj kod do odczytu poziomu baterii i zwrocenia go w procentach
-    return 75; //na razie zwracam jakas tam wartosc do testow
+uint8_t DeviceManager::getBatteryLevel()
+{
+    int raw_mV = analogReadMilliVolts(BATTERY_LEVEL_PIN);
+
+    float voltageADC = raw_mV / 1000.0;
+    float batteryVoltage = voltageADC * 2.0;
+
+    float percent =
+        (batteryVoltage - 3.2) /
+        (4.2 - 3.2) * 100.0;
+
+    percent = constrain(percent, 0, 100);
+    //Serial.printf("Battery Voltage: %d%%\n", (uint8_t)percent);
+
+    return (uint8_t)percent;
+}
+
+battery_level DeviceManager::getBatteryIconLevel(uint8_t batteryLevel){
+    if(batteryLevel > 80) return FULL;
+    else if(batteryLevel > 60) return THREE_QUARTERS;
+    else if(batteryLevel > 40) return HALF;
+    else if(batteryLevel > 20) return QUARTER;
+    else return EMPTY;
 }
 
 void DeviceManager::waitingForSDcard(){
@@ -241,6 +324,7 @@ void DeviceManager::EKGReadingAndSending(){
                 holter.closeFile();
                 Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
                 displayEndScreen();
+                displayEndScreen();
             }
         }
         processHeartRate();
@@ -249,8 +333,8 @@ void DeviceManager::EKGReadingAndSending(){
             holter.writeSample(val, getAverageBPM(), isLeadOff());
 
             // // Odkomentuj jak chcesz wyplotować wykres
-            // Serial.print(">FiltredValue:");
-            // Serial.println(getFilteredValue());
+            //Serial.print(">FiltredValue:");
+            //Serial.println(getFilteredValue());
             // Serial.print(">IntegretedSignal:");
             // Serial.print(getIntegratedSignal()); 
 
@@ -285,20 +369,21 @@ uint8_t DeviceManager::calculateLeftMinutes()
 
 bool DeviceManager::isTimeEnded()
 {
-    return (millis() - startTime) >= (EKGTestTime * MS_PER_HOUR);
+    uint32_t testDuration = (uint32_t)EKGTestTime * MS_PER_HOUR;
+    return (millis() - startTime) >= testDuration;
 }
 
 void DeviceManager::updateDisplay(uint32_t timeInMs){
 
-    if (displayEnabled){
+    if (displayEnabled and !isTimeEnded()){
         uint16_t refreshTime = 200; //jesli warunek spelniony to ustawiam sobie refresh time na wyswietlacz
         uint8_t BPM=getAverageBPM();
         wakeUpDisplay();
-        displayMainScreen(BPM, calculateLeftHours(),calculateLeftMinutes(), EMPTY, btEnabled);
-        displayMainScreen(BPM, calculateLeftHours(),calculateLeftMinutes(), EMPTY, btEnabled);
+        displayMainScreen(BPM, calculateLeftHours(),calculateLeftMinutes(), getBatteryIconLevel(getBatteryLevel()), btEnabled);
+        displayMainScreen(BPM, calculateLeftHours(),calculateLeftMinutes(), getBatteryIconLevel(getBatteryLevel()), btEnabled);
 
         for(int i = 0; i<=timeInMs/refreshTime; i++){ //licze sobie ile razy ma wykonac się petla odświeżania zeby czas wyświetlania był spełniony
-            displayMainScreen(getAverageBPM(), calculateLeftHours(),calculateLeftMinutes(), EMPTY, btEnabled);  //to trzeba uzupelnic ladnie o czas trwania do konca badania ktory bedzie obliczny
+            displayMainScreen(getAverageBPM(), calculateLeftHours(),calculateLeftMinutes(), getBatteryIconLevel(getBatteryLevel()), btEnabled);  //to trzeba uzupelnic ladnie o czas trwania do konca badania ktory bedzie obliczny
             vTaskDelay(pdMS_TO_TICKS(refreshTime));
         }
         clearDisplay();

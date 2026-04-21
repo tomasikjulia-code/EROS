@@ -39,6 +39,8 @@ mowi co sie dzieje i kiedy sie dzieje oraz na co maja reagowac przyciski. Na tą
 #define BTN_T_CONFIRM 3
 #define MS_PER_HOUR 3600000UL
 #define MS_PER_MINUTE 60000UL
+#define BATTERY_LEVEL_PIN 25
+
 class DeviceManager{
     public:
         volatile bool displayEnabled; //zmienna ustawiajaca sie na jeden jak wyswietlacz jest wzbudzony
@@ -78,6 +80,7 @@ class DeviceManager{
         void checkTestTimeButtons(); //funkcja sprawdzajaca przyciski podczas wyboru czasu trwania badania
         void waitingForSDcard(); //funkcja działająca w nieskończonej pętli zeby program nie szedl dalej puki nie bedzie karty SD
 
+        battery_level getBatteryIconLevel(uint8_t batteryLevel); //funkcja zwracajaca poziom baterii w formie ikony do wyswietlenia
         uint8_t getBatteryLevel(); //funkcja zwracajaca poziom baterii w procentach
         uint8_t calculateLeftMinutes(); //funkcja obliczajaca ile minyt zostalo do konca badania 
         uint8_t calculateLeftHours(); //funkcja obliczajaca ile godzin zostalo do konca badania
