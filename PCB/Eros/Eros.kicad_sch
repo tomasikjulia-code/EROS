@@ -7462,15 +7462,15 @@
 		)
 		(uuid "180d67fc-b23a-41a5-b529-d3055f4ae388")
 	)
-	(text "power supply supervisor i bms"
+	(text "Address: 0011000b"
 		(exclude_from_sim no)
-		(at 47.244 -40.132 0)
+		(at 201.93 273.304 0)
 		(effects
 			(font
-				(size 2.54 2.54)
+				(size 1.27 1.27)
 			)
 		)
-		(uuid "38b6c109-3466-4867-8df9-93ac182a4e4f")
+		(uuid "36a688b5-ba58-4ac9-8917-50b8b006cfd2")
 	)
 	(text "RESET_BUTTON"
 		(exclude_from_sim no)
@@ -7512,17 +7512,6 @@
 		)
 		(uuid "6500a73f-c955-41e1-9051-c7a9a2a4e1d8")
 	)
-	(text "PINY DO PERYFERIÓW:\n - CZYTNIK KARTY SD: MISO -> GPIO19, MOSI -> GPIO23, SS/CS -> GPIO32, SCK -> GPIO18, \n - MODUŁ EKG: HSPI\n - WYŚWIETLACZ: Busy_pin -> GPIO4, CS_pin -> GPIO5, DC_Pin -> GPIO17, RST_Pin -> GPIO16, SCK_Pin -> GPIO18 , MOSI_pin -> GPIO23;\n - PRZYCISKI: piny GPIO5, GPIO37.\n - AKCELEROMETR: I2C GPIO21 i GPIO22. "
-		(exclude_from_sim no)
-		(at 17.272 -20.066 0)
-		(effects
-			(font
-				(size 2.54 2.54)
-			)
-			(justify left)
-		)
-		(uuid "65600ee5-c566-404b-925e-58429c96e970")
-	)
 	(text "TEST PADS AND CONNECTIONS"
 		(exclude_from_sim no)
 		(at 332.486 151.13 0)
@@ -7533,16 +7522,6 @@
 			(justify left)
 		)
 		(uuid "69e9ed65-1501-4a9d-89bf-0f38c2ef1939")
-	)
-	(text "Notatki"
-		(exclude_from_sim no)
-		(at 27.94 -97.028 0)
-		(effects
-			(font
-				(size 3.81 3.81)
-			)
-		)
-		(uuid "6a9f2c95-1492-4d67-af07-134944a82cdc")
 	)
 	(text "BOOT_BUTTON"
 		(exclude_from_sim no)
@@ -7564,26 +7543,6 @@
 		)
 		(uuid "8c459c1b-8454-4f90-a530-567997fe2d75")
 	)
-	(text "Do pinu EN: dodać RC - rekomendowane w dokumentacji:R = 10kOm oraz C = 0.1uF"
-		(exclude_from_sim no)
-		(at 101.346 -45.212 0)
-		(effects
-			(font
-				(size 2.54 2.54)
-			)
-		)
-		(uuid "97819ec9-45bb-486f-979f-853679ad0554")
-	)
-	(text "Na pin VDD można podpiąć napięcie od 3.0V do 3.6V"
-		(exclude_from_sim no)
-		(at 69.85 -50.546 0)
-		(effects
-			(font
-				(size 2.54 2.54)
-			)
-		)
-		(uuid "9fc6bded-04be-4e7e-b7b3-c2703745711a")
-	)
 	(text "MICROSD SLOT"
 		(exclude_from_sim no)
 		(at 323.85 97.028 0)
@@ -7595,16 +7554,6 @@
 		)
 		(uuid "a71262de-93e6-4213-9988-3713e362378a")
 	)
-	(text "GPIO6-GPIO11 są do pamięci flash, dlatego nie ma ich na schemacie"
-		(exclude_from_sim no)
-		(at 86.614 -88.138 0)
-		(effects
-			(font
-				(size 2.54 2.54)
-			)
-		)
-		(uuid "afdf1ba6-9388-416c-9f79-34c313b4c789")
-	)
 	(text "USBC"
 		(exclude_from_sim no)
 		(at 21.844 232.664 0)
@@ -7614,17 +7563,6 @@
 			)
 		)
 		(uuid "c0a1a092-3a8c-4e60-ba50-0b4d29245e99")
-	)
-	(text "STRAPPING PINS:\n - GPIO0: do boot; najlepiej podciągnąć do 3.3V przez rezystor 10Kom i dodać przycisk, który ściąga do GND,\n - GPIO12: najlepiej nie podłączać; jeśli trzeba użyć jako gpio(bo wszystkie inne zajęte) to trzeba się upewnić, że przy starcie nie wymuszany jest stan wysoki,\n - GPIO2: podczas wchodzenia w tryb programowania, pin musi być w stanie niskim lub niepodłączonym; póżniej już nie ma znaczenia jaki ma stan,\n - GPIO15: ma wewnątrz pull-up więc domyślnie jest na 3.3V, można używać jako GPIO; on odpowiada za to, że w trminalu jest boot:0x13 (SPI_FAST_FLASH_BOOT),\ngdy przy włączaniu esp32, będzie na stan 0 to esp32 będzie milczeć podczas startu, na schemacie w dokumentacji nie widać rezystora podciągającego, \nco oznacza że wewnątrz krzemu jest podciągnięcie i one jest bardzo słabe. jak się chce być w 100% pewnym to można podciągnąć go zewnętrznie do 3,3V\n - GPIO5: ma wewnętrzny pull-up, nie ma znaczenia, gdy gpio0 i gpio2 są poprawnie ustawione, unikać urządzeń które przy starcie wymuszają stan niski."
-		(exclude_from_sim no)
-		(at 17.78 -69.088 0)
-		(effects
-			(font
-				(size 2.54 2.54)
-			)
-			(justify left)
-		)
-		(uuid "c7cf3c88-0bf4-4965-aba8-8804596a03e8")
 	)
 	(text "ESD PROTECTION DIODES"
 		(exclude_from_sim no)
