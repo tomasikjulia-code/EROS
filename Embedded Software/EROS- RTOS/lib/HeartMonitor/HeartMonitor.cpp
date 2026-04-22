@@ -1,7 +1,6 @@
 #include "HeartMonitor.h"
 
 Adafruit_ADS1115 ads;
-
 /**
  * @brief Inicjalizuje moduł monitora serca. Konfiguruje piny wejściowe LO+/- do wykrywania odpięcia elektrod, 
  * ustawia prędkość magistrali I2C na 400kHz oraz konfiguruje przetwornik ADS1115 (wzmocnienie x4, prędkość próbkowania 475 SPS). 
