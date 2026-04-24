@@ -7423,7 +7423,7 @@
 	)
 	(text "SPI SCREEN"
 		(exclude_from_sim no)
-		(at 345.186 196.85 0)
+		(at 345.186 198.374 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7454,7 +7454,7 @@
 	)
 	(text "POWER SECTION"
 		(exclude_from_sim no)
-		(at 115.824 223.266 0)
+		(at 115.57 218.694 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -14872,7 +14872,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 180.086 246.634 0)
+			(at 181.864 245.872 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17110,7 +17110,6 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "3cd995c8-aa9c-49a1-b868-b73043f88f02")
 		(property "Reference" "#PWR028"
 			(at 68.58 257.81 0)
@@ -17122,7 +17121,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 68.58 256.54 0)
+			(at 68.58 255.524 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19613,7 +19612,7 @@
 	)
 	(symbol
 		(lib_id "Moje_symbole:SW_Push")
-		(at 58.42 163.83 90)
+		(at 58.42 163.83 270)
 		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
@@ -19622,7 +19621,7 @@
 		(dnp no)
 		(uuid "6b792184-41ca-48e3-a6ed-800377aed82a")
 		(property "Reference" "SW2"
-			(at 54.102 160.02 90)
+			(at 62.738 167.64 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19631,7 +19630,7 @@
 			)
 		)
 		(property "Value" "SW_Push"
-			(at 60.198 168.656 0)
+			(at 56.642 159.004 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19640,7 +19639,7 @@
 			)
 		)
 		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T-SH_NO_CK_KMR2xxG"
-			(at 53.34 163.83 0)
+			(at 63.5 163.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19649,7 +19648,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 53.34 163.83 0)
+			(at 63.5 163.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)
