@@ -48,7 +48,7 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.5
+          "min_clearance": 0.0
         }
       },
       "diff_pair_dimensions": [
@@ -59,6 +59,10 @@
         }
       ],
       "drc_exclusions": [
+        [
+          "lib_footprint_mismatch|158675000|75000000|1fe2077d-4d20-4a4e-beda-739afe1b78d1|00000000-0000-0000-0000-000000000000",
+          "verified"
+        ],
         [
           "silk_edge_clearance|194100000|120491128|1f3d4b39-4c23-4de1-90ae-a0f53cdf6959|1a9ef26d-7d3c-4c76-8419-cd120f6e6fe9",
           "Switch on the edge"

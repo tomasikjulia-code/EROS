@@ -1,4 +1,4 @@
-27943613528335088
+27945390138460811
 AD8232
 QFN-20_EP_4x4_Pitch0.5mm
 
@@ -6,6 +6,13 @@ QFN-20_EP_4x4_Pitch0.5mm
 0
 46
 21
+ADS1292
+QFP50P700X700X120-32N
+PBS (S-PQFP-G32)
+Integrated Circuit
+0
+32
+32
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
