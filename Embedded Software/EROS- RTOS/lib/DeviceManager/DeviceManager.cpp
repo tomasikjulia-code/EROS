@@ -339,6 +339,7 @@ void DeviceManager::EKGReadingAndSending(){
                 holter.closeFile();
                 Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
                 displayEnabled=false;
+                clearDisplay();
                 currentDisplayState=DISPLAY_END;
             }
         }
