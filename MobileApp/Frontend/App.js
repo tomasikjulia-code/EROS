@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ScrollView, Animated, View, Text, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import { ScrollView, Animated, View, Text, TouchableOpacity, StatusBar, Platform, PermissionsAndroid } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { AlertCircle, CheckCircle2, Home, History, Settings } from 'lucide-react-native';
 import { styles } from './src/constants/Theme';
@@ -16,6 +16,9 @@ import { parseEcgFileToTrend } from './src/utils/CsvParser';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Asset } from 'expo-asset';
 
+import * as Sharing from 'expo-sharing';
+import RNFS from 'react-native-fs';
+
 let Speech;
 try {
   Speech = require('expo-speech');
@@ -26,22 +29,22 @@ try {
 const FILE_URI = FileSystem.documentDirectory + 'current_examination.csv';
 
 export default function App() {
-  const [view, setView] = useState('home'); 
-  const [bleState, setBleState] = useState('disconnected'); 
-  const [syncState, setSyncState] = useState('idle'); 
+  const [view, setView] = useState('home');
+  const [bleState, setBleState] = useState('disconnected');
+  const [syncState, setSyncState] = useState('idle');
 
   const deviceRef = useRef(null);
   const subscriptionRef = useRef(null)
-  
+
   const [records, setRecords] = useState(initialHistory);
-  const [deviceData, setDeviceData] = useState(null); 
-  
+  const [deviceData, setDeviceData] = useState(null);
+
   const [diagnostics, setDiagnostics] = useState(null);
 
   const [activeReportRecord, setActiveReportRecord] = useState(null);
   const [aiReport, setAiReport] = useState(null);
   const [doctorEmail, setDoctorEmail] = useState('');
-  
+
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isNotifEnabled, setIsNotifEnabled] = useState(true);
   const [isVibrateEnabled, setIsVibrateEnabled] = useState(true);
@@ -55,6 +58,20 @@ export default function App() {
   const isReceivingFileRef = useRef(false);
   const readyResolveRef = useRef(null);
   const transferResolveRef = useRef(null);
+
+  const fileBufferRef = useRef([]);
+  const flushIntervalRef = useRef(null);
+  const isFlushingRef = useRef(false);
+  const fileWriteQueue = useRef(Promise.resolve());
+  // useEffect(() => {
+  //   flushIntervalRef.current = setInterval(() => {
+  //     flushBuffer();
+  //   }, 500); // every 500ms
+
+  //   return () => {
+  //     clearInterval(flushIntervalRef.current);
+  //   };
+  // }, []);
 
   const showToast = (message, type = 'success') => {
     setToastMessage({ message, type });
@@ -85,21 +102,21 @@ export default function App() {
   const toggleBluetooth = async () => {
     if (bleState === 'disconnected') {
       const hasPermissions = await requestBluetoothPermissions();
-      if(!hasPermissions){
-        showToast("Brak uprawnień Bluetooth.","error");
+      if (!hasPermissions) {
+        showToast("Brak uprawnień Bluetooth.", "error");
         return;
       }
 
       const paired = await getPairedDevices();
       const eros = paired.find(device => device.name === "EROS");
-      if(!eros){
-        showToast("Nie znaleziono urządzenia. Sparuj je w ustawieniach telefonu.","error");
+      if (!eros) {
+        showToast("Nie znaleziono urządzenia. Sparuj je w ustawieniach telefonu.", "error");
         return;
       }
 
       const device = await connectToDevice(eros.address);
-      if(!device){
-        showToast("Nie udało połączyć się z urządzeniem.","error");
+      if (!device) {
+        showToast("Nie udało połączyć się z urządzeniem.", "error");
         return;
       }
 
@@ -110,7 +127,7 @@ export default function App() {
       setIsLiveEcgActive(false);
       setLastConnectedTime(new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }));
 
-      sendData(eros.address,"GET_STATE");
+      sendData(eros.address, "GET_STATE");
       subscriptionRef.current = receiveData(eros.address, (rawData) => {
         handleIncomingData(rawData);
       });
@@ -118,20 +135,20 @@ export default function App() {
     } else {
       subscriptionRef.current?.remove();
       await disconnectDevice(deviceRef.current?.address);
-      deviceRef.current=null;
+      deviceRef.current = null;
 
       setBleState('disconnected');
       setSyncState('idle');
       showToast('Rozłączono urządzenie. Tryb odczytu lokalnego.', 'info');
-      
+
       setIsLiveEcgActive(false);
     }
   };
 
-  function handleIncomingData(rawData){
-    try{
+  function handleIncomingData(rawData) {
+    try {
       const trimmed = rawData.trim();
-      console.log(trimmed);
+      //console.log(trimmed);
       if (!trimmed) return;
 
       if (trimmed === 'READY') {
@@ -140,42 +157,46 @@ export default function App() {
         return;
       }
 
-      if (trimmed.startsWith('E')){
+      if (trimmed.startsWith('E')) {
         const sample = parseEcgPacket(trimmed);
         ecgBuffer.pushData(sample);
         return;
       }
 
-      if(trimmed.startsWith('D')){
+      if (trimmed.startsWith('D')) {
         parseDiagnostics(trimmed);
         return;
       }
 
-      if(trimmed.startsWith('S')){
+      if (trimmed.startsWith('S')) {
         transferResolveRef.current?.();
         transferResolveRef.current = null;
         isReceivingFileRef.current = false;
+
+        //flushBuffer();
+
         return;
       }
 
-      if(isReceivingFileRef.current){
-        const line=parseFilePacket(trimmed);
-        if(line && !isNaN(line.timestampMs)) writeToFile(line);
+      if (isReceivingFileRef.current) {
+        //const line=parseFilePacket(trimmed);
+        //if(line && !isNaN(line.timestampMs)) writeToFile(line);
+        writeToFile(trimmed);
       }
 
-    } catch(e) {
+    } catch (e) {
       console.warn('Failed to parse data from EROS:', rawData);
     }
   }
 
-  function parseEcgPacket(trimmed){
-    const sample = parseInt(trimmed.slice(1),10);
-    if (!isNaN(sample)){
+  function parseEcgPacket(trimmed) {
+    const sample = parseInt(trimmed.slice(1), 10);
+    if (!isNaN(sample)) {
       return sample;
     }
   }
 
-  function parseFilePacket(line){
+  function parseFilePacket(line) {
     const values = line.trim().split(',');
 
     return {
@@ -186,13 +207,13 @@ export default function App() {
     }
   }
 
-  function parseDiagnostics(trimmed){
+  function parseDiagnostics(trimmed) {
     const parsed = JSON.parse(trimmed.trim().slice(1));
     setDiagnostics({
       battery: parsed.battery,
       signalQuality: parsed.signalQuality,
       isMeasuring: parsed.isMeasuring,
-      electrodes: Array.isArray(parsed.electrodes) ? parsed.electrodes: [],
+      electrodes: Array.isArray(parsed.electrodes) ? parsed.electrodes : [],
     });
   }
 
@@ -202,7 +223,7 @@ export default function App() {
       return;
     }
     setSyncState('syncing');
-    
+
     setTimeout(() => {
       const newData = {
         id: Date.now().toString(),
@@ -212,11 +233,11 @@ export default function App() {
         veb: { total: 15, pairs: 1, runs: 0, burden: "< 0.1%" }, sveb: { total: 80, pairs: 3, runs: 0, burden: "0.1%" },
         pauses: { count: 0, longest: "1.9s", longestTime: "02:14:00" }, arrhythmiaEvents: 95, hourlyTrend: generateHourlyTrend(71)
       };
-      
+
       setDeviceData(newData);
-      setRecords(prev => [newData, ...prev]); 
+      setRecords(prev => [newData, ...prev]);
       setSyncState('synced');
-      setAiReport(null); 
+      setAiReport(null);
       showToast('Dane pomyślnie zsynchronizowane.');
     }, 2500);
   };
@@ -240,156 +261,194 @@ export default function App() {
     }
   };
 
-const getFileFromDevice = async () => {
-
-  if (bleState !== 'connected') {
-    showToast('Najpierw połącz urządzenie.', 'error');
-    return;
-  }
-
-
-  setSyncState('syncing');
-
-  const lastSavedTS = await getLastTimestampFromFile();
-  console.log("Last timestamp found in file:", lastSavedTS);
-
-
-  showToast('Pobieranie badania z Holtera...', 'info');
-    
-  try {
-
-    const waitForReady = new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error("Timeout: Device not ready")), 5000);
-    readyResolveRef.current = () => {
-        clearTimeout(timeout);
-        resolve();
-    };
-    });
-
-    sendData(deviceRef.current.address, "GET_FILE");
-    await waitForReady;
-
-    await initFile();
-
-    isReceivingFileRef.current = true;
-      
-    const transferComplete = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("Error: Transfer timeout")), 300000);
-          transferResolveRef.current = () => {
-            clearTimeout(timeout);
-            resolve();
-          };
-    });
-
-    sendData(deviceRef.current.address, `OK${lastSavedTS}`);
-    await transferComplete;
-    // // (Symulacja transferu pliku - do wywalenia potem)
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-    // const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
-    // if (!fileInfo.exists) {
-    //   console.log("Brak pliku badania, wstrzykuję plik testowy...");
-    //   const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
-    //   await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
-    // }
-    
-    showToast('Trwa analiza EKG...', 'info');
-
-    const fileContent = await FileSystem.readAsStringAsync(FILE_URI, { 
-      encoding: FileSystem.EncodingType.UTF8 
-    });
-
-    const parsedTrend = parseEcgFileToTrend(fileContent);
-
-    if (!parsedTrend || parsedTrend.length === 0) {
-      showToast('Błąd: Plik jest pusty lub uszkodzony.', 'error');
-      setSyncState('idle');
+  const getFileFromDevice = async () => {
+    transferResolveRef.current=null;
+    if (bleState !== 'connected') {
+      showToast('Najpierw połącz urządzenie.', 'error');
       return;
     }
 
-    const allBpms = parsedTrend.map(d => d.bpm);
-    const minBpm = Math.floor(Math.min(...allBpms));
-    const maxBpm = Math.ceil(Math.max(...allBpms));
-    const avgBpm = Math.round(allBpms.reduce((a, b) => a + b, 0) / allBpms.length);
-    
-    const lastTimeMs = parsedTrend[parsedTrend.length - 1].timeMs;
-    const durationMins = Math.floor(lastTimeMs / 60000);
-    const durationSecs = Math.floor((lastTimeMs % 60000) / 1000);
+    setSyncState('syncing');
 
-    const newData = {
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      duration: `${durationMins}m ${durationSecs}s`, 
-      totalBeats: parsedTrend.length, 
-      avgBpm: avgBpm, 
-      minBpm: minBpm, 
-      minBpmTime: "--:--:--", 
-      maxBpm: maxBpm, 
-      maxBpmTime: "--:--:--",
-      veb: { total: 0, pairs: 0, runs: 0, burden: "0%" }, 
-      sveb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
-      pauses: { count: 0, longest: "0", longestTime: "--" }, 
-      arrhythmiaEvents: 0, 
-      hourlyTrend: parsedTrend 
-    };
-    
-    setDeviceData(newData);
-    setRecords(prev => [newData, ...prev]); 
-    setSyncState('synced');
-    setAiReport(null); 
-    showToast('Badanie odebrane i przeanalizowane!');
+    const lastSavedTS = await getLastTimestampFromFile();
+    console.log("Last timestamp found in file:", lastSavedTS);
 
-  } catch (error) {
-    console.error("Błąd czytania pliku:", error);
-    showToast('Wystąpił błąd podczas analizy pliku.', 'error');
-    setSyncState('idle');
-  }
+
+    showToast('Pobieranie badania z Holtera...', 'info');
+
+    try {
+
+      const waitForReady = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("Timeout: Device not ready")), 5000);
+        readyResolveRef.current = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+      });
+
+      sendData(deviceRef.current.address, "GET_FILE");
+      await waitForReady;
+
+      await initFile();
+
+      isReceivingFileRef.current = true;
+
+      const transferComplete = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("Error: Transfer timeout")), 300000);
+        transferResolveRef.current = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+      });
+
+      sendData(deviceRef.current.address, `OK${lastSavedTS}`);
+      await transferComplete;
+      await flushBuffer();
+
+      //await fileWriteQueue.current; 
+      
+      console.log('All data safely on disk.');
+
+      const finalCheck = await FileSystem.getInfoAsync(FILE_URI);
+      console.log(`Final file size: ${finalCheck.size} bytes`);
+
+      // // (Symulacja transferu pliku - do wywalenia potem)
+      // await new Promise(resolve => setTimeout(resolve, 2000));
+      // const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
+      // if (!fileInfo.exists) {
+      //   console.log("Brak pliku badania, wstrzykuję plik testowy...");
+      //   const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
+      //   await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
+      // }
+
+      showToast('Trwa analiza EKG...', 'info');
+
+      const fileContent = await FileSystem.readAsStringAsync(FILE_URI, {
+        encoding: FileSystem.EncodingType.UTF8
+      });
+
+      const parsedTrend = parseEcgFileToTrend(fileContent);
+
+      if (!parsedTrend || parsedTrend.length === 0) {
+        showToast('Błąd: Plik jest pusty lub uszkodzony.', 'error');
+        setSyncState('idle');
+        return;
+      }
+
+      const allBpms = parsedTrend.map(d => d.bpm);
+      const minBpm = Math.floor(Math.min(...allBpms));
+      const maxBpm = Math.ceil(Math.max(...allBpms));
+      const avgBpm = Math.round(allBpms.reduce((a, b) => a + b, 0) / allBpms.length);
+
+      const lastTimeMs = parsedTrend[parsedTrend.length - 1].timeMs;
+      const durationMins = Math.floor(lastTimeMs / 60000);
+      const durationSecs = Math.floor((lastTimeMs % 60000) / 1000);
+
+      const newData = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        duration: `${durationMins}m ${durationSecs}s`,
+        totalBeats: parsedTrend.length,
+        avgBpm: avgBpm,
+        minBpm: minBpm,
+        minBpmTime: "--:--:--",
+        maxBpm: maxBpm,
+        maxBpmTime: "--:--:--",
+        veb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
+        sveb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
+        pauses: { count: 0, longest: "0", longestTime: "--" },
+        arrhythmiaEvents: 0,
+        hourlyTrend: parsedTrend
+      };
+
+      setDeviceData(newData);
+      setRecords(prev => [newData, ...prev]);
+      setSyncState('synced');
+      setAiReport(null);
+      showToast('Badanie odebrane i przeanalizowane!');
+      saveToDownloads();
+
+    } catch (error) {
+      console.error("Błąd czytania pliku:", error);
+      showToast('Wystąpił błąd podczas analizy pliku.', 'error');
+      setSyncState('idle');
+    }
   };
 
-  const initFile = async() => {
-    try{
+  const initFile = async () => {
+    console.log("Initiating file");
+    try {
       const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
-      if(!fileInfo.exists){
+      if (!fileInfo.exists) {
         await FileSystem.writeAsStringAsync(
           FILE_URI,
           'Timestamp_ms,ECG_raw,BPM,Lead_off\n',
           { encoding: FileSystem.EncodingType.UTF8 }
         );
       }
-    } catch(error){
-      console.error('Failed to initiate writing to file:',error);
-    }
-}
-
-  const writeToFile = async({timestampMs, ECGRaw, BPM, leadOff}) => {
-    try{
-      const row = `${timestampMs},${ECGRaw},${BPM},${leadOff}\n`
-      await FileSystem.writeAsStringAsync(FILE_URI, row, {
-        encoding: FileSystem.EncodingType.UTF8,
-        append: true,
-      });
-    } catch(error){
-      console.error('Failed to write to file:',error);
+    } catch (error) {
+      console.error('Failed to initiate writing to file:', error);
     }
   }
+
+  const writeToFile = (data) => {
+    try {
+      //console.log(data);
+      //const row = `${timestampMs},${ECGRaw},${BPM},${leadOff}\n`
+      // await FileSystem.writeAsStringAsync(FILE_URI, data+"\n", {
+      //   encoding: FileSystem.EncodingType.UTF8,
+      //   append: true,
+      // });
+      //console.log('Received data packet:', data.trim());
+      fileBufferRef.current.push(data + '\n');
+      //console.log(`Buffer size: ${fileBufferRef.current.length}`);
+
+      if (fileBufferRef.current.length > 4000 && !isFlushingRef.current) {
+        flushBuffer();
+      }
+    } catch (error) {
+      console.error('Failed to write to file:', error);
+    }
+  }
+
+  const flushBuffer = async () => {
+    console.log('Starting flushing...');
+    if (fileBufferRef.current.length === 0) return fileWriteQueue.current;
+
+    const dataToWrite = fileBufferRef.current.join('');
+    fileBufferRef.current = [];
+
+    // Chain the next write to the end of the previous one
+    fileWriteQueue.current = fileWriteQueue.current.then(async () => {
+      try {
+        await RNFS.appendFile(FILE_URI, dataToWrite, 'utf8');
+        console.log('Flush success');
+      } catch (error) {
+        console.error('Flush failed:', error);
+      }
+    });
+  
+  return fileWriteQueue.current; 
+  };
 
   const getLastTimestampFromFile = async () => {
-  try {
-    const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
-    if (!fileInfo.exists) return "0";
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
+      if (!fileInfo.exists) return "0";
 
-    const content = await FileSystem.readAsStringAsync(FILE_URI);
-    const lines = content.trim().split('\n');
-    
-    if (lines.length <= 1) return "0";
+      const content = await FileSystem.readAsStringAsync(FILE_URI);
+      const lines = content.trim().split('\n');
 
-    const lastLine = lines[lines.length - 1];
-    const parts = lastLine.split(',');
-    
-    return parts[0] || "0";
-  } catch (e) {
-    console.error("Error reading last timestamp:", e);
-    return "0";
-  }
+      if (lines.length <= 1) return "0";
+
+      const lastLine = lines[lines.length - 1];
+      const parts = lastLine.split(',');
+
+      return parts[0] || "0";
+    } catch (e) {
+      console.error("Error reading last timestamp:", e);
+      return "0";
+    }
   }
 
   const openReport = (record) => {
@@ -424,6 +483,29 @@ const getFileFromDevice = async () => {
     setView('report');
   };
 
+  const saveToDownloads = async () => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
+      console.log(`File size before sharing: ${fileInfo.size} bytes`);
+
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        showToast('Udostępnianie niedostępne na tym urządzeniu.', 'error');
+        return;
+      }
+
+      await Sharing.shareAsync(FILE_URI, {
+        mimeType: 'text/csv',
+        dialogTitle: 'Zapisz badanie EKG',
+        UTI: 'public.comma-separated-values-text',
+      });
+    } catch (error) {
+      console.error('Błąd zapisu:', error);
+      showToast('Nie udało się zapisać pliku.', 'error');
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
@@ -434,44 +516,44 @@ const getFileFromDevice = async () => {
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-        
-        <ScrollView 
-          style={styles.scrollView} 
+
+        <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {view === 'home' && (
-            <HomeScreen 
-              bleState={bleState} 
-              deviceData={deviceData} 
-              syncState={syncState} 
-              diagnostics={diagnostics} 
-              toggleBluetooth={toggleBluetooth} 
+            <HomeScreen
+              bleState={bleState}
+              deviceData={deviceData}
+              syncState={syncState}
+              diagnostics={diagnostics}
+              toggleBluetooth={toggleBluetooth}
               syncData={syncData}
-              refreshDiagnostics={refreshDiagnostics} 
+              refreshDiagnostics={refreshDiagnostics}
               getFileFromDevice={getFileFromDevice}
               isLiveEcgActive={isLiveEcgActive}
               toggleLiveEcg={handleToggleLiveEcg}
               lastConnectedTime={lastConnectedTime}
-              openReport={openReport} 
-              formatDate={formatDate} 
+              openReport={openReport}
+              formatDate={formatDate}
             />
           )}
           {view === 'history' && (
             <HistoryScreen records={records} openReport={openReport} formatDate={formatDate} />
           )}
           {view === 'report' && (
-            <ReportScreen 
-              activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate} 
-              aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail} 
-              showToast={showToast} 
+            <ReportScreen
+              activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
+              aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
+              showToast={showToast}
             />
           )}
           {view === 'settings' && (
-            <SettingsScreen 
-              isVoiceEnabled={isVoiceEnabled} handleVoiceToggle={handleVoiceToggle} 
-              isNotifEnabled={isNotifEnabled} setIsNotifEnabled={setIsNotifEnabled} 
-              isVibrateEnabled={isVibrateEnabled} setIsVibrateEnabled={setIsVibrateEnabled} 
+            <SettingsScreen
+              isVoiceEnabled={isVoiceEnabled} handleVoiceToggle={handleVoiceToggle}
+              isNotifEnabled={isNotifEnabled} setIsNotifEnabled={setIsNotifEnabled}
+              isVibrateEnabled={isVibrateEnabled} setIsVibrateEnabled={setIsVibrateEnabled}
             />
           )}
         </ScrollView>
@@ -492,14 +574,14 @@ const getFileFromDevice = async () => {
         </View>
 
         <Animated.View style={[
-          styles.toast, 
-          toastMessage?.type === 'error' ? styles.toastError : toastMessage?.type === 'info' ? styles.toastInfo : styles.toastSuccess, 
+          styles.toast,
+          toastMessage?.type === 'error' ? styles.toastError : toastMessage?.type === 'info' ? styles.toastInfo : styles.toastSuccess,
           { transform: [{ translateY: toastAnim }] }
         ]}>
           {toastMessage && <ToastIcon size={20} color={toastMessage.type === 'error' ? "#fb7185" : "#34d399"} />}
           <Text style={styles.toastText}>{toastMessage?.message}</Text>
         </Animated.View>
-        
+
       </SafeAreaView>
     </SafeAreaProvider>
   );
