@@ -3,7 +3,7 @@
 #include "display.h"
 #include "HeartMonitor.h"
 #include "CsvWriter.h" 
-#include"Accelerometer.h"
+#include "Accelerometer.h"
 #include <ArduinoJson.h>
 /*
 =========================/KROTKI OPIS URZADZENIA NA TA CHWILE/============================================
@@ -41,6 +41,7 @@ mowi co sie dzieje i kiedy sie dzieje oraz na co maja reagowac przyciski. Na tą
 #define MS_PER_HOUR 3600000UL
 #define MS_PER_MINUTE 60000UL
 #define BATTERY_LEVEL_PIN 25
+#define EKG_BUFFER_SIZE 100 //rozmiar buforow do podwojnego buforowania
 
 enum DisplayState {
     DISPLAY_OFF,
@@ -81,14 +82,21 @@ class DeviceManager{
         MyAccelerometer accel;
         unsigned long lastAccelCheck = 0; 
 
+        // NOWE ZMIENNE DO PODWÓJNEGO BUFOROWANIA:
+        Sample bufferA[EKG_BUFFER_SIZE];
+        Sample bufferB[EKG_BUFFER_SIZE];
+        Sample* currentBuffer;
+        Sample* readyToWriteBuffer;
+        volatile size_t bufferIndex;
+
         DeviceManager();
         void init();
         void setStartTime();//funkcja ustawiajaca start badania na aktualna wartosc millis() tak zeby pozniej mozna bylo sprawdzac ile zostalo
         void chooseTestTime(); //funkcja do wyboru czasu trwania badania dziala w petli dopoki nie dokonasz wyboru
         //ta funkcja obsluguje komunikaty dostarczone z aplikacji przez bluetooth
-        void checkBluetooth(); // fucnkja sprawdzajaca czy bluetooth m klienta i sprawdzajaca czy on przypadkiem nic nie wyslal
+        void checkBluetooth(SemaphoreHandle_t sdMutex); // fucnkja sprawdzajaca czy bluetooth m klienta i sprawdzajaca czy on przypadkiem nic nie wyslal
         void EKGReadingAndSending(); //funkcja odpowiedzialna za czytanie oraz zapis na karcie SD probek badania
-        void BTSendingFile();//funkcja wysylajaca caly plik lub jego czesc przez bluetooth
+        void BTSendingFile(SemaphoreHandle_t sdMutex); //funkcja wysylajaca caly plik lub jego czesc przez bluetooth
         void BTSendingState(); //funkcja wysylajaca stan elektrod oraz stan baterii przez bluetooth
         void updateDisplay(uint32_t timeInMs); //funkcja odświerzająca wyświetlacz tyle czasu ile trzeba (pozniej go wylacza) (czas podany w milisekundach)
         void checkButtons(); //funkcja sprawdzajaca przyciski i ustawiajace displayEnabled oraz btEnabled
@@ -101,7 +109,11 @@ class DeviceManager{
         uint8_t calculateLeftHours(); //funkcja obliczajaca ile godzin zostalo do konca badania
         bool isTimeEnded(); //funkcja sprawdzajaca czy czas badania dobiegł już końca
 
-        void processAccelerometer();
+        void processAccelerometer(); //funkcja odpowiadająca za obliczanie wspolczynnika aktywnosci i opbsluge akclerometru 
+
+
+        void collectAndBufferSample(TaskHandle_t sdTaskHandle); 
+        void writeBufferToSD();
 
     private:
         volatile float lastActivityValue = -1.0f; // Przechowuje aktualną wartość do zapisu

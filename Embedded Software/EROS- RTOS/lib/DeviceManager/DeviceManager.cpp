@@ -46,6 +46,11 @@ void DeviceManager::init(){
     //ustawienie atenuacji dla ADC zeby moc mierzyc do 3.6V co jest potrzebne do poprawnego zczytywania procentow
     analogSetAttenuation(ADC_11db); // Pozwala mierzyć do ok. 3.6V
 
+    // Inicjalizacja podwójnego bufora
+    currentBuffer = bufferA;
+    readyToWriteBuffer = nullptr;
+    bufferIndex = 0;
+
 }
 
 void DeviceManager::setStartTime(){
@@ -69,7 +74,7 @@ void DeviceManager::chooseTestTime(){
     clearDisplay();
 }
 
-void DeviceManager::checkBluetooth(){
+void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
 
     if (btEnabled)
     {
@@ -125,7 +130,7 @@ void DeviceManager::checkBluetooth(){
 
             //jak ESP zobaczy taka komende to wysyla plik z danym lub jego czesc
             } else if (response == "GET_FILE") {
-                BTSendingFile();
+                BTSendingFile(sdMutex);
             } else if(response == "GET_STATE") {
                 BTSendingState();
             } else {
@@ -136,123 +141,114 @@ void DeviceManager::checkBluetooth(){
     }
 }
 
-void DeviceManager::BTSendingFile(){
+void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex){
     if (SerialBT.hasClient()) {
-
-        uint32_t lastSampleReceived = 0; // Zmienna do przechowywania numeru ostatniej próbki, którą otrzymała aplikacja
-        File file = SD.open("/test_ekg.csv"); // tutaj tworze sobie nowy uchwyt do pliku bo ten karoliny jest w prywatnych i nie da sie do niego odwolac
-        if (!file) {
-            //nie mozna otworzyc pliku
-            return;
-        }
-
-        //Handshake do aplikacji czekajacy na potwierdzenie czy ta aplikacja jest gotowa na nasz plik
-        Serial.println("BTSendingFile entered");
-        SerialBT.println("READY");  // wysyłamy sygnał gotowości
-        Serial.println("READY sent");
-
-        // czekamy na odpowiedź OK od aplikacji
-        unsigned long waitStart = millis();
-        while (!SerialBT.available()) {
-            if (millis() - waitStart > 10000) {  // 10 ssekund timeoutu, gdyby nie było odpowiedzi
-                Serial.println("[BTSendingFile] Timeout waiting for OK, aborting");
-                file.close();
+        //ZABIERAMY MUTEKS PRZED DOSTĘPEM DO KARTY
+        if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
+            
+            uint32_t lastSampleReceived = 0; 
+            File file = SD.open("/test_ekg.csv"); 
+            
+            if (!file) {
+                // Musimy oddać muteks przy każdym return!
+                xSemaphoreGive(sdMutex);
                 return;
             }
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
 
-        String response = SerialBT.readStringUntil('\n');
-        response.trim();
+            Serial.println("BTSendingFile entered");
+            SerialBT.println("READY");  
+            Serial.println("READY sent");
 
-        Serial.println("Otrzymano odpowiedź: " + response);
+            unsigned long waitStart = millis();
+            while (!SerialBT.available()) {
+                if (millis() - waitStart > 10000) {  
+                    Serial.println("[BTSendingFile] Timeout waiting for OK, aborting");
+                    file.close();
+                    xSemaphoreGive(sdMutex); // ODDANIE MUTEKSU
+                    return;
+                }
+                // Podczas czekania na BT na chwilę oddajemy procesor
+                vTaskDelay(pdMS_TO_TICKS(100));
+            }
 
-        //sprawdzamy jaka ostatnia probke ma aplikacja zeby wiedziec od czego wysylac plik
-        if(response.startsWith("OK")){
-            lastSampleReceived=response.substring(2).toInt();
-            Serial.println(lastSampleReceived);
-        }
-        else{
-            Serial.println("[BTSendingFile] Unexpected response, aborting");
-            file.close();
-            return;
-        }
+            String response = SerialBT.readStringUntil('\n');
+            response.trim();
 
-        //szukanie miejsca w pliku od ktorego zaczyna sie wysylanie danch ktorych nie ma aplikacja 
-        bool found = false;
-        unsigned long lastPosition = 0;
-        if(lastSampleReceived >= 0){
-             //szukamy probki tylko jesli ta liczba ostatniej probki jest wieksza od zera
-            while (file.available()) {
-                lastPosition = file.position(); // Zapamiętaj początek aktualnej linii
-                String line = file.readStringUntil('\n');
-                
-                if (line.length() > 0) {
-                    // Wyciągamy pierwszą wartość (millis) do pierwszego przecinka
-                    int commaIndex = line.indexOf(',');
-                    if (commaIndex != -1) {
-                        unsigned long currentMillis = line.substring(0, commaIndex).toInt();
-                        
-                        if (currentMillis == lastSampleReceived) {
-                            //Ustawiamy kursor na początku TEJ linii jesli znalezlismy 
-                            file.seek(lastPosition);
-                            found = true;
-                            break;
+            Serial.println("Otrzymano odpowiedź: " + response);
+
+            if(response.startsWith("OK")){
+                lastSampleReceived = response.substring(2).toInt();
+                Serial.println(lastSampleReceived);
+            }
+            else{
+                Serial.println("[BTSendingFile] Unexpected response, aborting");
+                file.close();
+                xSemaphoreGive(sdMutex); // ODDANIE MUTEKSU
+                return;
+            }
+
+            bool found = false;
+            unsigned long lastPosition = 0;
+            if(lastSampleReceived >= 0){
+                while (file.available()) {
+                    lastPosition = file.position(); 
+                    String line = file.readStringUntil('\n');
+                    
+                    if (line.length() > 0) {
+                        int commaIndex = line.indexOf(',');
+                        if (commaIndex != -1) {
+                            unsigned long currentMillis = line.substring(0, commaIndex).toInt();
+                            if (currentMillis == lastSampleReceived) {
+                                file.seek(lastPosition);
+                                found = true;
+                                break;
+                            }
                         }
                     }
                 }
+                if (!found) {
+                    file.seek(0);
+                }
             }
-            if (!found) {
-                //jesli nie znalezlismy to znaczy ze aplikacja cos wymysla i nie ma tej probki w pliku wiec wysylamy wszystko od poczatku
-                file.seek(0);
+
+            const size_t bufferSize = 512;
+            uint8_t buffer[bufferSize];
+            size_t bytesRead;
+
+            size_t startPos = file.position();
+            size_t fileSize = file.size();
+            Serial.println(fileSize);
+            size_t bytesToSend = fileSize - startPos;
+            size_t totalRead = 0;
+
+            while (totalRead < bytesToSend) {
+                size_t remainingInFile = bytesToSend - totalRead;
+                size_t toRead = std::min((size_t)bufferSize, remainingInFile);
+
+                bytesRead = file.read(buffer, toRead);
+                if (bytesRead <= 0) break;
+                
+                size_t written = SerialBT.write(buffer, bytesRead); 
+                totalRead += written;
+
+                // Oddajemy muteks na chwilę, żeby task zapisu EKG mógł zapisać swój bufor
+                xSemaphoreGive(sdMutex); 
+                vTaskDelay(pdMS_TO_TICKS(5)); // Krótka pauza 
+                
+                // Próbujemy zabrać muteks z powrotem, by kontynuować wysyłanie
+                if (xSemaphoreTake(sdMutex, portMAX_DELAY) == pdFALSE) break;
             }
+
+            Serial.println("Wysyłanie zakończone. Zamykam plik.");
+            file.close();
+
+            xSemaphoreGive(sdMutex); 
         }
 
-        //tutaj kod na wysylanie printem
-
-        // size_t fileEnd = file.size();
-
-        // while(file.position() < fileEnd){
-        //     SerialBT.print(file.readStringUntil('\n'));
-        //     vTaskDelay(pdMS_TO_TICKS(2));
-        // }
-
-        //tutaj wysylanie zostawiam paczkami po 512 bajtow
-        const size_t bufferSize = 512;
-        uint8_t buffer[bufferSize];
-        size_t bytesRead;
-
-        size_t startPos = file.position();
-        size_t fileSize = file.size();
-        Serial.println(fileSize);
-        size_t bytesToSend = fileSize - startPos;
-        size_t totalRead = 0;
-
-        while (totalRead < bytesToSend) {
-            size_t remainingInFile = bytesToSend - totalRead;
-            size_t toRead = std::min((size_t)bufferSize, remainingInFile);
-
-            //tutaj jest pętla ktora odpowiada za oczekiwanie na to czy w buforze jest wystarczajaco duzo miejsca zeby wyslac kolejna paczke
-            // while (SerialBT.availableForWrite() < toRead) {
-            //     vTaskDelay(pdMS_TO_TICKS(1)); // Bardzo krótkie uśpienie, by nie blokować CPU
-            // }
-            bytesRead = file.read(buffer, toRead);
-            if (bytesRead <= 0) break;
-
-            size_t written = SerialBT.write(buffer, bytesRead); 
-            totalRead += written;
-            vTaskDelay(pdMS_TO_TICKS(5));
-
-        }
-
-        Serial.println("Wysyłanie zakończone. Zamykam plik.");
-
-        file.close();
-
-        // --- ZAKOŃCZENIE TRANSMISJI ---
         SerialBT.println("S");
     }
 }
+
 
 void DeviceManager::BTSendingState()
 {
@@ -337,17 +333,77 @@ void DeviceManager::waitingForSDcard(){
     }while(!SDcardEnabled || !fileSystemEnabled);
 }
 
+void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
+    //aktualizuje tento
+    processHeartRate(); 
+
+    //wypełniam sobie bufor nowymi danym na giga chillu
+    currentBuffer[bufferIndex].timestamp = millis();
+    currentBuffer[bufferIndex].rawValue = isLeadOff() ? 0 : (int16_t)getFilteredValue();
+    currentBuffer[bufferIndex].bpm = getAverageBPM();
+    currentBuffer[bufferIndex].leadOff = isLeadOff();
+    
+    // Obsługa aktywności (zapisz tylko jeśli nowa, inaczej -1)
+    if (newActivityReady) {
+        currentBuffer[bufferIndex].activity = lastActivityValue;
+        newActivityReady = false;
+    } else {
+        currentBuffer[bufferIndex].activity = -1.0f; 
+    }
+    
+    // Obsługa przycisku mowiacego o naglych sytuacjach
+    currentBuffer[bufferIndex].important = importantButton;
+    importantButton = 0;
+
+    bufferIndex++;
+
+    // jesli bufor sie zapelnil zamien i wyslij powiadomienie
+    if (bufferIndex >= EKG_BUFFER_SIZE) {
+        readyToWriteBuffer = currentBuffer; // Przekaż pełny bufor do zapisu
+        
+        // Zamień wskaźniki ze starego bufora na nowy pusty
+        if (currentBuffer == bufferA) currentBuffer = bufferB;
+        else currentBuffer = bufferA;
+        
+        bufferIndex = 0;
+
+        // Wyślij sygnał (Notyfikację) do taska zapisującego na SD
+        if (sdTaskHandle != nullptr) {
+            xTaskNotifyGive(sdTaskHandle);
+        }
+    }
+}
+
+void DeviceManager::writeBufferToSD() {
+    // Sprawdź, czy czas badania się skończył
+    if (isTimeEnded() && holter.isRecording()) {
+        holter.closeFile();
+        Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
+        displayEnabled = false;
+        currentDisplayState = DISPLAY_END;
+        return; 
+    }
+
+    // Zapisz gotowy bufor na kartę SD
+    if (readyToWriteBuffer != nullptr && holter.isRecording()) {
+        holter.writeBuffer(readyToWriteBuffer, EKG_BUFFER_SIZE);
+        readyToWriteBuffer = nullptr; //zeruje po zapisaniu zeby na pewno byl pusty
+    }
+}
+
+
+//--------------------------UWAGA TO FUNKCJA DO ZAPISU LINIA PO LINII NA KARCIE SD------------------------------
 void DeviceManager::EKGReadingAndSending(){
             /* Kod do pomiarow na karte SD */
-        // if (digitalRead(BTN_MIN) == LOW || isTimeEnded()) {
-        //     if (holter.isRecording()) {
-        //         holter.closeFile();
-        //         Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
-        //         displayEnabled=false;
-        //         clearDisplay();
-        //         currentDisplayState=DISPLAY_END;
-        //     }
-        // }
+        if (isTimeEnded()) {
+            if (holter.isRecording()) {
+                holter.closeFile();
+                Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
+                displayEnabled=false;
+                clearDisplay();
+                currentDisplayState=DISPLAY_END;
+            }
+        }
         processHeartRate();
         if (holter.isRecording()) {
             int16_t val = isLeadOff() ? 0 : (int16_t)getFilteredValue();
@@ -379,6 +435,8 @@ void DeviceManager::EKGReadingAndSending(){
         }
         vTaskDelay(pdMS_TO_TICKS(4));
 }
+//------------------------KONIEC NIEUZYWANEJ FUNKCJI DO ZAPISU LINIA PO LINII NA KARCIE SD------------------------------
+
 
 uint8_t DeviceManager::calculateLeftHours()
 {
