@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "DeviceManager.h"
+#include"Accelerometer.h"
 
 /*
 BARDZIEJ SZCZEOLOWY OPIS DZIALANIA KODU I URZADZENIA JEST ZAMIESZCZEONY W PLIKU DEVICEMANAGER.H
@@ -11,15 +12,19 @@ urzadzeniem, tak aby tutaj w mainie obslugiwac samego RTOS i zeby kod tutaj byl 
 TaskHandle_t measureTaskHandle;
 TaskHandle_t btTaskHandle;
 TaskHandle_t displayTaskHandle;
-
+TaskHandle_t accelTaskHandle;
 //uchwyty na mutexy
 SemaphoreHandle_t displayMutex;
 SemaphoreHandle_t btMutex;
 SemaphoreHandle_t sdMutex;
+SemaphoreHandle_t accMutex;
 
 
 //obiekt klasy DeviceManager zarzadzajacy wszystkim
 DeviceManager HolterDevice;
+
+//obiekt klasy accelerometr
+MyAccelerometer accel;
 
 void measureTask(void *parameter)
 {   
@@ -61,6 +66,17 @@ void displayTask(void *parameter)
     }
 }
 
+void accelTask(void *parameter) {
+
+    while (true) {
+        if (xSemaphoreTake(accMutex, portMAX_DELAY))
+        {  
+            HolterDevice.processAccelerometer();
+            vTaskDelay(pdMS_TO_TICKS(1000)); 
+            xSemaphoreGive(accMutex);
+        }
+    }
+}
 void setup()
 {
     //Inicjalizacja wszystkich peryferiow znajduje sie w metodzie init dla klasy device manager
@@ -70,6 +86,7 @@ void setup()
     displayMutex = xSemaphoreCreateMutex();
     btMutex = xSemaphoreCreateMutex();
     sdMutex = xSemaphoreCreateMutex();
+    accMutex = xSemaphoreCreateMutex();
     
     //wybór czasu trwania badania
 
@@ -82,6 +99,7 @@ void setup()
     xTaskCreatePinnedToCore(measureTask,"Measure Task",4096,NULL,2,&measureTaskHandle,1);
     xTaskCreatePinnedToCore(btTask,"BT Task",4096,NULL,1,&btTaskHandle,0);
     xTaskCreatePinnedToCore(displayTask,"Display Task",8192,NULL,1,&displayTaskHandle,0);
+    xTaskCreatePinnedToCore(accelTask,"Accel Task",4096,NULL,1,&accelTaskHandle,0);
 }
 void loop(){
     HolterDevice.checkButtons(); //sprawdzam sobie tutaj przyciski bo to troche dziala jak dodatkowy task a nigdzie indziej nie mialem jak

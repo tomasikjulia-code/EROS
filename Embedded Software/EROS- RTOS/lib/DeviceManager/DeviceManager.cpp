@@ -17,6 +17,7 @@ DeviceManager::DeviceManager(){
 
     currentDisplayState = DISPLAY_OFF;
 
+
 }
 
 void DeviceManager::init(){
@@ -24,7 +25,8 @@ void DeviceManager::init(){
     //SETUP MIKROKONTROLERA 
 
     Serial.begin(115200);
-
+    Wire.begin(21, 22); 
+    Wire.setClock(400000);
     //inicjalizacja wyswietlacza
     epd.LDirInit();
     epd.Clear();
@@ -32,6 +34,9 @@ void DeviceManager::init(){
 
     //inicjalizacja EKG 
     initHeartMonitor();
+
+    //inicjalizacja akcelerometru
+    if (!accel.begin()) {Serial.println("Błąd: Nie znaleziono akcelerometru!");}
 
     //PINMODE PRZYCISKÓW
     pinMode(BTN_BT, INPUT_PULLUP);
@@ -334,19 +339,29 @@ void DeviceManager::waitingForSDcard(){
 
 void DeviceManager::EKGReadingAndSending(){
             /* Kod do pomiarow na karte SD */
-        if (digitalRead(BTN_MIN) == LOW || isTimeEnded()) {
-            if (holter.isRecording()) {
-                holter.closeFile();
-                Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
-                displayEnabled=false;
-                clearDisplay();
-                currentDisplayState=DISPLAY_END;
-            }
-        }
+        // if (digitalRead(BTN_MIN) == LOW || isTimeEnded()) {
+        //     if (holter.isRecording()) {
+        //         holter.closeFile();
+        //         Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
+        //         displayEnabled=false;
+        //         clearDisplay();
+        //         currentDisplayState=DISPLAY_END;
+        //     }
+        // }
         processHeartRate();
         if (holter.isRecording()) {
             int16_t val = isLeadOff() ? 0 : (int16_t)getFilteredValue();
-            holter.writeSample(val, getAverageBPM(), isLeadOff());
+            
+            float activityToSave = -1;
+            if (newActivityReady) {
+                activityToSave = lastActivityValue;
+                newActivityReady = false; // Resetujemy flagę po zapisie jednej próbki
+            }
+            
+            int buttonStatus = importantButton;
+            importantButton = 0;
+
+            holter.writeSample(val, getAverageBPM(), isLeadOff(), activityToSave, buttonStatus);
 
             // // Odkomentuj jak chcesz wyplotować wykres
             //Serial.print(">FiltredValue:");
@@ -460,6 +475,20 @@ void DeviceManager::checkButtons()
         lcdPressStart = 0;
         lcdTriggered = false;
     }
+
+    //Przycisk, który oznacza ważne momenty
+    static bool minWasReleased = true; // Zapobiega ciągłemu ustawianiu 1 przy trzymaniu przycisku
+    if (digitalRead(BTN_MIN) == LOW) {
+        Serial.println("hej");
+        if (minWasReleased) {
+            importantButton = 1;
+            minWasReleased = false; // Czekamy aż puścisz przycisk
+            Serial.println("Oznaczono ważne zdarzenie!");
+        }
+    } else {
+        minWasReleased = true;
+    }
+
 }
 
 void DeviceManager::checkTestTimeButtons()
@@ -523,5 +552,30 @@ void DeviceManager::checkTestTimeButtons()
     {
         confirmPressStart = 0;
         confirmTriggered = false;
+    }
+}
+
+void DeviceManager::processAccelerometer() {
+    // Sprawdzamy czy minęła minuta (60000 ms)
+    if (millis() - lastAccelCheck >= 60000UL) {
+        float sum = 0;
+        int samplesCount = 15;
+
+        for (int i = 0; i < samplesCount; i++) {
+            sum += accel.getInstantActivity();
+            vTaskDelay(pdMS_TO_TICKS(20)); 
+        }
+
+        float currentMeasure = sum / (float)samplesCount;
+
+        // Implementacja prostej średniej kroczącej 
+        if (accel.getAverageActivity() == 0) accel.averageActivity = currentMeasure; 
+        else accel.averageActivity = (accel.averageActivity * 0.6f) + (currentMeasure * 0.4f);
+
+        lastActivityValue = accel.averageActivity;
+        newActivityReady = true; // Ustaw flagę dla taska EKG
+
+        Serial.printf("Zaktualizowano średnią aktywność: %.2f\n", accel.averageActivity);
+        lastAccelCheck = millis();
     }
 }

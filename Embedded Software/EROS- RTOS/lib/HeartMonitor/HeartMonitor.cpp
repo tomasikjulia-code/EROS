@@ -9,7 +9,6 @@ Adafruit_ADS1115 ads;
 void initHeartMonitor() {
     pinMode(LO_PLUS, INPUT);
     pinMode(LO_MINUS, INPUT);
-    Wire.setClock(400000);
     if (!ads.begin()) Serial.println("Błąd ADS1115!");
     ads.setGain(GAIN_FOUR); 
     ads.setDataRate(RATE_ADS1115_475SPS);
