@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP ADS1292RIPBS
+D Analog Front-End 2-Ch 24-Bit 3V TQFP32 ADS1292RIPBS, Analogue Front End IC, 2-channel 24 bit, 8ksps Serial-SPI, 32-Pin TQFP
+K
+F https://datasheet.datasheetarchive.com/originals/distributors/Datasheets-SFU2/DSASFU100026033.pdf
+$ENDCMP
+#
+#End Doc Library
