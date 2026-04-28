@@ -31,6 +31,16 @@
       "eas": {
         "projectId": "75672082-c6d0-460f-ac8f-ad69d16b5ebf"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow EROS to access your ECG reports.",
+          "savePhotosPermission": "Allow EROS to save ECG reports to your device.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ]
   }
 }

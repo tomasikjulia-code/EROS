@@ -46,7 +46,9 @@ export async function connectToDevice(address){
     try{
         const isConnected = await RNBluetoothClassic.isDeviceConnected(address);
         if(isConnected) return await RNBluetoothClassic.getConnectedDevice(address);
-        const device = await RNBluetoothClassic.connectToDevice(address);
+        const device = await RNBluetoothClassic.connectToDevice(address,{
+            delimiter: '',
+        });
         
         console.log('Connected to device');
         return device;
@@ -81,9 +83,18 @@ export async function sendData(address, message){
 //Receiving data
 
 export function receiveData(address, onData){
-    const subsription = RNBluetoothClassic.onDeviceRead(address, event => {
-        const message = event.data;
-        onData(message);
-    });
-    return subsription;
+  let btBuffer = '';
+
+  const subscription = RNBluetoothClassic.onDeviceRead(address, event => {
+    btBuffer += event.data;
+    const lines = btBuffer.split('\n');
+    btBuffer = lines.pop();
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed) onData(trimmed);
+    }
+  });
+
+  return subscription;
 }

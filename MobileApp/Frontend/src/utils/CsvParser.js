@@ -1,12 +1,15 @@
 export const parseEcgFileToTrend = (csvString) => {
   const lines = csvString.trim().split('\n');
-  if (lines.length < 2) return [];
+  if (lines.length < 2){
+    console.log("File empty");
+    return [];
+  } 
 
   const separator = lines[0].includes(';') ? ';' : ',';
   const trendData = [];
 
   let firstTimeMs = null;
-  const STABILIZATION_PERIOD_MS = 10000; 
+  const STABILIZATION_PERIOD_MS = 0; 
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -26,7 +29,7 @@ export const parseEcgFileToTrend = (csvString) => {
       !isNaN(timeMs) && 
       !isNaN(bpm) && 
       (timeMs - firstTimeMs > STABILIZATION_PERIOD_MS) && 
-      bpm >= 30 && 
+      bpm >= 0 && 
       bpm <= 250
     ) {
       trendData.push({ timeMs, bpm });
