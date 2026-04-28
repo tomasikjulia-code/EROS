@@ -3,6 +3,7 @@
 #include "display.h"
 #include "HeartMonitor.h"
 #include "CsvWriter.h" 
+#include"Accelerometer.h"
 #include <ArduinoJson.h>
 /*
 =========================/KROTKI OPIS URZADZENIA NA TA CHWILE/============================================
@@ -70,10 +71,15 @@ class DeviceManager{
         unsigned long btPressStart = 0; //zmienna do zliczania czasu nacisku przycisku bluetooth
         unsigned long lcdPressStart = 0; //zmienna do zliczania czasu nacisku przycisku wysweitlacza
 
+        volatile int importantButton = 0;
+
         BluetoothSerial SerialBT;
         CsvWriter holter; //klasa zarzadzajaca holterem
         //Epd epd; //klasa zarzadzajaca wyswietlaczem
         DisplayState currentDisplayState; //zmienna okreslajaca aktualny wyswietlany ekran
+        
+        MyAccelerometer accel;
+        unsigned long lastAccelCheck = 0; 
 
         DeviceManager();
         void init();
@@ -94,7 +100,12 @@ class DeviceManager{
         uint8_t calculateLeftMinutes(); //funkcja obliczajaca ile minyt zostalo do konca badania 
         uint8_t calculateLeftHours(); //funkcja obliczajaca ile godzin zostalo do konca badania
         bool isTimeEnded(); //funkcja sprawdzajaca czy czas badania dobiegł już końca
+
+        void processAccelerometer();
+
     private:
+        volatile float lastActivityValue = -1.0f; // Przechowuje aktualną wartość do zapisu
+        volatile bool newActivityReady = false; // Flaga informująca o nowym pomiarze
 
 };
 
