@@ -54,13 +54,18 @@ void displayBluetooth(){
 }
 
 void displayBPMValue(uint8_t number){
+  paint.SetWidth(200);
+  paint.SetHeight(48);
+  paint.Clear(UNCOLORED);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 96, 200, 48);
+  
   std::string number_str=std::to_string(number);
   uint8_t number_to_display;
   uint8_t number_length=strlen(number_str.c_str());
-  uint8_t x_pos=(200-36*number_length)/2-2;
+  uint8_t x_pos=(200-40*number_length)/2;
   for(int i=0;i<strlen(number_str.c_str());i++){
     number_to_display=std::stoi(std::to_string(number_str[i]-'0'));
-    drawBitmap(x_pos+36*i, 96, 40, 48, &Font48_Table[number_to_display*240]);
+    drawBitmap(x_pos+40*i, 96, 40, 48, &Font48_Table[number_to_display*240]);
   }
 
 }
@@ -118,16 +123,16 @@ void displayTimeChoiceValue(uint8_t hours){
   std::string number_str=std::to_string(hours);
   uint8_t number_to_display;
   uint8_t number_length=strlen(number_str.c_str());
-  uint8_t x_pos=(200-36*(number_length+1))/2-6;
+  uint8_t x_pos=(200-40*(number_length+1))/2;
 
-  paint.SetWidth(40);
+  paint.SetWidth(200);
   paint.SetHeight(48);
   paint.Clear(UNCOLORED);
-  epd.SetFrameMemoryPartial(paint.GetImage(), x_pos+40*(number_length+1), 96, 40, 48);
+  epd.SetFrameMemoryPartial(paint.GetImage(), 0, 96, 200, 48);
 
   for(i=0;i<strlen(number_str.c_str());i++){
     number_to_display=std::stoi(std::to_string(number_str[i]-'0'));
-    drawBitmap(x_pos+36*i, 96, 40, 48, &Font48_Table[number_to_display*240]);
+    drawBitmap(x_pos+40*i, 96, 40, 48, &Font48_Table[number_to_display*240]);
   }
   drawBitmap(x_pos+40*number_length, 96, 40, 48, LETTER_h);
 }
@@ -178,9 +183,9 @@ void splitText(const char* message){
 
   strncpy(message1,message,splitPosition);
   message1[splitPosition]='\0';
-  Serial.println(message1);
+  //Serial.println(message1);
   strncpy(message2,message + splitPosition + 1,strlen(message)-splitPosition);
-  Serial.println(message2);
+  //Serial.println(message2);
 
   uint8_t x_pos1=(200-strlen(message1)*11)/2;
 

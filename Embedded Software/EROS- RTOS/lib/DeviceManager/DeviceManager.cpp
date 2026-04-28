@@ -15,6 +15,8 @@ DeviceManager::DeviceManager(){
     EKGTestTime = 0; //na start czas badania ustawiany na zero jak cos bo pierwszy widok urzadzenia bedzie pozwalal ustawic ta wielkosc
     testTimeChosen = false;
 
+    currentDisplayState = DISPLAY_OFF;
+
 }
 
 void DeviceManager::init(){
@@ -46,6 +48,7 @@ void DeviceManager::setStartTime(){
 }
 
 void DeviceManager::chooseTestTime(){
+    currentDisplayState=DISPLAY_FIRST_SCREEN;
     if(testTimeChosen) return;
     uint8_t lastDisplayedTime=EKGTestTime;
     displayFirstScreen(EKGTestTime);
@@ -71,8 +74,6 @@ void DeviceManager::checkBluetooth(){
             SerialBT.begin("EROS");
             btStarted = true;
         }
-        
-        SerialBT.begin("EROS");
 
         for (int i = 0; i < 10; i++)
         {
@@ -141,10 +142,18 @@ void DeviceManager::BTSendingFile(){
         }
 
         //Handshake do aplikacji czekajacy na potwierdzenie czy ta aplikacja jest gotowa na nasz plik
+        Serial.println("BTSendingFile entered");
         SerialBT.println("READY");  // wysyłamy sygnał gotowości
+        Serial.println("READY sent");
 
-        // czekamy na odpowiedź OK od aplikacji 
+        // czekamy na odpowiedź OK od aplikacji
+        unsigned long waitStart = millis();
         while (!SerialBT.available()) {
+            if (millis() - waitStart > 10000) {  // 10 ssekund timeoutu, gdyby nie było odpowiedzi
+                Serial.println("[BTSendingFile] Timeout waiting for OK, aborting");
+                file.close();
+                return;
+            }
             vTaskDelay(pdMS_TO_TICKS(100));
         }
 
@@ -158,11 +167,16 @@ void DeviceManager::BTSendingFile(){
             lastSampleReceived=response.substring(2).toInt();
             Serial.println(lastSampleReceived);
         }
+        else{
+            Serial.println("[BTSendingFile] Unexpected response, aborting");
+            file.close();
+            return;
+        }
 
         //szukanie miejsca w pliku od ktorego zaczyna sie wysylanie danch ktorych nie ma aplikacja 
         bool found = false;
         unsigned long lastPosition = 0;
-        if(lastSampleReceived > 0){
+        if(lastSampleReceived >= 0){
              //szukamy probki tylko jesli ta liczba ostatniej probki jest wieksza od zera
             while (file.available()) {
                 lastPosition = file.position(); // Zapamiętaj początek aktualnej linii
@@ -188,7 +202,6 @@ void DeviceManager::BTSendingFile(){
                 file.seek(0);
             }
         }
-        //w chuj klamerek ale nie wiem jak inaczej zrobic zeby to dzialalo dobrze
 
         //tutaj kod na wysylanie printem
 
@@ -200,28 +213,30 @@ void DeviceManager::BTSendingFile(){
         // }
 
         //tutaj wysylanie zostawiam paczkami po 512 bajtow
-  
         const size_t bufferSize = 512;
         uint8_t buffer[bufferSize];
         size_t bytesRead;
 
-        size_t fileSize = file.size(); // Pobierz rozmiar w momencie otwarcia
+        size_t startPos = file.position();
+        size_t fileSize = file.size();
+        Serial.println(fileSize);
+        size_t bytesToSend = fileSize - startPos;
         size_t totalRead = 0;
 
-        while (totalRead < fileSize) {
-            size_t remainingInFile = fileSize - totalRead;
+        while (totalRead < bytesToSend) {
+            size_t remainingInFile = bytesToSend - totalRead;
             size_t toRead = std::min((size_t)bufferSize, remainingInFile);
 
             //tutaj jest pętla ktora odpowiada za oczekiwanie na to czy w buforze jest wystarczajaco duzo miejsca zeby wyslac kolejna paczke
-            while (SerialBT.availableForWrite() < toRead) {
-                vTaskDelay(pdMS_TO_TICKS(1)); // Bardzo krótkie uśpienie, by nie blokować CPU
-            }
-
+            // while (SerialBT.availableForWrite() < toRead) {
+            //     vTaskDelay(pdMS_TO_TICKS(1)); // Bardzo krótkie uśpienie, by nie blokować CPU
+            // }
             bytesRead = file.read(buffer, toRead);
             if (bytesRead <= 0) break;
 
             size_t written = SerialBT.write(buffer, bytesRead); 
             totalRead += written;
+            vTaskDelay(pdMS_TO_TICKS(5));
 
         }
 
@@ -323,8 +338,9 @@ void DeviceManager::EKGReadingAndSending(){
             if (holter.isRecording()) {
                 holter.closeFile();
                 Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
-                displayEndScreen();
-                displayEndScreen();
+                displayEnabled=false;
+                clearDisplay();
+                currentDisplayState=DISPLAY_END;
             }
         }
         processHeartRate();
@@ -374,15 +390,23 @@ bool DeviceManager::isTimeEnded()
 }
 
 void DeviceManager::updateDisplay(uint32_t timeInMs){
-
-    if (displayEnabled and !isTimeEnded()){
+    if (currentDisplayState==DISPLAY_END){
+        displayEndScreen();
+    }
+    else if (displayEnabled && !isTimeEnded()){
         uint16_t refreshTime = 200; //jesli warunek spelniony to ustawiam sobie refresh time na wyswietlacz
+        
         uint8_t BPM=getAverageBPM();
+        
         wakeUpDisplay();
-        displayMainScreen(BPM, calculateLeftHours(),calculateLeftMinutes(), getBatteryIconLevel(getBatteryLevel()), btEnabled);
+        //displayMainScreen(BPM, calculateLeftHours(),calculateLeftMinutes(), getBatteryIconLevel(getBatteryLevel()), btEnabled);
         displayMainScreen(BPM, calculateLeftHours(),calculateLeftMinutes(), getBatteryIconLevel(getBatteryLevel()), btEnabled);
 
         for(int i = 0; i<=timeInMs/refreshTime; i++){ //licze sobie ile razy ma wykonac się petla odświeżania zeby czas wyświetlania był spełniony
+            if(!displayEnabled){
+                clearDisplay();
+                return;
+            }
             displayMainScreen(getAverageBPM(), calculateLeftHours(),calculateLeftMinutes(), getBatteryIconLevel(getBatteryLevel()), btEnabled);  //to trzeba uzupelnic ladnie o czas trwania do konca badania ktory bedzie obliczny
             vTaskDelay(pdMS_TO_TICKS(refreshTime));
         }

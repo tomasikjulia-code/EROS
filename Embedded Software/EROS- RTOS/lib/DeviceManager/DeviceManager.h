@@ -41,11 +41,19 @@ mowi co sie dzieje i kiedy sie dzieje oraz na co maja reagowac przyciski. Na tą
 #define MS_PER_MINUTE 60000UL
 #define BATTERY_LEVEL_PIN 25
 
+enum DisplayState {
+    DISPLAY_OFF,
+    DISPLAY_MAIN,
+    DISPLAY_END,
+    DISPLAY_FIRST_SCREEN
+};
+
 class DeviceManager{
     public:
         volatile bool displayEnabled; //zmienna ustawiajaca sie na jeden jak wyswietlacz jest wzbudzony
         volatile bool btEnabled; //zmienna ustawiajaca sie na jeden jak przycisk od BT był nacisniety, zmienna nie zmienia sie poki BT ma klienta
         volatile bool btStarted; //zmienna ustawia sie na true jak zostanie wywowalana funkcja BT.begin() a .end() jeszcze nie została
+        volatile bool isMeasuring; //zmienna ustawia sie na true jak zostanie rozpoczete badanie, na false jak zostanie zakonczone/przerwane przyciskiem
 
         bool SDcardEnabled; //zmienna ktora ustawiona na 1 informauje ze karta jest wpięta
         bool fileSystemEnabled;
@@ -65,6 +73,7 @@ class DeviceManager{
         BluetoothSerial SerialBT;
         CsvWriter holter; //klasa zarzadzajaca holterem
         //Epd epd; //klasa zarzadzajaca wyswietlaczem
+        DisplayState currentDisplayState; //zmienna okreslajaca aktualny wyswietlany ekran
 
         DeviceManager();
         void init();
