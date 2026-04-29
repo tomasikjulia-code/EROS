@@ -15,3 +15,7 @@ co oznacza że wewnątrz krzemu jest podciągnięcie i one jest bardzo słabe. j
  - WYŚWIETLACZ: Busy_pin -> GPIO4, CS_pin -> GPIO5, DC_Pin -> GPIO17, RST_Pin -> GPIO16, SCK_Pin -> GPIO18 , MOSI_pin -> GPIO23;
  - PRZYCISKI: piny GPIO5, GPIO37;
  - AKCELEROMETR: I2C GPIO21 i GPIO22. 
+
+## Schemat PCB
+
+<img src="images/pcb_schematic.png" alt="PCB schemati" width="600">
