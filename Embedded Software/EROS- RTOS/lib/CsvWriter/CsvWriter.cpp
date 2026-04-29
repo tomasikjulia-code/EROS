@@ -47,10 +47,10 @@ void CsvWriter::writeBuffer(const Sample* samples, size_t count) {
     _file.flush(); 
 }
 
-void CsvWriter::writeSample(int16_t rawValue, int bpm, bool leadOff, float activity, int important) {
+void CsvWriter::writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool leadOff, float activity, int important) {
     if (!_recording) return;
-    
-    _file.print(millis());
+
+    _file.print(millisy);
     _file.print(",");
     _file.print(rawValue);
     _file.print(",");

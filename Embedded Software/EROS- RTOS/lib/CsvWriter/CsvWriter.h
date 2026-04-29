@@ -19,7 +19,7 @@ public:
 
     CsvWriter();
     bool begin(const char* path);
-    void writeSample(int16_t rawValue, int bpm, bool leadOff, float activity, int important);
+    void writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool leadOff, float activity, int important);
     void closeFile();
     bool isRecording() { return _recording; }
     void writeBuffer(const Sample* samples, size_t count);
