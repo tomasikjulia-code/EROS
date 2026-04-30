@@ -36,15 +36,23 @@ const ActivityChart = ({ data }) => {
   const drawWidth = chartWidth - paddingL - paddingR;
   const drawHeight = chartHeight - paddingB - paddingT;
   
+  // Rzeczywista maksymalna wartość z danych 
   const maxActivityRaw = Math.max(...chartData.map(d => d.activity));
-  const hasActivity = maxActivityRaw > 0;
-  const maxActivity = hasActivity ? maxActivityRaw * 1.2 : 1; 
   
+  // Sztywna skala wykresu (10.0 to nasze 100%)
+  const maxActivity = 10.0; 
   const yMin = 0;
   const yRange = maxActivity - yMin;
 
+  // Obliczamy wartość w procentach względem twardego limitu 10.0
+  const maxPercentage = maxActivityRaw > 0 ? (maxActivityRaw / maxActivity) * 100 : 0;
+
   const getX = (index) => paddingL + (index / (chartData.length - 1)) * drawWidth;
-  const getY = (activity) => paddingT + drawHeight - ((activity - yMin) / yRange) * drawHeight;
+  
+  const getY = (activity) => {
+    const clampedActivity = Math.min(Math.max(activity, yMin), maxActivity);
+    return paddingT + drawHeight - ((clampedActivity - yMin) / yRange) * drawHeight;
+  };
 
   const pathString = chartData.map((val, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)},${getY(val.activity)}`).join(' ');
   const areaPoints = `${getX(0)},${chartHeight - paddingB} ${pathString} ${getX(chartData.length - 1)},${chartHeight - paddingB}`;
@@ -76,7 +84,13 @@ const ActivityChart = ({ data }) => {
           <Footprints color="#34d399" size={16} />
           <Text style={styles.chartTitle}>Trend Aktywności</Text>
         </View>
-        {/* Usunęliśmy mylący element 'MAX: 100%' - UI jest teraz znacznie czystsze */}
+        
+        <View style={[styles.chartBadge, { backgroundColor: 'rgba(52, 211, 153, 0.15)' }]}>
+          <Text style={[styles.chartBadgeText, { color: '#34d399' }]}>
+            MAX: {maxPercentage.toFixed(1)}%
+          </Text>
+        </View>
+
       </View>
       
       <View style={styles.svgWrapper}>
@@ -89,9 +103,7 @@ const ActivityChart = ({ data }) => {
           </Defs>
 
           {gridLinesY.map((act, i) => {
-            const percentageLabel = hasActivity 
-              ? (i === 0 ? '0%' : i === 1 ? '50%' : '100%') 
-              : '0%';
+            const percentageLabel = i === 0 ? '0%' : i === 1 ? '50%' : '100%';
             
             return (
               <React.Fragment key={`grid-${i}`}>
