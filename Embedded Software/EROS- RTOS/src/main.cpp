@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include "DeviceManager.h"
-#include"Accelerometer.h"
 
 /*
 BARDZIEJ SZCZEOLOWY OPIS DZIALANIA KODU I URZADZENIA JEST ZAMIESZCZEONY W PLIKU DEVICEMANAGER.H
@@ -13,6 +12,8 @@ TaskHandle_t measureTaskHandle;
 TaskHandle_t btTaskHandle;
 TaskHandle_t displayTaskHandle;
 TaskHandle_t accelTaskHandle;
+TaskHandle_t sdWriteTaskHandle; 
+
 //uchwyty na mutexy
 SemaphoreHandle_t displayMutex;
 SemaphoreHandle_t btMutex;
@@ -28,30 +29,41 @@ MyAccelerometer accel;
 
 void measureTask(void *parameter)
 {   
-    HolterDevice.setStartTime(); //ustawiam sobie start badania na aktualna wartosc millis() zeby pozniej moc sprawdzac ile czasu zostalo do konca badania
+    HolterDevice.setStartTime();
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(4); // Równe 250Hz
+
     while (true)
     {
+        vTaskDelayUntil(&xLastWakeTime, xFrequency); // Precyzyjne 4ms
+        HolterDevice.collectAndBufferSample(sdWriteTaskHandle);
+    }
+}
+
+void sdWriteTask(void *parameter)
+{
+    while (true)
+    {
+        // Czeka na sygnał o zapelnieniu buforu
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (xSemaphoreTake(sdMutex, portMAX_DELAY))
         {
-            HolterDevice.EKGReadingAndSending();
+            HolterDevice.writeBufferToSD();
             xSemaphoreGive(sdMutex);
         }
     }
 }
-
-
 void btTask(void *parameter)
 {
     while (true)
     {
         if (xSemaphoreTake(btMutex, portMAX_DELAY))
-        {   
-            HolterDevice.checkBluetooth();
-            vTaskDelay(pdMS_TO_TICKS(200));
+        {  
+            HolterDevice.checkBluetooth(sdMutex);
             xSemaphoreGive(btMutex);
         }
+        vTaskDelay(pdMS_TO_TICKS(200));
     }
-
 }
 
 void displayTask(void *parameter)
@@ -79,27 +91,26 @@ void accelTask(void *parameter) {
 }
 void setup()
 {
-    //Inicjalizacja wszystkich peryferiow znajduje sie w metodzie init dla klasy device manager
+    // ... inicjalizacja peryferiów i mutexów bez zmian ...
     HolterDevice.init();
-
-    //inicjalizacja mutexow
     displayMutex = xSemaphoreCreateMutex();
     btMutex = xSemaphoreCreateMutex();
     sdMutex = xSemaphoreCreateMutex();
     accMutex = xSemaphoreCreateMutex();
     
-    //wybór czasu trwania badania
-
     HolterDevice.chooseTestTime();
     
-    // // czekanie na karte SD
+    // WaitingForSDcard też powinno być w mutexie dla porządku
+    xSemaphoreTake(sdMutex, portMAX_DELAY);
     HolterDevice.waitingForSDcard();
+    xSemaphoreGive(sdMutex);
 
-    //tworzenie taskow
-    xTaskCreatePinnedToCore(measureTask,"Measure Task",4096,NULL,2,&measureTaskHandle,1);
-    xTaskCreatePinnedToCore(btTask,"BT Task",4096,NULL,1,&btTaskHandle,0);
-    xTaskCreatePinnedToCore(displayTask,"Display Task",8192,NULL,1,&displayTaskHandle,0);
-    xTaskCreatePinnedToCore(accelTask,"Accel Task",4096,NULL,1,&accelTaskHandle,0);
+    // TWORZENIE TASKÓW
+    xTaskCreatePinnedToCore(measureTask, "Measure Task", 4096, NULL, 2, &measureTaskHandle, 1);
+    xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 8192, NULL, 1, &sdWriteTaskHandle, 0);
+    xTaskCreatePinnedToCore(btTask, "BT Task", 4096, NULL, 1, &btTaskHandle, 0);
+    xTaskCreatePinnedToCore(displayTask, "Display Task", 8192, NULL, 1, &displayTaskHandle, 0);
+    xTaskCreatePinnedToCore(accelTask, "Accel Task", 4096, NULL, 1, &accelTaskHandle, 0);
 }
 void loop(){
     HolterDevice.checkButtons(); //sprawdzam sobie tutaj przyciski bo to troche dziala jak dodatkowy task a nigdzie indziej nie mialem jak
