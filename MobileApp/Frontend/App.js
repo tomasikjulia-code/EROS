@@ -314,12 +314,8 @@ export default function App() {
 
       // // (Symulacja transferu pliku - do wywalenia potem)
       // await new Promise(resolve => setTimeout(resolve, 2000));
-      // const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
-      // if (!fileInfo.exists) {
-      //   console.log("Brak pliku badania, wstrzykuję plik testowy...");
-      //   const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
-      //   await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
-      // }
+      // const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
+      // await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
 
       showToast('Trwa analiza EKG...', 'info');
 
@@ -335,10 +331,26 @@ export default function App() {
         return;
       }
 
-      const allBpms = parsedTrend.map(d => d.bpm);
-      const minBpm = Math.floor(Math.min(...allBpms));
-      const maxBpm = Math.ceil(Math.max(...allBpms));
-      const avgBpm = Math.round(allBpms.reduce((a, b) => a + b, 0) / allBpms.length);
+// mialam blad przepelnienia stosu caly czas - to rozwiazalo problem
+      let minBpm = 999;
+      let maxBpm = 0;
+      let sumBpm = 0;
+      let validBpmCount = 0;
+
+      for (let i = 0; i < parsedTrend.length; i++) {
+        const currentBpm = parsedTrend[i].bpm;
+        if (currentBpm >= 30) { 
+          if (currentBpm < minBpm) minBpm = currentBpm;
+          if (currentBpm > maxBpm) maxBpm = currentBpm;
+          sumBpm += currentBpm;
+          validBpmCount++;
+        }
+      }
+
+      const avgBpm = validBpmCount > 0 ? Math.round(sumBpm / validBpmCount) : 0;
+      if (minBpm === 999) minBpm = 0; // Zabezpieczenie, gdyby plik był pusty
+      minBpm = Math.floor(minBpm);
+      maxBpm = Math.ceil(maxBpm);
 
       const lastTimeMs = parsedTrend[parsedTrend.length - 1].timeMs;
       const durationMins = Math.floor(lastTimeMs / 60000);
@@ -382,7 +394,7 @@ export default function App() {
       if (!fileInfo.exists) {
         await FileSystem.writeAsStringAsync(
           FILE_URI,
-          'Timestamp_ms,ECG_raw,BPM,Lead_off\n',
+          'Timestamp_ms,ECG_raw,BPM,Lead_off,Activity\n',
           { encoding: FileSystem.EncodingType.UTF8 }
         );
       }
@@ -417,6 +429,8 @@ export default function App() {
 
     const dataToWrite = fileBufferRef.current.join('');
     fileBufferRef.current = [];
+
+    const rnfsPath = FILE_URI.replace('file://', '');
 
     // Chain the next write to the end of the previous one
     fileWriteQueue.current = fileWriteQueue.current.then(async () => {

@@ -10,6 +10,7 @@ import { styles } from '../constants/Theme';
 import DeviceDiagnostics from '../components/DeviceDiagnostics';
 import TrendChart from '../components/TrendChart';
 import LiveEcgChart from '../components/LiveEcgChart'; 
+import ActivityChart from '../components/ActivityChart';
 
 const HomeScreen = ({ 
   bleState, 
@@ -202,6 +203,9 @@ const HomeScreen = ({
 
           <View style={{ marginTop: 16 }}>
             <TrendChart data={deviceData.hourlyTrend} />
+          </View>
+          <View style={{ marginTop: 16 }}>
+            <ActivityChart data={deviceData.hourlyTrend} />
           </View>
         </>
       )}

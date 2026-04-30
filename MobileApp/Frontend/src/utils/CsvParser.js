@@ -1,40 +1,41 @@
-export const parseEcgFileToTrend = (csvString) => {
-  const lines = csvString.trim().split('\n');
-  if (lines.length < 2){
-    console.log("File empty");
-    return [];
-  } 
+export const parseEcgFileToTrend = (fileContent) => {
+  const lines = fileContent.trim().split('\n');
+  const trend = [];
+  
+  let lastValidActivity = 0;
 
-  const separator = lines[0].includes(';') ? ';' : ',';
-  const trendData = [];
-
-  let firstTimeMs = null;
-  const STABILIZATION_PERIOD_MS = 0; 
-
-  for (let i = 1; i < lines.length; i++) {
+  for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (!line) continue;
-
-    const parts = line.split(separator);
-    if (parts.length < 3) continue;
-
-    const timeMs = parseInt(parts[0], 10);
-    const bpm = parseFloat(parts[2]);
-
-    if (!isNaN(timeMs) && firstTimeMs === null) {
-      firstTimeMs = timeMs;
+    
+    if (!line || line.startsWith('Time') || line.startsWith('Timestamp')) {
+      continue;
     }
 
-    if (
-      !isNaN(timeMs) && 
-      !isNaN(bpm) && 
-      (timeMs - firstTimeMs > STABILIZATION_PERIOD_MS) && 
-      bpm >= 0 && 
-      bpm <= 250
-    ) {
-      trendData.push({ timeMs, bpm });
+    const parts = line.split(',');
+    
+    if (parts.length >= 5) {
+      const timeMs = parseInt(parts[0], 10);
+      const bpm = parseInt(parts[2], 10);
+      
+      const activityRaw = parts[4].trim();
+      let activity = 0;
+
+      if (activityRaw === 'B') {
+        activity = lastValidActivity;
+      } else {
+        activity = parseFloat(activityRaw);
+        
+        if (!isNaN(activity)) {
+          lastValidActivity = activity;
+        } else {
+          activity = lastValidActivity;
+        }
+      }
+      if (!isNaN(timeMs) && !isNaN(bpm)) {
+        trend.push({ timeMs, bpm, activity });
+      }
     }
   }
-
-  return trendData;
+  
+  return trend;
 };
