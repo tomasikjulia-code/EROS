@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
@@ -26,7 +26,7 @@
       "package": "com.eros.app"
     },
     "web": {
-      "favicon": "./assets/splash.png"
+      "favicon": "./assets/logo.png"
     },
     "extra": {
       "eas": {
