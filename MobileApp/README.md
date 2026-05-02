@@ -97,5 +97,6 @@ Otwórz terminal w folderze `Mobile App/Frontend` i jeżeli jeszcze tego nie rob
 6. Kliknij **Wyczyść dane** (*Clear Data / Clear Storage*) i potwierdź decyzję. 
    *(Uwaga: Opcja "Wyczyść pamięć podręczną" / "Clear Cache" jest niewystarczająca, należy usunąć całe dane).*
 7. Uruchom aplikację EROS ponownie i pobierz dane z urządzenia.
+* Jeśli nowe logo nie chce się pojawić albo w ogóle coś nie chce się przeładować, to można uruchomić w folderze Frontend komendę: `npx expo prebuild --clean`, a następnie standardowo `npx expo run:android`.
 
 
