@@ -378,7 +378,7 @@ export default function App() {
       setSyncState('synced');
       setAiReport(null);
       showToast('Badanie odebrane i przeanalizowane!');
-      saveToDownloads();
+      saveToDownloads(parsedTrend);
 
     } catch (error) {
       console.error("Błąd czytania pliku:", error);
@@ -497,11 +497,36 @@ export default function App() {
     setView('report');
   };
 
-  const saveToDownloads = async () => {
+  const buildNoiseCsvContent = (trendData) => {
+    if (!trendData || trendData.length === 0) return '';
+    
+    const header = 'Timestamp_ms,ECG_raw,BPM,Lead_off,Activity,Important,Noise\n';
+    const body = trendData.map(t => `${t.originalLine},${t.isNoise ? 1 : 0}`).join('\n');
+    return header + body;
+  };
+
+const saveToDownloads = async (trendData) => {
     await new Promise(resolve => setTimeout(resolve, 500));
     try {
-      const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
-      console.log(`File size before sharing: ${fileInfo.size} bytes`);
+      if (!trendData || trendData.length === 0) {
+        showToast('Brak danych do udostępnienia.', 'error');
+        return;
+      }
+
+      const uniqueId = Date.now();
+      // zmienilam na cache zeby nie zasmiecac telefonu
+      const EXPORT_URI = FileSystem.cacheDirectory + `badanie_EKG_${uniqueId}.csv`;
+      
+      console.log(`Generowanie pliku wyjściowego z ${trendData.length} rekordami...`);
+
+      const finalCsvString = buildNoiseCsvContent(trendData);
+      
+      await FileSystem.writeAsStringAsync(EXPORT_URI, finalCsvString, {
+        encoding: FileSystem.EncodingType.UTF8
+      });
+
+      const fileInfo = await FileSystem.getInfoAsync(EXPORT_URI);
+      console.log(`Wygenerowano plik o rozmiarze: ${fileInfo.size} bajtów`);
 
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
@@ -509,14 +534,19 @@ export default function App() {
         return;
       }
 
-      await Sharing.shareAsync(FILE_URI, {
+      await Sharing.shareAsync(EXPORT_URI, {
         mimeType: 'text/csv',
-        dialogTitle: 'Zapisz badanie EKG',
+        dialogTitle: 'Zapisz badanie EKG z analizą szumów',
         UTI: 'public.comma-separated-values-text',
       });
+
+      await FileSystem.deleteAsync(EXPORT_URI, { idempotent: true });
+      console.log('Plik tymczasowy usunięty z pamięci urządzenia.');
+
+
     } catch (error) {
       console.error('Błąd zapisu:', error);
-      showToast('Nie udało się zapisać pliku.', 'error');
+      showToast('Nie udało się wygenerować pliku z szumami.', 'error');
     }
   };
 

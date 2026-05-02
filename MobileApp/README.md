@@ -87,5 +87,15 @@ Otwórz terminal w folderze `Mobile App/Frontend` i jeżeli jeszcze tego nie rob
 ### Znane błędy
 
 * Jeżeli projekt znajduje się w mocno zagnieżdżonym folderze, niektóre ścieżki plików mogą być za długie dla systemu Windows. Zaleca się w takim wypadku przeniesienie projektu do mniej zagnieżdżonego folderu i powtórzenie kroku 4.
-* Jeżeli plik był już zainstalowany na telefonie, po skończeniu budowania instalacja może się powieść. Należy odinstalować plik na telefonie i ponownie wpisać "npx expo run:android".
+* Jeżeli plik był już zainstalowany na telefonie, po skończeniu budowania instalacja może się nie powieść. Należy odinstalować plik na telefonie i ponownie wpisać "npx expo run:android".
+* W przypadku testowania aplikacji w trybie symulacji (na danych z pliku test_ekg.csv) konieczne jest wyczyszczenie danych aplikacji przed przejściem do trybu odbioru pliku z urządzenia. Można to zrobić postępując zgodnie z poniższymi krokami.
+1. **Nie odinstalowuj aplikacji!** (Zostaw zainstalowaną bieżącą wersję `.apk`).
+2. Wejdź w systemowe **Ustawienia** telefonu.
+3. Przejdź do zakładki **Aplikacje** (lub *Zarządzanie aplikacjami*).
+4. Znajdź i wybierz aplikację **EROS** na liście.
+5. Wejdź w sekcję **Pamięć** (lub *Użycie pamięci / Storage*).
+6. Kliknij **Wyczyść dane** (*Clear Data / Clear Storage*) i potwierdź decyzję. 
+   *(Uwaga: Opcja "Wyczyść pamięć podręczną" / "Clear Cache" jest niewystarczająca, należy usunąć całe dane).*
+7. Uruchom aplikację EROS ponownie i pobierz dane z urządzenia.
+
 

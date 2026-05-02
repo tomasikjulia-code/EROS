@@ -11,7 +11,7 @@ const TrendChart = ({ data }) => {
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
     
-    // Jeśli punktów jest za dużo, decymujemy je (np. zostawiamy 100 kluczowych punktów)
+    // Jeśli punktów jest za dużo, decymujemy je
     if (data.length > 100) {
       const step = Math.ceil(data.length / 100);
       const sampled = [];
@@ -58,9 +58,42 @@ const TrendChart = ({ data }) => {
   const getX = (index) => paddingL + (index / (chartData.length - 1)) * drawWidth;
   const getY = (bpm) => paddingT + drawHeight - ((bpm - yMin) / yRange) * drawHeight;
 
-  // Generowanie Ścieżek
-  const pathString = chartData.map((val, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)},${getY(val.bpm)}`).join(' ');
-  const areaPoints = `${getX(0)},${chartHeight - paddingB} ${pathString} ${getX(chartData.length - 1)},${chartHeight - paddingB}`;
+  // Czysty ciągły polygon (tło gradientowe zostawiamy w całości)
+  const areaPathString = chartData.map((val, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)},${getY(val.bpm)}`).join(' ');
+  const areaPoints = `${getX(0)},${chartHeight - paddingB} ${areaPathString} ${getX(chartData.length - 1)},${chartHeight - paddingB}`;
+
+  // ==========================================
+  // 🧠 LOGIKA PODZIAŁU NA SEGMENTY (CZYSTE VS SZUM)
+  // ==========================================
+  const segments = [];
+  if (chartData.length > 0) {
+    let currentPoints = [{ ...chartData[0], originalIndex: 0 }];
+    
+    for (let i = 1; i < chartData.length; i++) {
+      const point = { ...chartData[i], originalIndex: i };
+      
+      if (chartData[i].isNoise === chartData[i - 1].isNoise) {
+        // Kontynuujemy ten sam segment
+        currentPoints.push(point);
+      } else {
+        // Zmiana stanu! Dodajemy aktualny punkt jako łącze (żeby nie było dziur na wykresie)
+        currentPoints.push(point);
+        
+        segments.push({
+          isNoise: chartData[i - 1].isNoise,
+          points: currentPoints
+        });
+        
+        // Rozpoczynamy nowy segment
+        currentPoints = [point];
+      }
+    }
+    // Zrzucamy ostatni ogonek
+    segments.push({
+      isNoise: chartData[chartData.length - 1].isNoise,
+      points: currentPoints
+    });
+  }
 
   // Inteligentne formatowanie osi czasu (X)
   const maxTimeMs = chartData[chartData.length - 1].timeMs;
@@ -71,9 +104,9 @@ const TrendChart = ({ data }) => {
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
 
-    if (maxTimeMs <= 60000) return `${s}s`; // Do 1 minuty 
-    if (maxTimeMs <= 3600000) return `${m}:${s.toString().padStart(2, '0')}`; // Do godziny 
-    return `${h}:${m.toString().padStart(2, '0')}h`; // Powyżej godziny
+    if (maxTimeMs <= 60000) return `${s}s`; 
+    if (maxTimeMs <= 3600000) return `${m}:${s.toString().padStart(2, '0')}`; 
+    return `${h}:${m.toString().padStart(2, '0')}h`; 
   };
 
   const xAxisLabels = [];
@@ -85,7 +118,6 @@ const TrendChart = ({ data }) => {
     });
   }
 
-  // Siatka Y
   const gridLinesY = [yMin, yMin + yRange / 2, yMax];
 
   return (
@@ -135,24 +167,37 @@ const TrendChart = ({ data }) => {
 
           <Polygon points={areaPoints} fill="url(#chartArea)" />
 
-          <Path
-            d={pathString}
-            fill="none"
-            stroke="#6366f1"
-            strokeWidth="6"
-            opacity="0.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          <Path
-            d={pathString}
-            fill="none"
-            stroke="#a78bfa"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          {segments.map((seg, index) => {
+            const segPath = seg.points.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${getX(pt.originalIndex)},${getY(pt.bpm)}`).join(' ');
+            
+            return (
+              <React.Fragment key={`segment-${index}`}>
+                {!seg.isNoise && (
+                  <Path
+                    d={segPath}
+                    fill="none"
+                    stroke="#6366f1"
+                    strokeWidth="6"
+                    opacity="0.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                )}
+                
+                <Path
+                  d={segPath}
+                  fill="none"
+                  // Jeśli to szum -> rysujemy szaro, jeśli nie -> fioletowo
+                  stroke={seg.isNoise ? "#52525b" : "#a78bfa"} 
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  // Jeśli szum -> linia będzie przerywana (5 pikseli linii, 5 przerwy)
+                  strokeDasharray={seg.isNoise ? "5,5" : "none"} 
+                />
+              </React.Fragment>
+            );
+          })}
           
           {chartData.length < 50 && chartData.map((val, i) => (
             <Circle key={`point-${i}`} cx={getX(i)} cy={getY(val.bpm)} r="3" fill="#fff" />
