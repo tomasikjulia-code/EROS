@@ -18,7 +18,6 @@ const HomeScreen = ({
   syncState, 
   diagnostics, 
   toggleBluetooth, 
-  syncData,
   refreshDiagnostics, 
   openReport, 
   formatDate,
