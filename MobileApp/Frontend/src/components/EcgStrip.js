@@ -5,7 +5,19 @@ import { Activity, Clock, Heart } from 'lucide-react-native';
 import { styles } from '../constants/Theme';
 
 const EcgStrip = ({ title, description, time, hr, data }) => {
-  const points = data.map((val, i) => `${i},${100 - val}`).join(' ');
+  // zabezpieczenie przezd pusta tablica
+  const safeData = data && data.length > 0 ? data : [0, 0];
+
+  // szukanie min i max wartosci
+  const minVal = Math.min(...safeData);
+  const maxVal = Math.max(...safeData);
+  const range = (maxVal - minVal) || 1; 
+
+  // skalowanie
+  const points = safeData.map((val, i) => {
+    const normalizedY = 190 - ((val - minVal) / range) * 180;
+    return `${i},${normalizedY.toFixed(1)}`;
+  }).join(' ');
   
   return (
     <View style={styles.ecgContainer}>
@@ -31,7 +43,7 @@ const EcgStrip = ({ title, description, time, hr, data }) => {
       </View>
       
       <View style={styles.ecgSvgWrapper}>
-        <Svg viewBox={`0 0 ${data.length} 200`} width="100%" height="100%" preserveAspectRatio="none">
+        <Svg viewBox={`0 0 ${safeData.length} 200`} width="100%" height="100%" preserveAspectRatio="none">
           <Polyline 
             points={points} 
             fill="none" 
