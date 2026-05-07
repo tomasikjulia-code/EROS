@@ -214,8 +214,10 @@ export default function App() {
 
   const [toastMessage, setToastMessage] = useState(null);
   const toastAnim = useRef(new Animated.Value(200)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
   const toastTimeoutRef = useRef(null);
+  
+  const [progressPercent, setProgressPercent] = useState(0);
+  const progressIntervalRef = useRef(null);
 
   const [isLiveEcgActive, setIsLiveEcgActive] = useState(false);
   const [lastConnectedTime, setLastConnectedTime] = useState(null);
@@ -239,21 +241,6 @@ export default function App() {
   //   };
   // }, []);
 
-  useEffect(() => {
-    if (toastMessage?.type === 'loading') {
-      progressAnim.setValue(0);
-      Animated.loop(
-        Animated.timing(progressAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: false
-        })
-      ).start();
-    } else {
-      progressAnim.stopAnimation();
-    }
-  }, [toastMessage]);
-
   const showToast = (message, type = 'success') => {
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
@@ -267,11 +254,32 @@ export default function App() {
       Speech.speak(message, { language: 'pl-PL', rate: 1.05 });
     }
 
-    if (type !== 'loading') {
+    if (type === 'loading') {
+      setProgressPercent(0);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      
+      progressIntervalRef.current = setInterval(() => {
+        setProgressPercent(prev => {
+          if (prev >= 90) {
+            clearInterval(progressIntervalRef.current);
+            return 90;
+          }
+          return prev + 1;
+        });
+      }, 130); 
+    } else {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      if (type !== 'success') {
+        setProgressPercent(0);
+      }
+      
       toastTimeoutRef.current = setTimeout(() => {
         Animated.timing(toastAnim, { toValue: 200, duration: 300, useNativeDriver: true }).start(({ finished }) => {
           if (finished) {
             setToastMessage(null);
+            setProgressPercent(0);
           }
         });
       }, 3500);
@@ -492,6 +500,8 @@ export default function App() {
       const parsedTrend = parseEcgFileToTrend(fileContent);
 
       if (!parsedTrend || parsedTrend.length === 0) {
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        setProgressPercent(0);
         showToast('Błąd: Plik jest pusty lub uszkodzony.', 'error');
         setSyncState('idle');
         return;
@@ -525,15 +535,21 @@ export default function App() {
               hourlyTrend: parsedTrend
             };
 
-      setDeviceData(newData);
-      setRecords(prev => [newData, ...prev]);
-      setSyncState('synced');
-      setAiReport(null);
-      showToast('Badanie odebrane i przeanalizowane!');
-      saveToDownloads(parsedTrend);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      setProgressPercent(100);
+
+      setTimeout(() => {
+        setDeviceData(newData);
+        setRecords(prev => [newData, ...prev]);
+        setSyncState('synced');
+        setAiReport(null);
+        showToast('Badanie odebrane i przeanalizowane!', 'success');
+      }, 400);
 
     } catch (error) {
       console.error("Błąd czytania pliku:", error);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      setProgressPercent(0);
       showToast('Wystąpił błąd podczas analizy pliku.', 'error');
       setSyncState('idle');
     }
@@ -546,7 +562,7 @@ export default function App() {
       if (!fileInfo.exists) {
         await FileSystem.writeAsStringAsync(
           FILE_URI,
-          'Timestamp_ms,ECG_raw,BPM,Lead_off,Activity,Important\n',
+          'Timestamp_ms,EKG_Raw,BPM,LeadOff,Activity,Important\n',
           { encoding: FileSystem.EncodingType.UTF8 }
         );
       }
@@ -838,22 +854,29 @@ const saveToDownloads = async (trendData) => {
           { transform: [{ translateY: toastAnim }], overflow: 'hidden' } 
         ]}>
           
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {toastMessage?.type !== 'loading' && (
-               <ToastIcon size={20} color={toastMessage?.type === 'error' ? "#fb7185" : "#34d399"} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              {toastMessage?.type !== 'loading' && (
+                 <ToastIcon size={20} color={toastMessage?.type === 'error' ? "#fb7185" : "#34d399"} />
+              )}
+              <Text style={[styles.toastText, toastMessage?.type === 'loading' && { marginLeft: 0 }, { flexShrink: 1 }]}>
+                {toastMessage?.message}
+              </Text>
+            </View>
+
+            {toastMessage?.type === 'loading' && (
+              <Text style={{ color: '#818cf8', fontWeight: '800', fontSize: 13, marginLeft: 12 }}>
+                {progressPercent}%
+              </Text>
             )}
-            <Text style={[styles.toastText, toastMessage?.type === 'loading' && { marginLeft: 0 }]}>
-              {toastMessage?.message}
-            </Text>
           </View>
 
           {toastMessage?.type === 'loading' && (
             <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'rgba(0,0,0,0.4)' }}>
-              <Animated.View style={{
+              <View style={{
                 height: '100%',
                 backgroundColor: '#818cf8',
-                width: '40%', 
-                left: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['-40%', '100%'] })
+                width: `${progressPercent}%` 
               }} />
             </View>
           )}
