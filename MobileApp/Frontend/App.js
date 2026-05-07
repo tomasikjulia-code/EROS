@@ -214,6 +214,8 @@ export default function App() {
 
   const [toastMessage, setToastMessage] = useState(null);
   const toastAnim = useRef(new Animated.Value(200)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const toastTimeoutRef = useRef(null);
 
   const [isLiveEcgActive, setIsLiveEcgActive] = useState(false);
   const [lastConnectedTime, setLastConnectedTime] = useState(null);
@@ -226,6 +228,7 @@ export default function App() {
   const flushIntervalRef = useRef(null);
   const isFlushingRef = useRef(false);
   const fileWriteQueue = useRef(Promise.resolve());
+  
   // useEffect(() => {
   //   flushIntervalRef.current = setInterval(() => {
   //     flushBuffer();
@@ -236,18 +239,43 @@ export default function App() {
   //   };
   // }, []);
 
+  useEffect(() => {
+    if (toastMessage?.type === 'loading') {
+      progressAnim.setValue(0);
+      Animated.loop(
+        Animated.timing(progressAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: false
+        })
+      ).start();
+    } else {
+      progressAnim.stopAnimation();
+    }
+  }, [toastMessage]);
+
   const showToast = (message, type = 'success') => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+
     setToastMessage({ message, type });
     Animated.spring(toastAnim, { toValue: 0, useNativeDriver: true, friction: 8 }).start();
 
-    if (isVoiceEnabled && Speech) {
+    if (isVoiceEnabled && Speech && type !== 'loading') {
       Speech.stop();
       Speech.speak(message, { language: 'pl-PL', rate: 1.05 });
     }
 
-    setTimeout(() => {
-      Animated.timing(toastAnim, { toValue: 200, duration: 300, useNativeDriver: true }).start(() => setToastMessage(null));
-    }, 3500);
+    if (type !== 'loading') {
+      toastTimeoutRef.current = setTimeout(() => {
+        Animated.timing(toastAnim, { toValue: 200, duration: 300, useNativeDriver: true }).start(({ finished }) => {
+          if (finished) {
+            setToastMessage(null);
+          }
+        });
+      }, 3500);
+    }
   };
 
   const handleVoiceToggle = () => {
@@ -412,8 +440,7 @@ export default function App() {
     const lastSavedTS = await getLastTimestampFromFile();
     console.log("Last timestamp found in file:", lastSavedTS);
 
-
-    showToast('Pobieranie badania z Holtera...', 'info');
+    showToast('Pobieranie badania z Holtera...', 'loading');
 
     try {
 
@@ -456,7 +483,7 @@ export default function App() {
       // const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
       // await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
 
-      showToast('Trwa analiza EKG...', 'info');
+      showToast('Trwa analiza EKG...', 'loading');
 
       const fileContent = await FileSystem.readAsStringAsync(FILE_URI, {
         encoding: FileSystem.EncodingType.UTF8
@@ -590,26 +617,26 @@ export default function App() {
     }
   }
 
-const openReport = (record) => {
-  if (!record) return;
-  setActiveReportRecord(record);
+  const openReport = (record) => {
+    if (!record) return;
+    setActiveReportRecord(record);
 
-  const snippets = [
-    { 
-      title: "Maksymalne Tętno", 
-      description: `Szczyt wysiłku lub arytmii.`, 
-      time: record.maxBpmTime, 
-      hr: record.maxBpm, 
-      data: getEcgSlice(record.hourlyTrend, record.maxBpmTimeMs, 600)
-    },
-    { 
-      title: "Minimalne Tętno", 
-      description: `Najniższy zarejestrowany rytm.`, 
-      time: record.minBpmTime, 
-      hr: record.minBpm, 
-      data: getEcgSlice(record.hourlyTrend, record.minBpmTimeMs, 600)
-    }
-  ];
+    const snippets = [
+      { 
+        title: "Maksymalne Tętno", 
+        description: `Szczyt wysiłku lub arytmii.`, 
+        time: record.maxBpmTime, 
+        hr: record.maxBpm, 
+        data: getEcgSlice(record.hourlyTrend, record.maxBpmTimeMs, 600)
+      },
+      { 
+        title: "Minimalne Tętno", 
+        description: `Najniższy zarejestrowany rytm.`, 
+        time: record.minBpmTime, 
+        hr: record.minBpm, 
+        data: getEcgSlice(record.hourlyTrend, record.minBpmTimeMs, 600)
+      }
+    ];
 
   const tachyList = record.tachyDetails || [];
   tachyList.slice(0, 3).forEach((ep, index) => { // limit wykresow tachykardii ustawiony na 3
@@ -724,6 +751,22 @@ const saveToDownloads = async (trendData) => {
     return new Date(dateString).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
+  const deleteCurrentFile = async () => {
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
+      if (fileInfo.exists) {
+        await FileSystem.deleteAsync(FILE_URI);
+        setDeviceData(null); // Czyścimy aktualnie wyświetlane dane
+        showToast("Plik badania został usunięty.", "info");
+      } else {
+        showToast("Brak pliku do usunięcia.", "error");
+      }
+    } catch (error) {
+      console.error("Błąd podczas usuwania pliku:", error);
+      showToast("Nie udało się usunąć pliku.", "error");
+    }
+  };
+
   const ToastIcon = toastMessage?.type === 'error' ? AlertCircle : CheckCircle2;
 
   return (
@@ -751,6 +794,7 @@ const saveToDownloads = async (trendData) => {
               lastConnectedTime={lastConnectedTime}
               openReport={openReport}
               formatDate={formatDate}
+              deleteCurrentFile={deleteCurrentFile}
             />
           )}
           {view === 'history' && (
@@ -790,10 +834,30 @@ const saveToDownloads = async (trendData) => {
         <Animated.View style={[
           styles.toast,
           toastMessage?.type === 'error' ? styles.toastError : toastMessage?.type === 'info' ? styles.toastInfo : styles.toastSuccess,
-          { transform: [{ translateY: toastAnim }] }
+          toastMessage?.type === 'loading' && { backgroundColor: '#27272a', borderColor: '#52525b', paddingVertical: 18 },
+          { transform: [{ translateY: toastAnim }], overflow: 'hidden' } 
         ]}>
-          {toastMessage && <ToastIcon size={20} color={toastMessage.type === 'error' ? "#fb7185" : "#34d399"} />}
-          <Text style={styles.toastText}>{toastMessage?.message}</Text>
+          
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {toastMessage?.type !== 'loading' && (
+               <ToastIcon size={20} color={toastMessage?.type === 'error' ? "#fb7185" : "#34d399"} />
+            )}
+            <Text style={[styles.toastText, toastMessage?.type === 'loading' && { marginLeft: 0 }]}>
+              {toastMessage?.message}
+            </Text>
+          </View>
+
+          {toastMessage?.type === 'loading' && (
+            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'rgba(0,0,0,0.4)' }}>
+              <Animated.View style={{
+                height: '100%',
+                backgroundColor: '#818cf8',
+                width: '40%', 
+                left: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['-40%', '100%'] })
+              }} />
+            </View>
+          )}
+          
         </Animated.View>
 
       </SafeAreaView>

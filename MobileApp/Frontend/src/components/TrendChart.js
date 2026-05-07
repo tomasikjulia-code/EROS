@@ -62,9 +62,6 @@ const TrendChart = ({ data }) => {
   const areaPathString = chartData.map((val, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)},${getY(val.bpm)}`).join(' ');
   const areaPoints = `${getX(0)},${chartHeight - paddingB} ${areaPathString} ${getX(chartData.length - 1)},${chartHeight - paddingB}`;
 
-  // ==========================================
-  // 🧠 LOGIKA PODZIAŁU NA SEGMENTY (CZYSTE VS SZUM)
-  // ==========================================
   const segments = [];
   if (chartData.length > 0) {
     let currentPoints = [{ ...chartData[0], originalIndex: 0 }];
