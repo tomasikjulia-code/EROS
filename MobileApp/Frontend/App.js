@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ScrollView, Animated, View, Text, TouchableOpacity, StatusBar, Platform, PermissionsAndroid } from 'react-native';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaView, SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertCircle, CheckCircle2, Home, History, Settings } from 'lucide-react-native';
 import { styles } from './src/constants/Theme';
 import { initialHistory, generateHourlyTrend, generateMockEcgStrip } from './src/utils/Generators';
@@ -183,7 +183,9 @@ const getEcgSlice = (trend, centerTimeMs, pointsToSide = 150) => {
 
 const FILE_URI = FileSystem.documentDirectory + 'current_examination.csv';
 
-export default function App() {
+function MainApp() {
+  const insets = useSafeAreaInsets();
+  
   const [view, setView] = useState('home');
   const [bleState, setBleState] = useState('disconnected');
   const [syncState, setSyncState] = useState('idle');
@@ -562,7 +564,7 @@ export default function App() {
       if (!fileInfo.exists) {
         await FileSystem.writeAsStringAsync(
           FILE_URI,
-          'Timestamp_ms,EKG_Raw,BPM,LeadOff,Activity,Important\n',
+          'Timestamp_ms,ECG_Raw,BPM,LeadOff,Activity,Important\n',
           { encoding: FileSystem.EncodingType.UTF8 }
         );
       }
@@ -786,104 +788,110 @@ const saveToDownloads = async (trendData) => {
   const ToastIcon = toastMessage?.type === 'error' ? AlertCircle : CheckCircle2;
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    <View style={[styles.container, { paddingTop: Math.max(insets.top, StatusBar.currentHeight || 0) }]}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {view === 'home' && (
-            <HomeScreen
-              bleState={bleState}
-              deviceData={deviceData}
-              syncState={syncState}
-              diagnostics={diagnostics}
-              toggleBluetooth={toggleBluetooth}
-              refreshDiagnostics={refreshDiagnostics}
-              getFileFromDevice={getFileFromDevice}
-              isLiveEcgActive={isLiveEcgActive}
-              toggleLiveEcg={handleToggleLiveEcg}
-              lastConnectedTime={lastConnectedTime}
-              openReport={openReport}
-              formatDate={formatDate}
-              deleteCurrentFile={deleteCurrentFile}
-            />
-          )}
-          {view === 'history' && (
-            <HistoryScreen records={records} openReport={openReport} formatDate={formatDate} />
-          )}
-          {view === 'report' && (
-            <ReportScreen
-              activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
-              aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
-              showToast={showToast}
-            />
-          )}
-          {view === 'settings' && (
-            <SettingsScreen
-              isVoiceEnabled={isVoiceEnabled} handleVoiceToggle={handleVoiceToggle}
-              isNotifEnabled={isNotifEnabled} setIsNotifEnabled={setIsNotifEnabled}
-              isVibrateEnabled={isVibrateEnabled} setIsVibrateEnabled={setIsVibrateEnabled}
-            />
-          )}
-        </ScrollView>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {view === 'home' && (
+          <HomeScreen
+            bleState={bleState}
+            deviceData={deviceData}
+            syncState={syncState}
+            diagnostics={diagnostics}
+            toggleBluetooth={toggleBluetooth}
+            refreshDiagnostics={refreshDiagnostics}
+            getFileFromDevice={getFileFromDevice}
+            isLiveEcgActive={isLiveEcgActive}
+            toggleLiveEcg={handleToggleLiveEcg}
+            lastConnectedTime={lastConnectedTime}
+            openReport={openReport}
+            formatDate={formatDate}
+            deleteCurrentFile={deleteCurrentFile}
+          />
+        )}
+        {view === 'history' && (
+          <HistoryScreen records={records} openReport={openReport} formatDate={formatDate} />
+        )}
+        {view === 'report' && (
+          <ReportScreen
+            activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
+            aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
+            showToast={showToast}
+          />
+        )}
+        {view === 'settings' && (
+          <SettingsScreen
+            isVoiceEnabled={isVoiceEnabled} handleVoiceToggle={handleVoiceToggle}
+            isNotifEnabled={isNotifEnabled} setIsNotifEnabled={setIsNotifEnabled}
+            isVibrateEnabled={isVibrateEnabled} setIsVibrateEnabled={setIsVibrateEnabled}
+          />
+        )}
+      </ScrollView>
 
-        <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem} onPress={() => setView('home')}>
-            <Home size={22} color={view === 'home' ? '#818cf8' : '#71717a'} />
-            <Text style={[styles.navText, view === 'home' && styles.navTextActive]}>PULPIT</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => setView('history')}>
-            <History size={22} color={view === 'history' ? '#818cf8' : '#71717a'} />
-            <Text style={[styles.navText, view === 'history' && styles.navTextActive]}>HISTORIA</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => setView('settings')}>
-            <Settings size={22} color={view === 'settings' ? '#818cf8' : '#71717a'} />
-            <Text style={[styles.navText, view === 'settings' && styles.navTextActive]}>OPCJE</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 16), paddingTop: 12, minHeight: 65 + insets.bottom, height: 'auto' }]}>
+        <TouchableOpacity style={styles.navItem} onPress={() => setView('home')}>
+          <Home size={22} color={view === 'home' ? '#818cf8' : '#71717a'} />
+          <Text style={[styles.navText, view === 'home' && styles.navTextActive]}>PULPIT</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => setView('history')}>
+          <History size={22} color={view === 'history' ? '#818cf8' : '#71717a'} />
+          <Text style={[styles.navText, view === 'history' && styles.navTextActive]}>HISTORIA</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => setView('settings')}>
+          <Settings size={22} color={view === 'settings' ? '#818cf8' : '#71717a'} />
+          <Text style={[styles.navText, view === 'settings' && styles.navTextActive]}>OPCJE</Text>
+        </TouchableOpacity>
+      </View>
 
-        <Animated.View style={[
-          styles.toast,
-          toastMessage?.type === 'error' ? styles.toastError : toastMessage?.type === 'info' ? styles.toastInfo : styles.toastSuccess,
-          toastMessage?.type === 'loading' && { backgroundColor: '#27272a', borderColor: '#52525b', paddingVertical: 18 },
-          { transform: [{ translateY: toastAnim }], overflow: 'hidden' } 
-        ]}>
-          
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-              {toastMessage?.type !== 'loading' && (
-                 <ToastIcon size={20} color={toastMessage?.type === 'error' ? "#fb7185" : "#34d399"} />
-              )}
-              <Text style={[styles.toastText, toastMessage?.type === 'loading' && { marginLeft: 0 }, { flexShrink: 1 }]}>
-                {toastMessage?.message}
-              </Text>
-            </View>
-
-            {toastMessage?.type === 'loading' && (
-              <Text style={{ color: '#818cf8', fontWeight: '800', fontSize: 13, marginLeft: 12 }}>
-                {progressPercent}%
-              </Text>
+      <Animated.View style={[
+        styles.toast,
+        toastMessage?.type === 'error' ? styles.toastError : toastMessage?.type === 'info' ? styles.toastInfo : styles.toastSuccess,
+        toastMessage?.type === 'loading' && { backgroundColor: '#27272a', borderColor: '#52525b', paddingVertical: 18 },
+        { transform: [{ translateY: toastAnim }], overflow: 'hidden', bottom: Math.max(insets.bottom, 16) + 75 } 
+      ]}>
+        
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            {toastMessage?.type !== 'loading' && (
+               <ToastIcon size={20} color={toastMessage?.type === 'error' ? "#fb7185" : "#34d399"} />
             )}
+            <Text style={[styles.toastText, toastMessage?.type === 'loading' && { marginLeft: 0 }, { flexShrink: 1 }]}>
+              {toastMessage?.message}
+            </Text>
           </View>
 
           {toastMessage?.type === 'loading' && (
-            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'rgba(0,0,0,0.4)' }}>
-              <View style={{
-                height: '100%',
-                backgroundColor: '#818cf8',
-                width: `${progressPercent}%` 
-              }} />
-            </View>
+            <Text style={{ color: '#818cf8', fontWeight: '800', fontSize: 13, marginLeft: 12 }}>
+              {progressPercent}%
+            </Text>
           )}
-          
-        </Animated.View>
+        </View>
 
-      </SafeAreaView>
+        {toastMessage?.type === 'loading' && (
+          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'rgba(0,0,0,0.4)' }}>
+            <View style={{
+              height: '100%',
+              backgroundColor: '#818cf8',
+              width: `${progressPercent}%` 
+            }} />
+          </View>
+        )}
+        
+      </Animated.View>
+
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <MainApp />
     </SafeAreaProvider>
   );
 }
