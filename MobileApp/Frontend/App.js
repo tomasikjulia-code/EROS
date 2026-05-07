@@ -530,7 +530,7 @@ export default function App() {
       setSyncState('synced');
       setAiReport(null);
       showToast('Badanie odebrane i przeanalizowane!');
-      //saveToDownloads(parsedTrend);
+      saveToDownloads(parsedTrend);
 
     } catch (error) {
       console.error("Błąd czytania pliku:", error);
@@ -546,7 +546,7 @@ export default function App() {
       if (!fileInfo.exists) {
         await FileSystem.writeAsStringAsync(
           FILE_URI,
-          'Timestamp_ms,ECG_raw,BPM,Lead_off,Activity\n',
+          'Timestamp_ms,ECG_raw,BPM,Lead_off,Activity,Important\n',
           { encoding: FileSystem.EncodingType.UTF8 }
         );
       }
