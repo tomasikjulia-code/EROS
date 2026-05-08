@@ -19,12 +19,10 @@ export const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: '#09090b',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 8 : 0 
   },
   scrollView: { flex: 1 },
   scrollContent: { 
     padding: 16, 
-    paddingBottom: Platform.OS === 'ios' ? 120 : 100, 
     flexGrow: 1 
   },
   screenContent: { flex: 1, display: 'flex', flexDirection: 'column' },

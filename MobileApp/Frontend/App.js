@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ScrollView, Animated, View, Text, TouchableOpacity, StatusBar, Platform, PermissionsAndroid } from 'react-native';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaView, SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertCircle, CheckCircle2, Home, History, Settings } from 'lucide-react-native';
 import { styles } from './src/constants/Theme';
 import { initialHistory, generateHourlyTrend, generateMockEcgStrip } from './src/utils/Generators';
@@ -26,15 +26,180 @@ try {
   Speech = null;
 }
 
+const analyzeEcgTrend = (parsedTrend) => {
+  let minBpm = 999, maxBpm = 0, sumBpm = 0, validBpmCount = 0;
+  let minBpmTimeMs = 0, maxBpmTimeMs = 0;
+  
+  let tachyDetails = []; 
+  let bradyDetails = []; 
+  
+  let isCurrentlyTachy = false;
+  let tachyStartTime = 0;
+  let lastTachyEndTime = 0;
+  
+  let isCurrentlyBrady = false;
+  let bradyStartTime = 0;
+  let lastBradyEndTime = 0;
+  
+  const MIN_TIME_MS = 30000;       
+  const MERGE_THRESHOLD_MS = 60000; 
+  
+  const TACHY_THRESHOLD = 100;
+  const TACHY_STOP_THRESHOLD = 90;
+  
+  const BRADY_THRESHOLD = 50; // Zaczynamy epizod poniżej 50
+  const BRADY_STOP_THRESHOLD = 55; // Kończymy powyżej 55
+
+  const IGNORE_FIRST_MS = 60000; 
+
+  const cleanData = parsedTrend.filter(p => p.bpm >= 35 && p.bpm <= 220 && !p.isNoise);
+
+  for (let i = 0; i < cleanData.length; i++) {
+    const point = cleanData[i];
+    const bpm = point.bpm;
+    const timeMs = point.timeMs;
+
+    // Pomijamy szumy z pierwszych 60 sekund badania
+    if (timeMs < IGNORE_FIRST_MS) continue;
+
+    // Statystyki ogólne Min/Max
+    if (bpm < minBpm){ minBpm = bpm; minBpmTimeMs = timeMs; }
+    if (bpm > maxBpm){ maxBpm = bpm; maxBpmTimeMs = timeMs; }
+    sumBpm += bpm;
+    validBpmCount++;
+
+    // --- TACHYKARDIA ---
+    if (!isCurrentlyTachy) {
+      if (bpm >= TACHY_THRESHOLD) {
+        if (tachyStartTime === 0) tachyStartTime = timeMs;
+        if (timeMs - tachyStartTime >= MIN_TIME_MS) {
+          if (tachyStartTime - lastTachyEndTime > MERGE_THRESHOLD_MS || lastTachyEndTime === 0) {
+            tachyDetails.push({ start: tachyStartTime, end: 0, maxBpm: bpm });
+          }
+          isCurrentlyTachy = true;
+        }
+      } else {
+        tachyStartTime = 0;
+      }
+    } else {
+      let currentIdx = tachyDetails.length - 1;
+      if (bpm > tachyDetails[currentIdx].maxBpm) tachyDetails[currentIdx].maxBpm = bpm;
+
+      if (bpm < TACHY_STOP_THRESHOLD) {
+        isCurrentlyTachy = false;
+        lastTachyEndTime = timeMs;
+        tachyDetails[tachyDetails.length - 1].end = timeMs;
+        tachyStartTime = 0;
+      }
+    }
+
+    // --- BRADYKARDIA ---
+    if (!isCurrentlyBrady) {
+      if (bpm <= BRADY_THRESHOLD) {
+        if (bradyStartTime === 0) bradyStartTime = timeMs;
+        if (timeMs - bradyStartTime >= MIN_TIME_MS) {
+          if (bradyStartTime - lastBradyEndTime > MERGE_THRESHOLD_MS || lastBradyEndTime === 0) {
+            bradyDetails.push({ start: bradyStartTime, end: 0, minBpm: bpm });
+          }
+          isCurrentlyBrady = true;
+        }
+      } else {
+        bradyStartTime = 0;
+      }
+    } else {
+      let currentIdx = bradyDetails.length - 1;
+      // Podczas bradykardii szukamy "dna", czyli najniższej wartości
+      if (bpm < bradyDetails[currentIdx].minBpm) bradyDetails[currentIdx].minBpm = bpm;
+
+      if (bpm > BRADY_STOP_THRESHOLD) {
+        isCurrentlyBrady = false;
+        lastBradyEndTime = timeMs;
+        bradyDetails[bradyDetails.length - 1].end = timeMs;
+        bradyStartTime = 0;
+      }
+    }
+  }
+
+  if (isCurrentlyTachy && tachyDetails.length > 0) tachyDetails[tachyDetails.length - 1].end = cleanData[cleanData.length - 1].timeMs;
+  if (isCurrentlyBrady && bradyDetails.length > 0) bradyDetails[bradyDetails.length - 1].end = cleanData[cleanData.length - 1].timeMs;
+
+  return {
+    minBpm: minBpm === 999 ? 0 : Math.floor(minBpm),
+    minBpmTimeMs: minBpmTimeMs,
+    maxBpm: Math.ceil(maxBpm),
+    maxBpmTimeMs: maxBpmTimeMs,
+    avgBpm: validBpmCount > 0 ? Math.round(sumBpm / validBpmCount) : 0,
+    tachyEpisodes: tachyDetails.length,
+    tachyDetails: tachyDetails,
+    bradyEpisodes: bradyDetails.length, 
+    bradyDetails: bradyDetails,         
+    arrhythmiaEvents: tachyDetails.length + bradyDetails.length 
+  };
+};
+
+const formatMsToTime = (ms) => {
+  if (!ms && ms !== 0) return "--:--:--";
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
+const getEcgSlice = (trend, centerTimeMs, pointsToSide = 150) => {
+  const fallbackLine = [0, 10, -10, 10, -10, 0]; 
+  
+  if (!trend || trend.length === 0 || centerTimeMs == null || isNaN(centerTimeMs)) {
+    return fallbackLine; 
+  }
+
+  let closestIdx = 0;
+  let minDiff = Infinity;
+  
+  for (let i = 0; i < trend.length; i++) {
+    const diff = Math.abs(trend[i].timeMs - centerTimeMs);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestIdx = i;
+    }
+  }
+
+  const startIdx = Math.max(0, closestIdx - pointsToSide);
+  const endIdx = Math.min(trend.length, closestIdx + pointsToSide);
+
+  const slice = trend.slice(startIdx, endIdx).map(p => {
+    let val = p.EKG_Raw;
+    
+    if (val === undefined && p.originalLine) {
+       const parts = p.originalLine.split(',');
+       val = parseInt(parts[1], 10); // wyciagamy samo ekg
+    }
+
+    return (val !== undefined && !isNaN(val)) ? val : 0; 
+  });
+
+  return slice.length > 2 ? slice : fallbackLine; 
+};
+
 const FILE_URI = FileSystem.documentDirectory + 'current_examination.csv';
 
-export default function App() {
+function MainApp() {
+  const insets = useSafeAreaInsets();
+  
   const [view, setView] = useState('home');
   const [bleState, setBleState] = useState('disconnected');
   const [syncState, setSyncState] = useState('idle');
 
   const deviceRef = useRef(null);
-  const subscriptionRef = useRef(null)
+  const subscriptionRef = useRef(null);
+  const scrollViewRef = useRef(null);
+
+  useEffect(() => {
+    // Kiedy zmienia się 'view', przewiń na samą górę
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: false }); 
+    }
+  }, [view]);
 
   const [records, setRecords] = useState(initialHistory);
   const [deviceData, setDeviceData] = useState(null);
@@ -51,6 +216,10 @@ export default function App() {
 
   const [toastMessage, setToastMessage] = useState(null);
   const toastAnim = useRef(new Animated.Value(200)).current;
+  const toastTimeoutRef = useRef(null);
+  
+  const [progressPercent, setProgressPercent] = useState(0);
+  const progressIntervalRef = useRef(null);
 
   const [isLiveEcgActive, setIsLiveEcgActive] = useState(false);
   const [lastConnectedTime, setLastConnectedTime] = useState(null);
@@ -63,6 +232,7 @@ export default function App() {
   const flushIntervalRef = useRef(null);
   const isFlushingRef = useRef(false);
   const fileWriteQueue = useRef(Promise.resolve());
+  
   // useEffect(() => {
   //   flushIntervalRef.current = setInterval(() => {
   //     flushBuffer();
@@ -74,17 +244,48 @@ export default function App() {
   // }, []);
 
   const showToast = (message, type = 'success') => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+
     setToastMessage({ message, type });
     Animated.spring(toastAnim, { toValue: 0, useNativeDriver: true, friction: 8 }).start();
 
-    if (isVoiceEnabled && Speech) {
+    if (isVoiceEnabled && Speech && type !== 'loading') {
       Speech.stop();
       Speech.speak(message, { language: 'pl-PL', rate: 1.05 });
     }
 
-    setTimeout(() => {
-      Animated.timing(toastAnim, { toValue: 200, duration: 300, useNativeDriver: true }).start(() => setToastMessage(null));
-    }, 3500);
+    if (type === 'loading') {
+      setProgressPercent(0);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      
+      progressIntervalRef.current = setInterval(() => {
+        setProgressPercent(prev => {
+          if (prev >= 90) {
+            clearInterval(progressIntervalRef.current);
+            return 90;
+          }
+          return prev + 1;
+        });
+      }, 130); 
+    } else {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+      if (type !== 'success') {
+        setProgressPercent(0);
+      }
+      
+      toastTimeoutRef.current = setTimeout(() => {
+        Animated.timing(toastAnim, { toValue: 200, duration: 300, useNativeDriver: true }).start(({ finished }) => {
+          if (finished) {
+            setToastMessage(null);
+            setProgressPercent(0);
+          }
+        });
+      }, 3500);
+    }
   };
 
   const handleVoiceToggle = () => {
@@ -217,30 +418,6 @@ export default function App() {
     });
   }
 
-  const syncData = () => {
-    if (bleState !== 'connected') {
-      showToast('Najpierw połącz urządzenie.', 'error');
-      return;
-    }
-    setSyncState('syncing');
-
-    setTimeout(() => {
-      const newData = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        duration: "24:15:00",
-        totalBeats: 102340, avgBpm: 71, minBpm: 48, minBpmTime: "05:22:10", maxBpm: 142, maxBpmTime: "16:40:05",
-        veb: { total: 15, pairs: 1, runs: 0, burden: "< 0.1%" }, sveb: { total: 80, pairs: 3, runs: 0, burden: "0.1%" },
-        pauses: { count: 0, longest: "1.9s", longestTime: "02:14:00" }, arrhythmiaEvents: 95, hourlyTrend: generateHourlyTrend(71)
-      };
-
-      setDeviceData(newData);
-      setRecords(prev => [newData, ...prev]);
-      setSyncState('synced');
-      setAiReport(null);
-      showToast('Dane pomyślnie zsynchronizowane.');
-    }, 2500);
-  };
 
   const handleToggleLiveEcg = () => {
     if (isLiveEcgActive) {
@@ -273,8 +450,7 @@ export default function App() {
     const lastSavedTS = await getLastTimestampFromFile();
     console.log("Last timestamp found in file:", lastSavedTS);
 
-
-    showToast('Pobieranie badania z Holtera...', 'info');
+    showToast('Pobieranie badania z Holtera...', 'loading');
 
     try {
 
@@ -314,14 +490,10 @@ export default function App() {
 
       // // (Symulacja transferu pliku - do wywalenia potem)
       // await new Promise(resolve => setTimeout(resolve, 2000));
-      // const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
-      // if (!fileInfo.exists) {
-      //   console.log("Brak pliku badania, wstrzykuję plik testowy...");
-      //   const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
-      //   await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
-      // }
+      // const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
+      // await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
 
-      showToast('Trwa analiza EKG...', 'info');
+      showToast('Trwa analiza EKG...', 'loading');
 
       const fileContent = await FileSystem.readAsStringAsync(FILE_URI, {
         encoding: FileSystem.EncodingType.UTF8
@@ -330,46 +502,56 @@ export default function App() {
       const parsedTrend = parseEcgFileToTrend(fileContent);
 
       if (!parsedTrend || parsedTrend.length === 0) {
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        setProgressPercent(0);
         showToast('Błąd: Plik jest pusty lub uszkodzony.', 'error');
         setSyncState('idle');
         return;
       }
 
-      const allBpms = parsedTrend.map(d => d.bpm);
-      const minBpm = Math.floor(Math.min(...allBpms));
-      const maxBpm = Math.ceil(Math.max(...allBpms));
-      const avgBpm = Math.round(allBpms.reduce((a, b) => a + b, 0) / allBpms.length);
-
+      const stats = analyzeEcgTrend(parsedTrend);
       const lastTimeMs = parsedTrend[parsedTrend.length - 1].timeMs;
       const durationMins = Math.floor(lastTimeMs / 60000);
       const durationSecs = Math.floor((lastTimeMs % 60000) / 1000);
 
       const newData = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        duration: `${durationMins}m ${durationSecs}s`,
-        totalBeats: parsedTrend.length,
-        avgBpm: avgBpm,
-        minBpm: minBpm,
-        minBpmTime: "--:--:--",
-        maxBpm: maxBpm,
-        maxBpmTime: "--:--:--",
-        veb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
-        sveb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
-        pauses: { count: 0, longest: "0", longestTime: "--" },
-        arrhythmiaEvents: 0,
-        hourlyTrend: parsedTrend
-      };
+              id: Date.now().toString(),
+              date: new Date().toISOString(),
+              duration: `${durationMins}m ${durationSecs}s`,
+              totalBeats: parsedTrend.length,
+              avgBpm: stats.avgBpm,
+              minBpm: stats.minBpm,
+              minBpmTime: formatMsToTime(stats.minBpmTimeMs),
+              minBpmTimeMs: stats.minBpmTimeMs, 
+              maxBpm: stats.maxBpm,
+              maxBpmTime: formatMsToTime(stats.maxBpmTimeMs),
+              maxBpmTimeMs: stats.maxBpmTimeMs,
+              tachyEpisodes: stats.tachyEpisodes,
+              tachyDetails: stats.tachyDetails,
+              bradyEpisodes: stats.bradyEpisodes,
+              bradyDetails: stats.bradyDetails,
+              arrhythmiaEvents: stats.arrhythmiaEvents, 
+              veb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
+              sveb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
+              pauses: { count: 0, longest: "0", longestTime: "--" },
+              hourlyTrend: parsedTrend
+            };
 
-      setDeviceData(newData);
-      setRecords(prev => [newData, ...prev]);
-      setSyncState('synced');
-      setAiReport(null);
-      showToast('Badanie odebrane i przeanalizowane!');
-      saveToDownloads();
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      setProgressPercent(100);
+
+      setTimeout(() => {
+        setDeviceData(newData);
+        setRecords(prev => [newData, ...prev]);
+        setSyncState('synced');
+        setAiReport(null);
+        showToast('Badanie odebrane i przeanalizowane!', 'success');
+      }, 400);
 
     } catch (error) {
       console.error("Błąd czytania pliku:", error);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      setProgressPercent(0);
       showToast('Wystąpił błąd podczas analizy pliku.', 'error');
       setSyncState('idle');
     }
@@ -382,7 +564,7 @@ export default function App() {
       if (!fileInfo.exists) {
         await FileSystem.writeAsStringAsync(
           FILE_URI,
-          'Timestamp_ms,ECG_raw,BPM,Lead_off\n',
+          'Timestamp_ms,ECG_Raw,BPM,LeadOff,Activity,Important\n',
           { encoding: FileSystem.EncodingType.UTF8 }
         );
       }
@@ -418,6 +600,8 @@ export default function App() {
     const dataToWrite = fileBufferRef.current.join('');
     fileBufferRef.current = [];
 
+    const rnfsPath = FILE_URI.replace('file://', '');
+
     // Chain the next write to the end of the previous one
     fileWriteQueue.current = fileWriteQueue.current.then(async () => {
       try {
@@ -452,42 +636,112 @@ export default function App() {
   }
 
   const openReport = (record) => {
+    if (!record) return;
     setActiveReportRecord(record);
+
     const snippets = [
-      { title: "Tachykardia (Max HR)", description: `Max rytm: ${record.maxBpm} BPM.`, time: record.maxBpmTime, hr: record.maxBpm, data: generateMockEcgStrip('tachy') },
-      { title: "Bradykardia (Min HR)", description: `Min rytm: ${record.minBpm} BPM.`, time: record.minBpmTime, hr: record.minBpm, data: generateMockEcgStrip('brady') }
+      { 
+        title: "Maksymalne Tętno", 
+        description: `Szczyt wysiłku lub arytmii.`, 
+        time: record.maxBpmTime, 
+        hr: record.maxBpm, 
+        data: getEcgSlice(record.hourlyTrend, record.maxBpmTimeMs, 600)
+      },
+      { 
+        title: "Minimalne Tętno", 
+        description: `Najniższy zarejestrowany rytm.`, 
+        time: record.minBpmTime, 
+        hr: record.minBpm, 
+        data: getEcgSlice(record.hourlyTrend, record.minBpmTimeMs, 600)
+      }
     ];
 
-    if (record.veb.total > 0) {
-      snippets.push({ title: "Zdarzenie Ektopowe (VES)", description: "Zarejestrowane przedwczesne pobudzenie komorowe.", time: "18:45:12", hr: record.avgBpm + 5, data: generateMockEcgStrip('ves') });
-    }
-    if (record.pauses.count > 0) {
-      snippets.push({ title: `Pauza (${record.pauses.longest})`, description: "Pauza przekraczająca normę.", time: record.pauses.longestTime, hr: record.minBpm - 10, data: generateMockEcgStrip('pause') });
-    } else {
-      snippets.push({ title: "Rytm Zatokowy", description: "Przykład dominującego rytmu.", time: "12:00:00", hr: record.avgBpm, data: generateMockEcgStrip('normal') });
-    }
+  const tachyList = record.tachyDetails || [];
+  tachyList.slice(0, 3).forEach((ep, index) => { // limit wykresow tachykardii ustawiony na 3
+    const duration = (ep.end && ep.end > ep.start) ? (ep.end - ep.start) : 0;
+    const centerTime = ep.start + duration / 2;
 
-    setAiReport({
+    snippets.push({
+      title: `Epizod Tachykardii #${index + 1}`,
+      description: `Czas trwania: ${Math.round(duration / 1000)}s`,
+      time: formatMsToTime(ep.start),
+      hr: ep.maxBpm,
+      data: getEcgSlice(record.hourlyTrend, centerTime, 600) 
+    });
+  });
+
+  const bradyList = record.bradyDetails || [];
+  bradyList.slice(0, 3).forEach((ep, index) => { // limit wykresow bradykardii ustawiony na 3
+    const duration = (ep.end && ep.end > ep.start) ? (ep.end - ep.start) : 0;
+    const centerTime = ep.start + duration / 2;
+
+    snippets.push({
+      title: `Epizod Bradykardii #${index + 1}`,
+      description: `Czas trwania: ${Math.round(duration / 1000)}s`,
+      time: formatMsToTime(ep.start),
+      hr: ep.minBpm, 
+      data: getEcgSlice(record.hourlyTrend, centerTime, 600)
+    });
+  });
+
+  const tachyFinding = tachyList.length > 0 
+    ? `Wykryto ${tachyList.length} istotnych epizodów tachykardii (>100 BPM).` 
+    : "Nie wykryto istotnych epizodów tachykardii.";
+
+  const bradyFinding = bradyList.length > 0 
+    ? `Wykryto ${bradyList.length} epizodów bradykardii (<50 BPM).` 
+    : "Nie wykryto istotnych epizodów bradykardii.";
+
+  setAiReport({
       date: new Date(record.date).toLocaleDateString('pl-PL'),
-      summary: `Przeanalizowano ciągły zapis EKG. Zarejestrowano łącznie ${record.totalBeats.toLocaleString()} zespołów QRS. Średni rytm serca wynosił ${record.avgBpm} BPM.`,
+      summary: `Przeanalizowano zapis EKG trwający ${record.duration}.`,
       findings: [
-        `Tętno: Max ${record.maxBpm} BPM, Min ${record.minBpm} BPM.`,
-        `Aktywność komorowa: ${record.veb.total} pobudzeń przedwczesnych.`,
-        `Aktywność nadkomorowa: ${record.sveb.total} pobudzeń przedwczesnych.`,
-        record.pauses.count > 0 ? `Pauzy: Wykryto ${record.pauses.count} przerw > 2s.` : "Pauzy: Brak przerw > 2.0s."
+        `Tętno: Max ${record.maxBpm} BPM (${record.maxBpmTime}), Min ${record.minBpm} BPM (${record.minBpmTime}).`,
+        tachyFinding,
+        bradyFinding, 
+        `Pauzy: Brak przerw > 2.0s.`
       ],
-      recommendation: `Wynik wymaga weryfikacji przez lekarza specjalistę! ${(record.veb.runs > 0 || record.pauses.count > 0) ? 'System wykrył złożone zaburzenia rytmu, wskazana pilna konsultacja.' : 'Nie wykryto bezpośrednich stanów zagrożenia życia.'}`,
-      snippets: snippets
+      recommendation: (tachyList.length > 3 || bradyList.length > 3) 
+        ? "Wykryto znaczną liczbę epizodów arytmicznych. Bezwzględnie zalecana jest pilna konsultacja kardiologiczna. Pamiętaj: ta analiza to wyłącznie screening algorytmiczny, nie diagnoza medyczna." 
+        : "Algorytm nie wykrył istotnych, groźnych nieprawidłowości w badanym okresie. UWAGA: Raport wygenerowany przez AI ma wyłącznie charakter informacyjny i nie zastępuje profesjonalnej diagnozy lekarskiej. Zawsze konsultuj swoje wyniki ze specjalistą.",
+      snippets: snippets, 
+      tachyDetails: tachyList,
+      bradyDetails: bradyList 
     });
 
-    setView('report');
+  setView('report');
+};
+
+  const buildNoiseCsvContent = (trendData) => {
+    if (!trendData || trendData.length === 0) return '';
+    
+    const header = 'Timestamp_ms,ECG_raw,BPM,Lead_off,Activity,Important,Noise\n';
+    const body = trendData.map(t => `${t.originalLine},${t.isNoise ? 1 : 0}`).join('\n');
+    return header + body;
   };
 
-  const saveToDownloads = async () => {
+const saveToDownloads = async (trendData) => {
     await new Promise(resolve => setTimeout(resolve, 500));
     try {
-      const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
-      console.log(`File size before sharing: ${fileInfo.size} bytes`);
+      if (!trendData || trendData.length === 0) {
+        showToast('Brak danych do udostępnienia.', 'error');
+        return;
+      }
+
+      const uniqueId = Date.now();
+      // zmienilam na cache zeby nie zasmiecac telefonu
+      const EXPORT_URI = FileSystem.cacheDirectory + `badanie_EKG_${uniqueId}.csv`;
+      
+      console.log(`Generowanie pliku wyjściowego z ${trendData.length} rekordami...`);
+
+      const finalCsvString = buildNoiseCsvContent(trendData);
+      
+      await FileSystem.writeAsStringAsync(EXPORT_URI, finalCsvString, {
+        encoding: FileSystem.EncodingType.UTF8
+      });
+
+      const fileInfo = await FileSystem.getInfoAsync(EXPORT_URI);
+      console.log(`Wygenerowano plik o rozmiarze: ${fileInfo.size} bajtów`);
 
       const isAvailable = await Sharing.isAvailableAsync();
       if (!isAvailable) {
@@ -495,14 +749,19 @@ export default function App() {
         return;
       }
 
-      await Sharing.shareAsync(FILE_URI, {
+      await Sharing.shareAsync(EXPORT_URI, {
         mimeType: 'text/csv',
-        dialogTitle: 'Zapisz badanie EKG',
+        dialogTitle: 'Zapisz badanie EKG z analizą szumów',
         UTI: 'public.comma-separated-values-text',
       });
+
+      await FileSystem.deleteAsync(EXPORT_URI, { idempotent: true });
+      console.log('Plik tymczasowy usunięty z pamięci urządzenia.');
+
+
     } catch (error) {
       console.error('Błąd zapisu:', error);
-      showToast('Nie udało się zapisać pliku.', 'error');
+      showToast('Nie udało się wygenerować pliku z szumami.', 'error');
     }
   };
 
@@ -510,79 +769,129 @@ export default function App() {
     return new Date(dateString).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
+  const deleteCurrentFile = async () => {
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
+      if (fileInfo.exists) {
+        await FileSystem.deleteAsync(FILE_URI);
+        setDeviceData(null); // Czyścimy aktualnie wyświetlane dane
+        showToast("Plik badania został usunięty.", "info");
+      } else {
+        showToast("Brak pliku do usunięcia.", "error");
+      }
+    } catch (error) {
+      console.error("Błąd podczas usuwania pliku:", error);
+      showToast("Nie udało się usunąć pliku.", "error");
+    }
+  };
+
   const ToastIcon = toastMessage?.type === 'error' ? AlertCircle : CheckCircle2;
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+    <View style={[styles.container, { paddingTop: Math.max(insets.top, StatusBar.currentHeight || 0) }]}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {view === 'home' && (
-            <HomeScreen
-              bleState={bleState}
-              deviceData={deviceData}
-              syncState={syncState}
-              diagnostics={diagnostics}
-              toggleBluetooth={toggleBluetooth}
-              syncData={syncData}
-              refreshDiagnostics={refreshDiagnostics}
-              getFileFromDevice={getFileFromDevice}
-              isLiveEcgActive={isLiveEcgActive}
-              toggleLiveEcg={handleToggleLiveEcg}
-              lastConnectedTime={lastConnectedTime}
-              openReport={openReport}
-              formatDate={formatDate}
-            />
-          )}
-          {view === 'history' && (
-            <HistoryScreen records={records} openReport={openReport} formatDate={formatDate} />
-          )}
-          {view === 'report' && (
-            <ReportScreen
-              activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
-              aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
-              showToast={showToast}
-            />
-          )}
-          {view === 'settings' && (
-            <SettingsScreen
-              isVoiceEnabled={isVoiceEnabled} handleVoiceToggle={handleVoiceToggle}
-              isNotifEnabled={isNotifEnabled} setIsNotifEnabled={setIsNotifEnabled}
-              isVibrateEnabled={isVibrateEnabled} setIsVibrateEnabled={setIsVibrateEnabled}
-            />
-          )}
-        </ScrollView>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {view === 'home' && (
+          <HomeScreen
+            bleState={bleState}
+            deviceData={deviceData}
+            syncState={syncState}
+            diagnostics={diagnostics}
+            toggleBluetooth={toggleBluetooth}
+            refreshDiagnostics={refreshDiagnostics}
+            getFileFromDevice={getFileFromDevice}
+            isLiveEcgActive={isLiveEcgActive}
+            toggleLiveEcg={handleToggleLiveEcg}
+            lastConnectedTime={lastConnectedTime}
+            openReport={openReport}
+            formatDate={formatDate}
+            deleteCurrentFile={deleteCurrentFile}
+          />
+        )}
+        {view === 'history' && (
+          <HistoryScreen records={records} openReport={openReport} formatDate={formatDate} />
+        )}
+        {view === 'report' && (
+          <ReportScreen
+            activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
+            aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
+            showToast={showToast}
+          />
+        )}
+        {view === 'settings' && (
+          <SettingsScreen
+            isVoiceEnabled={isVoiceEnabled} handleVoiceToggle={handleVoiceToggle}
+            isNotifEnabled={isNotifEnabled} setIsNotifEnabled={setIsNotifEnabled}
+            isVibrateEnabled={isVibrateEnabled} setIsVibrateEnabled={setIsVibrateEnabled}
+          />
+        )}
+      </ScrollView>
 
-        <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem} onPress={() => setView('home')}>
-            <Home size={22} color={view === 'home' ? '#818cf8' : '#71717a'} />
-            <Text style={[styles.navText, view === 'home' && styles.navTextActive]}>PULPIT</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => setView('history')}>
-            <History size={22} color={view === 'history' ? '#818cf8' : '#71717a'} />
-            <Text style={[styles.navText, view === 'history' && styles.navTextActive]}>HISTORIA</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => setView('settings')}>
-            <Settings size={22} color={view === 'settings' ? '#818cf8' : '#71717a'} />
-            <Text style={[styles.navText, view === 'settings' && styles.navTextActive]}>OPCJE</Text>
-          </TouchableOpacity>
+      <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 16), paddingTop: 12, minHeight: 65 + insets.bottom, height: 'auto' }]}>
+        <TouchableOpacity style={styles.navItem} onPress={() => setView('home')}>
+          <Home size={22} color={view === 'home' ? '#818cf8' : '#71717a'} />
+          <Text style={[styles.navText, view === 'home' && styles.navTextActive]}>PULPIT</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => setView('history')}>
+          <History size={22} color={view === 'history' ? '#818cf8' : '#71717a'} />
+          <Text style={[styles.navText, view === 'history' && styles.navTextActive]}>HISTORIA</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => setView('settings')}>
+          <Settings size={22} color={view === 'settings' ? '#818cf8' : '#71717a'} />
+          <Text style={[styles.navText, view === 'settings' && styles.navTextActive]}>OPCJE</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Animated.View style={[
+        styles.toast,
+        toastMessage?.type === 'error' ? styles.toastError : toastMessage?.type === 'info' ? styles.toastInfo : styles.toastSuccess,
+        toastMessage?.type === 'loading' && { backgroundColor: '#27272a', borderColor: '#52525b', paddingVertical: 18 },
+        { transform: [{ translateY: toastAnim }], overflow: 'hidden', bottom: Math.max(insets.bottom, 16) + 75 } 
+      ]}>
+        
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            {toastMessage?.type !== 'loading' && (
+               <ToastIcon size={20} color={toastMessage?.type === 'error' ? "#fb7185" : "#34d399"} />
+            )}
+            <Text style={[styles.toastText, toastMessage?.type === 'loading' && { marginLeft: 0 }, { flexShrink: 1 }]}>
+              {toastMessage?.message}
+            </Text>
+          </View>
+
+          {toastMessage?.type === 'loading' && (
+            <Text style={{ color: '#818cf8', fontWeight: '800', fontSize: 13, marginLeft: 12 }}>
+              {progressPercent}%
+            </Text>
+          )}
         </View>
 
-        <Animated.View style={[
-          styles.toast,
-          toastMessage?.type === 'error' ? styles.toastError : toastMessage?.type === 'info' ? styles.toastInfo : styles.toastSuccess,
-          { transform: [{ translateY: toastAnim }] }
-        ]}>
-          {toastMessage && <ToastIcon size={20} color={toastMessage.type === 'error' ? "#fb7185" : "#34d399"} />}
-          <Text style={styles.toastText}>{toastMessage?.message}</Text>
-        </Animated.View>
+        {toastMessage?.type === 'loading' && (
+          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'rgba(0,0,0,0.4)' }}>
+            <View style={{
+              height: '100%',
+              backgroundColor: '#818cf8',
+              width: `${progressPercent}%` 
+            }} />
+          </View>
+        )}
+        
+      </Animated.View>
 
-      </SafeAreaView>
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <MainApp />
     </SafeAreaProvider>
   );
 }

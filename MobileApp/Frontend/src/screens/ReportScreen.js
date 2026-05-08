@@ -7,6 +7,7 @@ import {
 
 import { styles } from '../constants/Theme';
 import TrendChart from '../components/TrendChart';
+import ActivityChart from '../components/ActivityChart'; 
 import EcgStrip from '../components/EcgStrip';
 
 const ReportScreen = ({ 
@@ -20,6 +21,14 @@ const ReportScreen = ({
 }) => {
   
   if (!activeReportRecord) return null; 
+
+  const formatTime = (ms) => {
+      if (ms === undefined || ms === null || isNaN(ms)) return "0:00"; // zabezpieczenie przed NaN
+      const totalSeconds = Math.floor(ms / 1000);
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    };
 
   return (
     <View style={styles.screenContent}>
@@ -38,7 +47,7 @@ const ReportScreen = ({
         <View style={styles.reportHeader}>
           <View style={styles.row}>
             <FileText size={24} color="#6366f1" />
-            <Text style={styles.reportTitle}>Kliniczny Raport Holter</Text>
+            <Text style={styles.reportTitle}>Raport Kliniczny</Text>
           </View>
           <View style={[styles.row, { marginTop: 12, gap: 16 }]}>
             <View style={styles.row}>
@@ -52,6 +61,7 @@ const ReportScreen = ({
           </View>
         </View>
 
+        {/* TABELA - ZESTAWIENIE */}
         <View style={styles.tableCard}>
           <View style={styles.tableHeader}>
             <Table2 size={16} color="#818cf8" />
@@ -59,52 +69,113 @@ const ReportScreen = ({
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.tableCellLabel}>Całkowita liczba QRS</Text>
-            <Text style={styles.tableCellValue}>{activeReportRecord.totalBeats.toLocaleString()}</Text>
+            <Text style={styles.tableCellValue}>
+              {activeReportRecord.totalBeats ? activeReportRecord.totalBeats.toLocaleString() : '0'}
+            </Text>
           </View>
           <View style={styles.tableRow}>
-            <Text style={styles.tableCellLabel}>Arytmie Nadkomorowe</Text>
-            <Text style={styles.tableCellValue}>{activeReportRecord.sveb.total}</Text>
+            <Text style={styles.tableCellLabel}>Tachykardia (epizody)</Text>
+            <Text style={styles.tableCellValue}>{activeReportRecord.tachyEpisodes || 0}</Text>
           </View>
           <View style={styles.tableRow}>
-            <Text style={styles.tableCellLabel}>Arytmie Komorowe</Text>
-            <Text style={styles.tableCellValue}>{activeReportRecord.veb.total}</Text>
+            <Text style={styles.tableCellLabel}>Bradykardia (epizody)</Text>
+            <Text style={styles.tableCellValue}>{activeReportRecord.bradyEpisodes || 0}</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCellLabel}>Średnie Tętno (BPM)</Text>
+            <Text style={styles.tableCellValue}>{activeReportRecord.avgBpm || 0}</Text>
           </View>
           <View style={[styles.tableRow, { borderBottomWidth: 0 }]}>
             <Text style={styles.tableCellLabel}>Pauzy RR {'>'} 2.0s</Text>
-            <Text style={styles.tableCellValue}>{activeReportRecord.pauses.count}</Text>
+            <Text style={styles.tableCellValue}>
+              {activeReportRecord.pauses ? activeReportRecord.pauses.count : 0}
+            </Text>
           </View>
         </View>
 
-        <TrendChart data={activeReportRecord.hourlyTrend} />
+        {/* WYKRES TRENDU (BPM) */}
+        <View style={{ marginTop: 16 }}>
+          <TrendChart data={activeReportRecord.hourlyTrend || []} />
+        </View>
+
+        {/* WYKRES AKTYWNOŚCI */}
+        <View style={{ marginTop: 16 }}>
+          <ActivityChart data={activeReportRecord.hourlyTrend || []} />
+        </View>
+
+        {/* NIEPRAWIDLOWOSCI */}
+        <View style={[styles.tableCard, { marginTop: 24 }]}>
+          <View style={styles.tableHeader}>
+            <Activity size={16} color="#fb7185" />
+            <Text style={styles.tableHeaderText}>WYKRYTE EPIZODY</Text>
+          </View>
+          
+          {/* Renderowanie Tachykardii */}
+          {(activeReportRecord.tachyDetails || []).map((det, idx) => (
+            <View key={`tachy-${idx}`} style={styles.tableRow}>
+              <View>
+                <Text style={styles.tableCellLabel}>Epizod Tachykardii #{idx + 1}</Text>
+                <Text style={{ fontSize: 10, color: '#71717a' }}>Tachykardia zatokowa</Text>
+              </View>
+              <Text style={styles.tableCellValue}>
+                {formatTime(det.start)} — {formatTime(det.end)}
+              </Text>
+            </View>
+          ))}
+
+          {/* Renderowanie Bradykardii */}
+          {(activeReportRecord.bradyDetails || []).map((det, idx) => (
+            <View key={`brady-${idx}`} style={styles.tableRow}>
+              <View>
+                <Text style={styles.tableCellLabel}>Epizod Bradykardii #{idx + 1}</Text>
+                <Text style={{ fontSize: 10, color: '#71717a' }}>Istotne zwolnienie rytmu</Text>
+              </View>
+              <Text style={styles.tableCellValue}>
+                {formatTime(det.start)} — {formatTime(det.end)}
+              </Text>
+            </View>
+          ))}
+
+          {/* Jeśli nie było ŻADNYCH epizodów */}
+          {(!activeReportRecord.tachyDetails || activeReportRecord.tachyDetails.length === 0) && 
+           (!activeReportRecord.bradyDetails || activeReportRecord.bradyDetails.length === 0) && (
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableCellLabel, { color: '#71717a', fontStyle: 'italic' }]}>
+                Nie wykryto istotnych epizodów arytmii.
+              </Text>
+            </View>
+          )}
+        </View>
 
         <View style={{ marginTop: 32 }}>
           <View style={styles.row}>
             <View style={styles.iconBgEmerald}>
               <Activity size={18} color="#34d399"/>
             </View>
-            <Text style={styles.sectionTitleAi}>Interpretacja Algorytmu AI</Text>
+            <Text style={styles.sectionTitleAi}>Analiza Badania</Text>
           </View>
 
-          {aiReport && (
+          {aiReport ? (
             <>
               <View style={styles.aiBox}>
                 <Text style={styles.aiText}>{aiReport.summary}</Text>
               </View>
               <View style={styles.aiBox}>
                 <Text style={styles.aiBoxTitle}>Szczegółowe Wnioski:</Text>
-                {aiReport.findings.map((finding, idx) => (
+                {(aiReport.findings || []).map((finding, idx) => (
                   <View key={idx} style={styles.aiListItem}>
                     <CheckCircle2 size={16} color="#34d399" />
                     <Text style={styles.aiListText}>{finding}</Text>
                   </View>
                 ))}
               </View>
+              
               <View style={{ marginTop: 24 }}>
                 <View style={[styles.row, { marginBottom: 16 }]}>
                   <Activity size={20} color="#fb7185" />
                   <Text style={[styles.sectionTitleAi, { marginLeft: 8 }]}>Wycinki EKG</Text>
                 </View>
-                {aiReport.snippets.map((snippet, idx) => (
+                {(aiReport.snippets || []).map((snippet, idx) => (
                   <EcgStrip 
                     key={idx} 
                     title={snippet.title} 
@@ -115,6 +186,7 @@ const ReportScreen = ({
                   />
                 ))}
               </View>
+
               <View style={styles.warningBox}>
                 <View style={styles.row}>
                   <AlertCircle size={16} color="#fb7185" />
@@ -123,6 +195,10 @@ const ReportScreen = ({
                 <Text style={styles.warningText}>{aiReport.recommendation}</Text>
               </View>
             </>
+          ) : (
+            <View style={styles.aiBox}>
+              <Text style={styles.aiText}>Trwa analiza...</Text>
+            </View>
           )}
         </View>
       </View>

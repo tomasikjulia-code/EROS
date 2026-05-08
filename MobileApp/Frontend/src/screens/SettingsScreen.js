@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Accessibility, Bell, Smartphone } from 'lucide-react-native';
+import { Volume2, Bell, Smartphone } from 'lucide-react-native';
 import { styles } from '../constants/Theme';
 
 const SettingsScreen = ({ 
@@ -19,12 +19,12 @@ const SettingsScreen = ({
         <Text style={styles.pageSubtitle}>Dostosuj aplikację do swoich potrzeb.</Text>
       </View>
       
-      <Text style={styles.sectionTitle}>DOSTĘPNOŚĆ (ACCESSIBILITY)</Text>
+      <Text style={styles.sectionTitle}>DOSTĘPNOŚĆ</Text>
       <View style={styles.settingCard}>
         <View style={styles.settingRow}>
           <View style={styles.row}>
             <View style={[styles.settingIconBg, isVoiceEnabled && styles.settingIconBgActive]}>
-              <Accessibility size={22} color={isVoiceEnabled ? "#818cf8" : "#a1a1aa"} />
+              <Volume2 size={22} color={isVoiceEnabled ? "#818cf8" : "#a1a1aa"} />
             </View>
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.settingTitle}>Asystent Głosowy</Text>

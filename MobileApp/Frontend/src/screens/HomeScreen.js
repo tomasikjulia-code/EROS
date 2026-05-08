@@ -1,15 +1,16 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { 
   HeartPulse, Bluetooth, BluetoothConnected, CheckCircle2, 
   AlertCircle, BatteryMedium, Clock, RefreshCw, Heart, 
-  Zap, ShieldCheck, ChevronRight, Activity, FileDown, Database
+  Zap, ShieldCheck, ChevronRight, Activity, FileDown, Database, Trash2
 } from 'lucide-react-native';
 
 import { styles } from '../constants/Theme';
 import DeviceDiagnostics from '../components/DeviceDiagnostics';
 import TrendChart from '../components/TrendChart';
 import LiveEcgChart from '../components/LiveEcgChart'; 
+import ActivityChart from '../components/ActivityChart';
 
 const HomeScreen = ({ 
   bleState, 
@@ -17,15 +18,27 @@ const HomeScreen = ({
   syncState, 
   diagnostics, 
   toggleBluetooth, 
-  syncData,
   refreshDiagnostics, 
   openReport, 
   formatDate,
   toggleLiveEcg,
   isLiveEcgActive,
   getFileFromDevice, 
-  lastConnectedTime
+  lastConnectedTime,
+  deleteCurrentFile
 }) => {
+
+  const confirmDelete = () => {
+    Alert.alert(
+      "Usuń badanie",
+      "Czy na pewno chcesz trwale usunąć aktualne badanie z pamięci telefonu?",
+      [
+        { text: "Anuluj", style: "cancel" },
+        { text: "Usuń", style: "destructive", onPress: deleteCurrentFile }
+      ]
+    );
+  };
+
   return (
     <View style={styles.screenContent}>
 
@@ -52,6 +65,8 @@ const HomeScreen = ({
       </View>
 
       <View style={styles.heroCard}>
+        
+        {/* GÓRNY WIERSZ (Status + Odśwież) */}
         <View style={styles.heroHeader}>
           <View>
             {bleState === 'connected' ? (
@@ -88,13 +103,27 @@ const HomeScreen = ({
           </TouchableOpacity>
         </View>
         
-        <View style={styles.heroMain}>
-          <Text style={styles.heroBpmText}>{deviceData?.avgBpm || '--'}</Text>
-          <View style={{ paddingBottom: 8 }}>
-            <Text style={styles.heroBpmLabel}>BPM</Text>
-            <Text style={styles.heroBpmSublabel}>Średnio</Text>
+        {/* DOLNY WIERSZ (BPM + Kosz) */}
+        <View style={[styles.heroMain, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+          
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
+            <Text style={styles.heroBpmText}>{deviceData?.avgBpm || '--'}</Text>
+            <View style={{ paddingBottom: 8 }}>
+              <Text style={styles.heroBpmLabel}>BPM</Text>
+              <Text style={styles.heroBpmSublabel}>Średnio</Text>
+            </View>
           </View>
+
+          <TouchableOpacity 
+            onPress={confirmDelete}
+            disabled={!deviceData}
+            style={[styles.btnSync, !deviceData && styles.btnSyncDisabled]}
+          >
+            <Trash2 size={20} color={deviceData ? "#fb7185" : "#52525b"} />
+          </TouchableOpacity>
+
         </View>
+        
       </View>
 
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
@@ -119,7 +148,7 @@ const HomeScreen = ({
         </TouchableOpacity>
 
         <TouchableOpacity 
-          onPress={getFileFromDevice} // <--- ZMIANA 2: Podpięto nową funkcję
+          onPress={getFileFromDevice} 
           disabled={bleState !== 'connected'}
           style={{
             flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
@@ -134,7 +163,7 @@ const HomeScreen = ({
             color: bleState === 'connected' ? '#818cf8' : '#a1a1aa',
             fontSize: 12, fontWeight: '800', marginLeft: 8, letterSpacing: 0.5
           }}>
-            POBIERZ BADANIE {/* <--- ZMIANA 3: Bardziej logiczny tekst na przycisku */}
+            POBIERZ BADANIE 
           </Text>
         </TouchableOpacity>
       </View>
@@ -202,6 +231,9 @@ const HomeScreen = ({
 
           <View style={{ marginTop: 16 }}>
             <TrendChart data={deviceData.hourlyTrend} />
+          </View>
+          <View style={{ marginTop: 16 }}>
+            <ActivityChart data={deviceData.hourlyTrend} />
           </View>
         </>
       )}
