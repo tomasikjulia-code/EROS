@@ -2431,8 +2431,8 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "J"
-				(at -16.51 15.24 0)
+			(property "Reference" "J6"
+				(at 0.635 19.05 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -2440,15 +2440,14 @@
 				)
 			)
 			(property "Value" "Micro_SD_Card"
-				(at 16.51 15.24 0)
+				(at 0.635 16.51 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify right)
 				)
 			)
-			(property "Footprint" ""
+			(property "Footprint" "Connector_Card:microSD_HC_Molex_47219-2001"
 				(at 29.21 7.62 0)
 				(effects
 					(font
@@ -2619,7 +2618,7 @@
 							)
 						)
 					)
-					(number "1"
+					(number "8"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2637,7 +2636,7 @@
 							)
 						)
 					)
-					(number "2"
+					(number "7"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2655,7 +2654,7 @@
 							)
 						)
 					)
-					(number "3"
+					(number "6"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2673,7 +2672,7 @@
 							)
 						)
 					)
-					(number "4"
+					(number "5"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2691,7 +2690,7 @@
 							)
 						)
 					)
-					(number "5"
+					(number "4"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2709,7 +2708,7 @@
 							)
 						)
 					)
-					(number "6"
+					(number "3"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2727,7 +2726,7 @@
 							)
 						)
 					)
-					(number "7"
+					(number "2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -2745,7 +2744,7 @@
 							)
 						)
 					)
-					(number "8"
+					(number "1"
 						(effects
 							(font
 								(size 1.27 1.27)
