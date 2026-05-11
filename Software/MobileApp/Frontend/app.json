@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "eros-react-native",
+    "slug": "snack-cec4aa72-add1-4a38-8da2-c6bc7ba8e7d0",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.eros.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.eros.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "75672082-c6d0-460f-ac8f-ad69d16b5ebf"
+      }
+    },
+    "plugins": [
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow EROS to access your ECG reports.",
+          "savePhotosPermission": "Allow EROS to save ECG reports to your device.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ]
+  }
+}
