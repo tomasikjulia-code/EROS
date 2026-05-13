@@ -1,0 +1,32 @@
+#ifndef CSV_WRITER_H
+#define CSV_WRITER_H
+
+#include <Arduino.h>
+#include <FS.h>
+#include <SD.h>
+
+typedef struct{
+    uint32_t timestamp;
+    int16_t rawValue;
+    int bpm;
+    bool leadOff;
+    float activity;
+    int important; 
+} Sample;
+
+class CsvWriter {
+public:
+
+    CsvWriter();
+    bool begin(const char* path);
+    void writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool leadOff, float activity, int important);
+    void closeFile();
+    bool isRecording() { return _recording; }
+    void writeBuffer(const Sample* samples, size_t count);
+    
+private:
+    File _file;
+    bool _recording = false;
+};
+
+#endif
