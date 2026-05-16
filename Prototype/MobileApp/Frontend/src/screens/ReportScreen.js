@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform, Alert, Keyboard } from 'react-native';
 import { 
   ChevronLeft, FileText, Calendar, Clock, Table2, 
-  Activity, CheckCircle2, AlertCircle, Download, Mail, Send, Database, Trash2, FileSpreadsheet
+  Activity, CheckCircle2, AlertCircle, Download, Mail,
+  Send, Sparkles, Database, Trash2, FileSpreadsheet 
 } from 'lucide-react-native';
 
 import { styles } from '../constants/Theme';
 import TrendChart from '../components/TrendChart';
 import ActivityChart from '../components/ActivityChart'; 
 import EcgStrip from '../components/EcgStrip';
+import { generateReport } from '../utils/AIService';
 
 const ReportScreen = ({ 
   activeReportRecord, 
@@ -28,6 +30,30 @@ const ReportScreen = ({
   const [draftComment, setDraftComment] = useState("");     // Roboczy tekst komentarza
 
   if (!activeReportRecord) return null; 
+  const [isGenerating, setIsGenerating] = useState(false);
+  
+  if (!activeReportRecord) return null;
+
+  const handleGenerateReport = async () => {
+    if (!aiReport) {
+      showToast("Brak danych do analizy", "error");
+      return;
+    }
+
+    setIsGenerating(true);
+    showToast("Generowanie raport AI...", "loading");
+
+    try {
+      const result = await generateReport(aiReport, activeReportRecord);
+      showToast("Raport wygenerowany pomyślnie!", "success");
+      console.log("AI Response:", result);
+    } catch (error) {
+      console.error("Błąd generowania raportu:", error);
+      showToast("Błąd podczas generowania raportu", "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  }; 
 
   const confirmFormatSD = () => {
     if (bleState !== 'connected') {
