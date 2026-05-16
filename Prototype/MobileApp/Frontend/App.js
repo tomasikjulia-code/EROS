@@ -879,7 +879,7 @@ const saveToDownloads = async (trendData) => {
           <ReportScreen
             activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
             aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
-            showToast={showToast}
+            showToast={showToast} saveToDownloads={saveToDownloads} 
           />
         )}
         {view === 'settings' && (
