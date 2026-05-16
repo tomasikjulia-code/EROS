@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { 
   ChevronLeft, FileText, Calendar, Clock, Table2, 
-  Activity, CheckCircle2, AlertCircle, Download, Mail, Send, Sparkles 
+  Activity, CheckCircle2, AlertCircle, Download, Mail, Send 
 } from 'lucide-react-native';
 
 import { styles } from '../constants/Theme';
 import TrendChart from '../components/TrendChart';
 import ActivityChart from '../components/ActivityChart'; 
 import EcgStrip from '../components/EcgStrip';
-import { generateReport } from '../utils/AIService';
 
 const ReportScreen = ({ 
   activeReportRecord, 
@@ -20,30 +19,12 @@ const ReportScreen = ({
   setDoctorEmail, 
   showToast 
 }) => {
-  const [isGenerating, setIsGenerating] = useState(false);
-  
-  if (!activeReportRecord) return null;
+  // Stany do obsługi komentarzy w nowym, pływającym oknie (Modal)
+  const [eventComments, setEventComments] = useState({});
+  const [activeEditIdx, setActiveEditIdx] = useState(null); // Przechowuje ID edytowanego wycinka
+  const [draftComment, setDraftComment] = useState("");     // Roboczy tekst komentarza
 
-  const handleGenerateReport = async () => {
-    if (!aiReport) {
-      showToast("Brak danych do analizy", "error");
-      return;
-    }
-
-    setIsGenerating(true);
-    showToast("Generowanie raport AI...", "loading");
-
-    try {
-      const result = await generateReport(aiReport, activeReportRecord);
-      showToast("Raport wygenerowany pomyślnie!", "success");
-      console.log("AI Response:", result);
-    } catch (error) {
-      console.error("Błąd generowania raportu:", error);
-      showToast("Błąd podczas generowania raportu", "error");
-    } finally {
-      setIsGenerating(false);
-    }
-  }; 
+  if (!activeReportRecord) return null; 
 
   const formatTime = (ms) => {
       if (ms === undefined || ms === null || isNaN(ms)) return "0:00"; // zabezpieczenie przed NaN
@@ -52,6 +33,23 @@ const ReportScreen = ({
       const secs = totalSeconds % 60;
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
+
+  // Logika otwierania pływającego okna edycji
+  const handleOpenEdit = (idx) => {
+    setActiveEditIdx(idx);
+    setDraftComment(eventComments[idx] || '');
+  };
+
+  const handleCancelEdit = () => {
+    setActiveEditIdx(null);
+    setDraftComment('');
+  };
+
+  const handleSaveEdit = () => {
+    setEventComments(prev => ({ ...prev, [activeEditIdx]: draftComment }));
+    setActiveEditIdx(null);
+    showToast("Komentarz do zdarzenia został zapisany.", "success");
+  };
 
   return (
     <View style={styles.screenContent}>
@@ -217,16 +215,69 @@ const ReportScreen = ({
                   <Activity size={20} color="#fb7185" />
                   <Text style={[styles.sectionTitleAi, { marginLeft: 8 }]}>Wycinki EKG</Text>
                 </View>
-                {(aiReport.snippets || []).map((snippet, idx) => (
-                  <EcgStrip 
-                    key={idx} 
-                    title={snippet.title} 
-                    description={snippet.description} 
-                    time={snippet.time} 
-                    hr={snippet.hr} 
-                    data={snippet.data} 
-                  />
-                ))}
+                {(aiReport.snippets || []).map((snippet, idx) => {
+                  const isImportantEvent = snippet.title.startsWith("Ważne Zdarzenie");
+                  
+                  return (
+                    // Margines 40 oddziela całe sekcje zdarzeń od siebie
+                    <View key={idx} style={{ marginBottom: 40 }}>
+                      
+                      <EcgStrip 
+                        title={snippet.title} 
+                        description={snippet.description} 
+                        time={snippet.time} 
+                        hr={snippet.hr} 
+                        data={snippet.data} 
+                      />
+                      
+                      {isImportantEvent && (
+                        <View style={{ 
+                          marginTop: 8, 
+                          marginLeft: 16, // Wcięcie od lewej strony
+                          borderLeftWidth: 2, // Pionowa linia łącząca
+                          borderColor: '#4f46e5', // Akcentowy kolor linii
+                          paddingLeft: 16 // Odstęp elementu od linii
+                        }}>
+                              {eventComments[idx] ? (
+                                // Wyświetlanie zapisanego komentarza
+                                <View style={{ 
+                                  backgroundColor: '#27272a', 
+                                  padding: 12, 
+                                  borderRadius: 8, 
+                                  borderWidth: 1, 
+                                  borderColor: '#3f3f46',
+                                  alignItems: 'flex-start'
+                                }}>
+                                  <Text style={{color: '#a1a1aa', fontWeight: 'bold', fontSize: 10, textTransform: 'uppercase', marginBottom: 4}}>Komentarz do zdarzenia</Text>
+                                  <Text style={{ color: '#d4d4d8', fontSize: 13, lineHeight: 18 }}>
+                                    {eventComments[idx]}
+                                  </Text>
+                                  <TouchableOpacity onPress={() => handleOpenEdit(idx)} style={{ alignSelf: 'flex-end', marginTop: 8 }}>
+                                    <Text style={{ color: '#818cf8', fontSize: 12, fontWeight: 'bold' }}>Edytuj</Text>
+                                  </TouchableOpacity>
+                                </View>
+                              ) : (
+                                <TouchableOpacity 
+                                  onPress={() => handleOpenEdit(idx)} 
+                                  style={{ 
+                                    flexDirection: 'row', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    paddingVertical: 8,
+                                    paddingHorizontal: 16,
+                                    backgroundColor: 'rgba(129, 140, 248, 0.1)', 
+                                    borderRadius: 8,
+                                    alignSelf: 'flex-start' 
+                                  }}
+                                >
+                                  <Text style={{ color: '#818cf8', fontSize: 12, fontWeight: '600' }}>+ Dodaj komentarz</Text>
+                                </TouchableOpacity>
+                              )}
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
               </View>
 
               <View style={styles.warningBox}>
@@ -247,16 +298,6 @@ const ReportScreen = ({
 
       {aiReport && (
         <View style={{ marginTop: 24, paddingHorizontal: 4 }}>
-          <TouchableOpacity 
-            onPress={handleGenerateReport}
-            disabled={isGenerating}
-            style={[styles.btnSecondary, isGenerating && { opacity: 0.6 }]}
-          >
-            <Sparkles size={20} color="#fff" />
-            <Text style={styles.btnSecondaryText}>
-              {isGenerating ? "Generowanie..." : "Wygeneruj raport AI"}
-            </Text>
-          </TouchableOpacity>
           <TouchableOpacity 
             onPress={() => showToast("Zapisywanie pliku PDF...", "info")} 
             style={styles.btnSecondary}
@@ -286,6 +327,61 @@ const ReportScreen = ({
           </View>
         </View>
       )}
+
+      {/* OKNO DO WPROWADZENIA KOMENTARZA */}
+      <Modal
+        visible={activeEditIdx !== null}
+        transparent={true}
+        animationType="fade"
+      >
+        <KeyboardAvoidingView 
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
+        >
+          {/* Klikalne tło do anulowania akcji */}
+          <TouchableOpacity style={{ flex: 1 }} onPress={handleCancelEdit} activeOpacity={1} />
+          
+          <View style={{ backgroundColor: '#18181b', padding: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1, borderColor: '#3f3f46', borderBottomWidth: 0 }}>
+            <Text style={{ color: '#e4e4e7', fontSize: 14, fontWeight: 'bold', marginBottom: 12 }}>
+              Komentarz do zdarzenia
+            </Text>
+            <TextInput
+              style={{ 
+                color: '#fff', 
+                fontSize: 14, 
+                backgroundColor: '#27272a', 
+                padding: 12, 
+                borderRadius: 8, 
+                borderWidth: 1,
+                borderColor: '#818cf8',
+                minHeight: 80,
+                textAlignVertical: 'top'
+              }}
+              placeholder="Napisz, co robiłeś w tej chwili (np. wszedłem po schodach, poczułem duszności)..."
+              placeholderTextColor="#71717a"
+              value={draftComment}
+              onChangeText={setDraftComment}
+              multiline
+              autoFocus 
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, gap: 12 }}>
+              <TouchableOpacity 
+                onPress={handleCancelEdit} 
+                style={{ paddingVertical: 10, paddingHorizontal: 16 }}
+              >
+                <Text style={{ color: '#a1a1aa', fontSize: 14, fontWeight: '600' }}>Anuluj</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={handleSaveEdit} 
+                style={{ backgroundColor: '#818cf8', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 }}
+              >
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Zapisz</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
     </View>
   );
 };
