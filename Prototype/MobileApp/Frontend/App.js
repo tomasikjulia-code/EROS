@@ -537,9 +537,9 @@ function MainApp() {
       console.log(`Final file size: ${finalCheck.size} bytes`);
 
       // // (Symulacja transferu pliku - do wywalenia potem)
-      // await new Promise(resolve => setTimeout(resolve, 2000));
-      // const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
-      // await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
+      await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
 
       showToast('Trwa analiza EKG...', 'loading');
 
@@ -891,9 +891,13 @@ const saveToDownloads = async (trendData) => {
             aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
             showToast={showToast} saveToDownloads={saveToDownloads} 
 <<<<<<< HEAD
+<<<<<<< HEAD
             formatSDCard={formatSDCard} bleState={bleState} // DODANE DWA PARAMETRY
 =======
 >>>>>>> 8d3a69c (Uporządkowanie przycisków w widoku raportu)
+=======
+            formatSDCard={formatSDCard} bleState={bleState} // DODANE DWA PARAMETRY
+>>>>>>> 4ab94b7 (Dodanie funkcjonalności po stronie aplikacji mobilnej do przycisku usuwającego badanie z karty SD)
           />
         )}
         {view === 'settings' && (
