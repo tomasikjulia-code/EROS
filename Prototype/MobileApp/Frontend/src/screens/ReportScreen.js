@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { 
   ChevronLeft, FileText, Calendar, Clock, Table2, 
-  Activity, CheckCircle2, AlertCircle, Download, Mail, Send 
+  Activity, CheckCircle2, AlertCircle, Download, Mail, Send, Sparkles 
 } from 'lucide-react-native';
 
 import { styles } from '../constants/Theme';
 import TrendChart from '../components/TrendChart';
 import ActivityChart from '../components/ActivityChart'; 
 import EcgStrip from '../components/EcgStrip';
+import { generateReport } from '../utils/AIService';
 
 const ReportScreen = ({ 
   activeReportRecord, 
@@ -19,8 +20,30 @@ const ReportScreen = ({
   setDoctorEmail, 
   showToast 
 }) => {
+  const [isGenerating, setIsGenerating] = useState(false);
   
-  if (!activeReportRecord) return null; 
+  if (!activeReportRecord) return null;
+
+  const handleGenerateReport = async () => {
+    if (!aiReport) {
+      showToast("Brak danych do analizy", "error");
+      return;
+    }
+
+    setIsGenerating(true);
+    showToast("Generowanie raport AI...", "loading");
+
+    try {
+      const result = await generateReport(aiReport, activeReportRecord);
+      showToast("Raport wygenerowany pomyślnie!", "success");
+      console.log("AI Response:", result);
+    } catch (error) {
+      console.error("Błąd generowania raportu:", error);
+      showToast("Błąd podczas generowania raportu", "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  }; 
 
   const formatTime = (ms) => {
       if (ms === undefined || ms === null || isNaN(ms)) return "0:00"; // zabezpieczenie przed NaN
@@ -205,6 +228,16 @@ const ReportScreen = ({
 
       {aiReport && (
         <View style={{ marginTop: 24, paddingHorizontal: 4 }}>
+          <TouchableOpacity 
+            onPress={handleGenerateReport}
+            disabled={isGenerating}
+            style={[styles.btnSecondary, isGenerating && { opacity: 0.6 }]}
+          >
+            <Sparkles size={20} color="#fff" />
+            <Text style={styles.btnSecondaryText}>
+              {isGenerating ? "Generowanie..." : "Wygeneruj raport AI"}
+            </Text>
+          </TouchableOpacity>
           <TouchableOpacity 
             onPress={() => showToast("Zapisywanie pliku PDF...", "info")} 
             style={styles.btnSecondary}
