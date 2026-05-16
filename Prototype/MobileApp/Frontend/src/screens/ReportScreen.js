@@ -105,6 +105,12 @@ const ReportScreen = ({
             <Text style={styles.tableCellValue}>{activeReportRecord.bradyEpisodes || 0}</Text>
           </View>
           <View style={styles.tableRow}>
+            <Text style={styles.tableCellLabel}>Ważne Zdarzenia</Text>
+            <Text style={[styles.tableCellValue, {color: (activeReportRecord.importantDetails?.length > 0) ? '#fb7185' : '#fff' }]}>
+              {activeReportRecord.importantDetails ? activeReportRecord.importantDetails.length : 0}
+            </Text>
+          </View>
+          <View style={styles.tableRow}>
             <Text style={styles.tableCellLabel}>Średnie Tętno (BPM)</Text>
             <Text style={styles.tableCellValue}>{activeReportRecord.avgBpm || 0}</Text>
           </View>
@@ -133,6 +139,18 @@ const ReportScreen = ({
             <Text style={styles.tableHeaderText}>WYKRYTE EPIZODY</Text>
           </View>
           
+          {(activeReportRecord.importantDetails || []).map((det, idx) => (
+            <View key={`imp-${idx}`} style={styles.tableRow}>
+              <View>
+                <Text style={[styles.tableCellLabel, { color: '#fb7185' }]}>Ważne Zdarzenie #{idx + 1}</Text>
+                <Text style={{ fontSize: 10, color: '#71717a' }}>Zgłoszone z urządzenia</Text>
+              </View>
+              <Text style={styles.tableCellValue}>
+                {formatTime(det.start)} — {formatTime(det.end)}
+              </Text>
+            </View>
+          ))}
+
           {/* Renderowanie Tachykardii */}
           {(activeReportRecord.tachyDetails || []).map((det, idx) => (
             <View key={`tachy-${idx}`} style={styles.tableRow}>
@@ -161,7 +179,8 @@ const ReportScreen = ({
 
           {/* Jeśli nie było ŻADNYCH epizodów */}
           {(!activeReportRecord.tachyDetails || activeReportRecord.tachyDetails.length === 0) && 
-           (!activeReportRecord.bradyDetails || activeReportRecord.bradyDetails.length === 0) && (
+           (!activeReportRecord.bradyDetails || activeReportRecord.bradyDetails.length === 0) &&
+           (!activeReportRecord.importantDetails || activeReportRecord.importantDetails.length === 0) && (
             <View style={styles.tableRow}>
               <Text style={[styles.tableCellLabel, { color: '#71717a', fontStyle: 'italic' }]}>
                 Nie wykryto istotnych epizodów arytmii.
