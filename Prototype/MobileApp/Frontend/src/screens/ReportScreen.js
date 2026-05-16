@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform, Alert, Keyboard } from 'react-native';
 import { 
   ChevronLeft, FileText, Calendar, Clock, Table2, 
-  Activity, CheckCircle2, AlertCircle, Download, Mail, Send 
+  Activity, CheckCircle2, AlertCircle, Download, Mail,
+  Send, Sparkles, Database, Trash2, FileSpreadsheet 
 } from 'lucide-react-native';
 
 import { styles } from '../constants/Theme';
 import TrendChart from '../components/TrendChart';
 import ActivityChart from '../components/ActivityChart'; 
 import EcgStrip from '../components/EcgStrip';
+import { generateReport } from '../utils/AIService';
 
 const ReportScreen = ({ 
   activeReportRecord, 
@@ -17,7 +19,10 @@ const ReportScreen = ({
   aiReport, 
   doctorEmail, 
   setDoctorEmail, 
-  showToast 
+  showToast,
+  saveToDownloads,
+  formatSDCard, 
+  bleState      
 }) => {
   // Stany do obsługi komentarzy w nowym, pływającym oknie (Modal)
   const [eventComments, setEventComments] = useState({});
@@ -25,27 +30,76 @@ const ReportScreen = ({
   const [draftComment, setDraftComment] = useState("");     // Roboczy tekst komentarza
 
   if (!activeReportRecord) return null; 
+  const [isGenerating, setIsGenerating] = useState(false);
+  
+  if (!activeReportRecord) return null;
+
+  const handleGenerateReport = async () => {
+    if (!aiReport) {
+      showToast("Brak danych do analizy", "error");
+      return;
+    }
+
+    setIsGenerating(true);
+    showToast("Generowanie raport AI...", "loading");
+
+    try {
+      const result = await generateReport(aiReport, activeReportRecord);
+      showToast("Raport wygenerowany pomyślnie!", "success");
+      console.log("AI Response:", result);
+    } catch (error) {
+      console.error("Błąd generowania raportu:", error);
+      showToast("Błąd podczas generowania raportu", "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  }; 
+
+  const confirmFormatSD = () => {
+    if (bleState !== 'connected') {
+      showToast('Urządzenie nie jest podłączone (Brak Bluetooth).', 'error');
+      return;
+    }
+
+    Alert.alert(
+      "Formatuj kartę SD",
+      "Czy na pewno chcesz BEZPOWROTNIE usunąć całe badanie zapisane na karcie pamięci urządzenia holtera?",
+      [
+        { text: "Anuluj", style: "cancel" },
+        { 
+          text: "Usuń badanie", 
+          style: "destructive", 
+          onPress: () => {
+            if (formatSDCard) {
+              formatSDCard();
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const formatTime = (ms) => {
-      if (ms === undefined || ms === null || isNaN(ms)) return "0:00"; // zabezpieczenie przed NaN
+      if (ms === undefined || ms === null || isNaN(ms)) return "0:00"; 
       const totalSeconds = Math.floor(ms / 1000);
       const mins = Math.floor(totalSeconds / 60);
       const secs = totalSeconds % 60;
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
-  // Logika otwierania pływającego okna edycji
   const handleOpenEdit = (idx) => {
     setActiveEditIdx(idx);
     setDraftComment(eventComments[idx] || '');
   };
 
   const handleCancelEdit = () => {
+    Keyboard.dismiss();
     setActiveEditIdx(null);
     setDraftComment('');
   };
 
   const handleSaveEdit = () => {
+    Keyboard.dismiss();
     setEventComments(prev => ({ ...prev, [activeEditIdx]: draftComment }));
     setActiveEditIdx(null);
     showToast("Komentarz do zdarzenia został zapisany.", "success");
@@ -53,7 +107,6 @@ const ReportScreen = ({
 
   return (
     <View style={styles.screenContent}>
-      
       <View style={styles.reportNavRow}>
         <TouchableOpacity onPress={() => setView('home')} style={styles.btnBack}>
           <ChevronLeft size={20} color="#a1a1aa" />
@@ -136,7 +189,7 @@ const ReportScreen = ({
             <Activity size={16} color="#fb7185" />
             <Text style={styles.tableHeaderText}>WYKRYTE EPIZODY</Text>
           </View>
-          
+
           {(activeReportRecord.importantDetails || []).map((det, idx) => (
             <View key={`imp-${idx}`} style={styles.tableRow}>
               <View>
@@ -209,7 +262,7 @@ const ReportScreen = ({
                   </View>
                 ))}
               </View>
-              
+
               <View style={{ marginTop: 24 }}>
                 <View style={[styles.row, { marginBottom: 16 }]}>
                   <Activity size={20} color="#fb7185" />
@@ -219,7 +272,6 @@ const ReportScreen = ({
                   const isImportantEvent = snippet.title.startsWith("Ważne Zdarzenie");
                   
                   return (
-                    // Margines 40 oddziela całe sekcje zdarzeń od siebie
                     <View key={idx} style={{ marginBottom: 40 }}>
                       
                       <EcgStrip 
@@ -230,16 +282,16 @@ const ReportScreen = ({
                         data={snippet.data} 
                       />
                       
+                      {/* Obsługa komentarzy dla Ważnych Zdarzeń */}
                       {isImportantEvent && (
                         <View style={{ 
                           marginTop: 8, 
-                          marginLeft: 16, // Wcięcie od lewej strony
-                          borderLeftWidth: 2, // Pionowa linia łącząca
-                          borderColor: '#4f46e5', // Akcentowy kolor linii
-                          paddingLeft: 16 // Odstęp elementu od linii
+                          marginLeft: 16, 
+                          borderLeftWidth: 2, 
+                          borderColor: '#4f46e5', 
+                          paddingLeft: 16 
                         }}>
                               {eventComments[idx] ? (
-                                // Wyświetlanie zapisanego komentarza
                                 <View style={{ 
                                   backgroundColor: '#27272a', 
                                   padding: 12, 
@@ -248,7 +300,7 @@ const ReportScreen = ({
                                   borderColor: '#3f3f46',
                                   alignItems: 'flex-start'
                                 }}>
-                                  <Text style={{color: '#a1a1aa', fontWeight: 'bold', fontSize: 10, textTransform: 'uppercase', marginBottom: 4}}>Komentarz do zdarzenia</Text>
+                                  <Text style={{color: '#a1a1aa', fontWeight: 'bold', fontSize: 10, textTransform: 'uppercase', marginBottom: 4}}>Notatka do zdarzenia</Text>
                                   <Text style={{ color: '#d4d4d8', fontSize: 13, lineHeight: 18 }}>
                                     {eventComments[idx]}
                                   </Text>
@@ -296,19 +348,26 @@ const ReportScreen = ({
         </View>
       </View>
 
+      {/*SEKCJA EKSPORTU I USUWANIA*/}
       {aiReport && (
-        <View style={{ marginTop: 24, paddingHorizontal: 4 }}>
-          <TouchableOpacity 
-            onPress={() => showToast("Zapisywanie pliku PDF...", "info")} 
-            style={styles.btnSecondary}
-          >
-            <Download size={20} color="#fff" />
-            <Text style={styles.btnSecondaryText}>Zapisz dokument PDF</Text>
-          </TouchableOpacity>
-          <View style={styles.emailForm}>
+        <View style={{ marginTop: 32, paddingHorizontal: 8, paddingBottom: 40 }}>
+          
+          <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 12, marginLeft: 4, letterSpacing: 0.5 }}>
+            Udostępnij wynik
+          </Text>
+          
+          <View style={[styles.emailForm, { 
+            marginBottom: 24, 
+            backgroundColor: '#18181b', 
+            borderWidth: 1, 
+            borderColor: '#3f3f46', 
+            borderRadius: 12, 
+            paddingVertical: 4,
+            paddingRight: 6
+          }]}>
             <Mail size={20} color="#71717a" style={{ marginLeft: 16 }} />
             <TextInput 
-              style={styles.input} 
+              style={[styles.input, { color: '#e4e4e7', fontSize: 14 }]} 
               placeholder="E-mail lekarza kardiologa" 
               placeholderTextColor="#71717a" 
               value={doctorEmail} 
@@ -320,15 +379,84 @@ const ReportScreen = ({
                 setDoctorEmail(''); 
                 showToast("Zaszyfrowany raport wysłany!"); 
               }} 
-              style={styles.btnSend}
+              style={[styles.btnSend, { borderRadius: 8 }]}
             >
               <Send size={18} color="#fff" />
             </TouchableOpacity>
           </View>
+
+          <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 12, marginLeft: 4, letterSpacing: 0.5 }}>
+            Zapis i zarządzanie
+          </Text>
+
+          <View style={{ gap: 12 }}>
+            
+            <TouchableOpacity 
+              onPress={() => showToast("Zapisywanie pliku PDF...", "info")} 
+              style={{
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                backgroundColor: 'rgba(129, 140, 248, 0.1)', 
+                borderWidth: 1,
+                borderColor: 'rgba(129, 140, 248, 0.3)', 
+                paddingVertical: 14,
+                borderRadius: 12,
+                gap: 8
+              }}
+            >
+              <Download size={20} color="#818cf8" />
+              <Text style={{ color: '#818cf8', fontSize: 14, fontWeight: '600' }}>Zapisz raport PDF</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => {
+                if (saveToDownloads) {
+                   saveToDownloads(activeReportRecord.hourlyTrend);
+                } else {
+                   showToast("Błąd: Funkcja pobierania niedostępna.", "error");
+                }
+              }} 
+              style={{
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                backgroundColor: 'rgba(52, 211, 153, 0.1)', 
+                borderWidth: 1,
+                borderColor: 'rgba(52, 211, 153, 0.3)', 
+                paddingVertical: 14,
+                borderRadius: 12,
+                gap: 8
+              }}
+            >
+              <FileSpreadsheet size={20} color="#34d399" />
+              <Text style={{ color: '#34d399', fontSize: 14, fontWeight: '600' }}>Pobierz pełne badanie (CSV)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={confirmFormatSD} 
+              style={{
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                backgroundColor: 'rgba(251, 113, 133, 0.05)', 
+                borderWidth: 1,
+                borderColor: 'rgba(251, 113, 133, 0.2)', 
+                paddingVertical: 14,
+                borderRadius: 12,
+                gap: 8,
+                opacity: bleState === 'connected' ? 1 : 0.5 
+              }}
+            >
+              <Trash2 size={20} color="#fb7185" />
+              <Text style={{ color: '#fb7185', fontSize: 14, fontWeight: '600' }}>Usuń badanie z karty SD urządzenia</Text>
+            </TouchableOpacity>
+
+          </View>
         </View>
       )}
 
-      {/* OKNO DO WPROWADZENIA KOMENTARZA */}
+      {/* MODAL */}
       <Modal
         visible={activeEditIdx !== null}
         transparent={true}
@@ -338,8 +466,7 @@ const ReportScreen = ({
           style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
         >
-          {/* Klikalne tło do anulowania akcji */}
-          <TouchableOpacity style={{ flex: 1 }} onPress={handleCancelEdit} activeOpacity={1} />
+          <View style={{ flex: 1 }} onTouchStart={handleCancelEdit} />
           
           <View style={{ backgroundColor: '#18181b', padding: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1, borderColor: '#3f3f46', borderBottomWidth: 0 }}>
             <Text style={{ color: '#e4e4e7', fontSize: 14, fontWeight: 'bold', marginBottom: 12 }}>
@@ -365,18 +492,21 @@ const ReportScreen = ({
               autoFocus 
             />
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, gap: 12 }}>
-              <TouchableOpacity 
-                onPress={handleCancelEdit} 
+              
+              <View 
+                onTouchStart={handleCancelEdit} 
                 style={{ paddingVertical: 10, paddingHorizontal: 16 }}
               >
                 <Text style={{ color: '#a1a1aa', fontSize: 14, fontWeight: '600' }}>Anuluj</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                onPress={handleSaveEdit} 
+              </View>
+              
+              <View 
+                onTouchStart={handleSaveEdit} 
                 style={{ backgroundColor: '#818cf8', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 }}
               >
                 <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Zapisz</Text>
-              </TouchableOpacity>
+              </View>
+              
             </View>
           </View>
         </KeyboardAvoidingView>
