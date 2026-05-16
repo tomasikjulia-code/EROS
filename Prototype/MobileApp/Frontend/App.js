@@ -476,6 +476,16 @@ function MainApp() {
     }
   };
 
+  const formatSDCard = () => {
+    if (bleState !== 'connected' || !deviceRef.current) {
+      showToast('Najpierw połącz urządzenie Bluetooth.', 'error');
+      return;
+    }
+    
+    showToast('Usuwanie badania z karty SD w urządzeniu...', 'info');
+    sendData(deviceRef.current.address, "REMOVE_FILE");
+  };
+
   const getFileFromDevice = async () => {
     transferResolveRef.current=null;
     if (bleState !== 'connected') {
@@ -527,9 +537,9 @@ function MainApp() {
       console.log(`Final file size: ${finalCheck.size} bytes`);
 
       // // (Symulacja transferu pliku - do wywalenia potem)
-      // await new Promise(resolve => setTimeout(resolve, 2000));
-      // const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
-      // await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
+      await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
 
       showToast('Trwa analiza EKG...', 'loading');
 
@@ -880,6 +890,7 @@ const saveToDownloads = async (trendData) => {
             activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
             aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
             showToast={showToast} saveToDownloads={saveToDownloads} 
+            formatSDCard={formatSDCard} bleState={bleState} // DODANE DWA PARAMETRY
           />
         )}
         {view === 'settings' && (
