@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform, Alert, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { 
   ChevronLeft, FileText, Calendar, Clock, Table2, 
   Activity, CheckCircle2, AlertCircle, Download, Mail,
@@ -54,6 +54,12 @@ const ReportScreen = ({
       setIsGenerating(false);
     }
   }; 
+  // Stany do obsługi komentarzy w nowym, pływającym oknie (Modal)
+  const [eventComments, setEventComments] = useState({});
+  const [activeEditIdx, setActiveEditIdx] = useState(null); // Przechowuje ID edytowanego wycinka
+  const [draftComment, setDraftComment] = useState("");     // Roboczy tekst komentarza
+
+  if (!activeReportRecord) return null; 
 
   const confirmFormatSD = () => {
     if (bleState !== 'connected') {
@@ -87,19 +93,18 @@ const ReportScreen = ({
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
+  // Logika otwierania pływającego okna edycji
   const handleOpenEdit = (idx) => {
     setActiveEditIdx(idx);
     setDraftComment(eventComments[idx] || '');
   };
 
   const handleCancelEdit = () => {
-    Keyboard.dismiss();
     setActiveEditIdx(null);
     setDraftComment('');
   };
 
   const handleSaveEdit = () => {
-    Keyboard.dismiss();
     setEventComments(prev => ({ ...prev, [activeEditIdx]: draftComment }));
     setActiveEditIdx(null);
     showToast("Komentarz do zdarzenia został zapisany.", "success");
@@ -272,6 +277,7 @@ const ReportScreen = ({
                   const isImportantEvent = snippet.title.startsWith("Ważne Zdarzenie");
                   
                   return (
+                    // Margines 40 oddziela całe sekcje zdarzeń od siebie
                     <View key={idx} style={{ marginBottom: 40 }}>
                       
                       <EcgStrip 
@@ -282,16 +288,16 @@ const ReportScreen = ({
                         data={snippet.data} 
                       />
                       
-                      {/* Obsługa komentarzy dla Ważnych Zdarzeń */}
                       {isImportantEvent && (
                         <View style={{ 
                           marginTop: 8, 
-                          marginLeft: 16, 
-                          borderLeftWidth: 2, 
-                          borderColor: '#4f46e5', 
-                          paddingLeft: 16 
+                          marginLeft: 16, // Wcięcie od lewej strony
+                          borderLeftWidth: 2, // Pionowa linia łącząca
+                          borderColor: '#4f46e5', // Akcentowy kolor linii
+                          paddingLeft: 16 // Odstęp elementu od linii
                         }}>
                               {eventComments[idx] ? (
+                                // Wyświetlanie zapisanego komentarza
                                 <View style={{ 
                                   backgroundColor: '#27272a', 
                                   padding: 12, 
@@ -300,7 +306,7 @@ const ReportScreen = ({
                                   borderColor: '#3f3f46',
                                   alignItems: 'flex-start'
                                 }}>
-                                  <Text style={{color: '#a1a1aa', fontWeight: 'bold', fontSize: 10, textTransform: 'uppercase', marginBottom: 4}}>Notatka do zdarzenia</Text>
+                                  <Text style={{color: '#a1a1aa', fontWeight: 'bold', fontSize: 10, textTransform: 'uppercase', marginBottom: 4}}>Komentarz do zdarzenia</Text>
                                   <Text style={{ color: '#d4d4d8', fontSize: 13, lineHeight: 18 }}>
                                     {eventComments[idx]}
                                   </Text>
@@ -456,7 +462,7 @@ const ReportScreen = ({
         </View>
       )}
 
-      {/* MODAL */}
+      {/* OKNO DO WPROWADZENIA KOMENTARZA */}
       <Modal
         visible={activeEditIdx !== null}
         transparent={true}
@@ -466,7 +472,8 @@ const ReportScreen = ({
           style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
         >
-          <View style={{ flex: 1 }} onTouchStart={handleCancelEdit} />
+          {/* Klikalne tło do anulowania akcji */}
+          <TouchableOpacity style={{ flex: 1 }} onPress={handleCancelEdit} activeOpacity={1} />
           
           <View style={{ backgroundColor: '#18181b', padding: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1, borderColor: '#3f3f46', borderBottomWidth: 0 }}>
             <Text style={{ color: '#e4e4e7', fontSize: 14, fontWeight: 'bold', marginBottom: 12 }}>
@@ -492,21 +499,18 @@ const ReportScreen = ({
               autoFocus 
             />
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, gap: 12 }}>
-              
-              <View 
-                onTouchStart={handleCancelEdit} 
+              <TouchableOpacity 
+                onPress={handleCancelEdit} 
                 style={{ paddingVertical: 10, paddingHorizontal: 16 }}
               >
                 <Text style={{ color: '#a1a1aa', fontSize: 14, fontWeight: '600' }}>Anuluj</Text>
-              </View>
-              
-              <View 
-                onTouchStart={handleSaveEdit} 
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={handleSaveEdit} 
                 style={{ backgroundColor: '#818cf8', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 }}
               >
                 <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Zapisz</Text>
-              </View>
-              
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
