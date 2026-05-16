@@ -189,7 +189,7 @@ const ReportScreen = ({
             <Activity size={16} color="#fb7185" />
             <Text style={styles.tableHeaderText}>WYKRYTE EPIZODY</Text>
           </View>
-
+          
           {(activeReportRecord.importantDetails || []).map((det, idx) => (
             <View key={`imp-${idx}`} style={styles.tableRow}>
               <View>
