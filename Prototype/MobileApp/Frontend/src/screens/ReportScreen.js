@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, P
 import { 
   ChevronLeft, FileText, Calendar, Clock, Table2, 
   Activity, CheckCircle2, AlertCircle, Download, Mail,
-  Send, Sparkles, Database, Trash2, FileSpreadsheet 
+  Send, Sparkles, Database, Trash2, FileSpreadsheet
 } from 'lucide-react-native';
 
 import { styles } from '../constants/Theme';
@@ -20,9 +20,7 @@ const ReportScreen = ({
   doctorEmail, 
   setDoctorEmail, 
   showToast,
-  saveToDownloads,
-  formatSDCard, 
-  bleState      
+  saveToDownloads
 }) => {
   // Stany do obsługi komentarzy w nowym, pływającym oknie (Modal)
   const [eventComments, setEventComments] = useState({});
@@ -56,8 +54,8 @@ const ReportScreen = ({
   }; 
   // Stany do obsługi komentarzy w nowym, pływającym oknie (Modal)
   const [eventComments, setEventComments] = useState({});
-  const [activeEditIdx, setActiveEditIdx] = useState(null); // Przechowuje ID edytowanego wycinka
-  const [draftComment, setDraftComment] = useState("");     // Roboczy tekst komentarza
+  const [activeEditIdx, setActiveEditIdx] = useState(null);
+  const [draftComment, setDraftComment] = useState("");     
 
   if (!activeReportRecord) return null; 
 
@@ -93,7 +91,6 @@ const ReportScreen = ({
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
-  // Logika otwierania pływającego okna edycji
   const handleOpenEdit = (idx) => {
     setActiveEditIdx(idx);
     setDraftComment(eventComments[idx] || '');
@@ -288,6 +285,7 @@ const ReportScreen = ({
                         data={snippet.data} 
                       />
                       
+                      {/* Obsługa komentarzy dla Ważnych Zdarzeń */}
                       {isImportantEvent && (
                         <View style={{ 
                           marginTop: 8, 
@@ -306,12 +304,12 @@ const ReportScreen = ({
                                   borderColor: '#3f3f46',
                                   alignItems: 'flex-start'
                                 }}>
-                                  <Text style={{color: '#a1a1aa', fontWeight: 'bold', fontSize: 10, textTransform: 'uppercase', marginBottom: 4}}>Komentarz do zdarzenia</Text>
+                                  <Text style={{color: '#a1a1aa', fontWeight: 'bold', fontSize: 10, textTransform: 'uppercase', marginBottom: 4}}>Notatka do zdarzenia</Text>
                                   <Text style={{ color: '#d4d4d8', fontSize: 13, lineHeight: 18 }}>
                                     {eventComments[idx]}
                                   </Text>
                                   <TouchableOpacity onPress={() => handleOpenEdit(idx)} style={{ alignSelf: 'flex-end', marginTop: 8 }}>
-                                    <Text style={{ color: '#818cf8', fontSize: 12, fontWeight: 'bold' }}>Edytuj</Text>
+                                    <Text style={{ color: '#818cf8', fontSize: 12, fontWeight: 'bold' }}>Edytuj notatkę</Text>
                                   </TouchableOpacity>
                                 </View>
                               ) : (
@@ -328,7 +326,7 @@ const ReportScreen = ({
                                     alignSelf: 'flex-start' 
                                   }}
                                 >
-                                  <Text style={{ color: '#818cf8', fontSize: 12, fontWeight: '600' }}>+ Dodaj komentarz</Text>
+                                  <Text style={{ color: '#818cf8', fontSize: 12, fontWeight: '600' }}>+ Dodaj notatkę</Text>
                                 </TouchableOpacity>
                               )}
                         </View>
@@ -358,6 +356,7 @@ const ReportScreen = ({
       {aiReport && (
         <View style={{ marginTop: 32, paddingHorizontal: 8, paddingBottom: 40 }}>
           
+          {/* SEKCJA 1: UDOSTĘPNIANIE */}
           <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 12, marginLeft: 4, letterSpacing: 0.5 }}>
             Udostępnij wynik
           </Text>
@@ -391,12 +390,14 @@ const ReportScreen = ({
             </TouchableOpacity>
           </View>
 
+          {/* SEKCJA 2: POBIERANIE I ZARZĄDZANIE */}
           <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 12, marginLeft: 4, letterSpacing: 0.5 }}>
             Zapis i zarządzanie
           </Text>
 
           <View style={{ gap: 12 }}>
             
+            {/* PRZYCISK PDF (Fioletowy) */}
             <TouchableOpacity 
               onPress={() => showToast("Zapisywanie pliku PDF...", "info")} 
               style={{
@@ -415,6 +416,7 @@ const ReportScreen = ({
               <Text style={{ color: '#818cf8', fontSize: 14, fontWeight: '600' }}>Zapisz raport PDF</Text>
             </TouchableOpacity>
 
+            {/* PRZYCISK CSV (Zielony - Dane surowe) */}
             <TouchableOpacity 
               onPress={() => {
                 if (saveToDownloads) {
@@ -439,8 +441,9 @@ const ReportScreen = ({
               <Text style={{ color: '#34d399', fontSize: 14, fontWeight: '600' }}>Pobierz pełne badanie (CSV)</Text>
             </TouchableOpacity>
 
+            {/* PRZYCISK USUWANIA (Czerwony) */}
             <TouchableOpacity 
-              onPress={confirmFormatSD} 
+              onPress={() => showToast("Funkcja w przygotowaniu...", "info")} 
               style={{
                 flexDirection: 'row', 
                 alignItems: 'center', 
@@ -450,8 +453,7 @@ const ReportScreen = ({
                 borderColor: 'rgba(251, 113, 133, 0.2)', 
                 paddingVertical: 14,
                 borderRadius: 12,
-                gap: 8,
-                opacity: bleState === 'connected' ? 1 : 0.5 
+                gap: 8
               }}
             >
               <Trash2 size={20} color="#fb7185" />
@@ -462,7 +464,7 @@ const ReportScreen = ({
         </View>
       )}
 
-      {/* OKNO DO WPROWADZENIA KOMENTARZA */}
+      {/* PŁYWAJĄCE OKNO MODALNE DO EDYCJI */}
       <Modal
         visible={activeEditIdx !== null}
         transparent={true}
@@ -477,7 +479,7 @@ const ReportScreen = ({
           
           <View style={{ backgroundColor: '#18181b', padding: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1, borderColor: '#3f3f46', borderBottomWidth: 0 }}>
             <Text style={{ color: '#e4e4e7', fontSize: 14, fontWeight: 'bold', marginBottom: 12 }}>
-              Komentarz do zdarzenia
+              Notatka do zdarzenia
             </Text>
             <TextInput
               style={{ 

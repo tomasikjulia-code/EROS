@@ -890,7 +890,10 @@ const saveToDownloads = async (trendData) => {
             activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
             aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
             showToast={showToast} saveToDownloads={saveToDownloads} 
+<<<<<<< HEAD
             formatSDCard={formatSDCard} bleState={bleState} // DODANE DWA PARAMETRY
+=======
+>>>>>>> 8d3a69c (Uporządkowanie przycisków w widoku raportu)
           />
         )}
         {view === 'settings' && (
