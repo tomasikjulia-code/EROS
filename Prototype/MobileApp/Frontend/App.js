@@ -537,9 +537,9 @@ function MainApp() {
       console.log(`Final file size: ${finalCheck.size} bytes`);
 
       // // (Symulacja transferu pliku - do wywalenia potem)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
-      await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
+      // await new Promise(resolve => setTimeout(resolve, 2000));
+      // const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
+      // await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
 
       showToast('Trwa analiza EKG...', 'loading');
 
