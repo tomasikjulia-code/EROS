@@ -32,6 +32,11 @@ const ReportScreen = ({
   if (!activeReportRecord) return null; 
   const [isGenerating, setIsGenerating] = useState(false);
   
+  // Stany do obsługi komentarzy w nowym, pływającym oknie (Modal)
+  const [eventComments, setEventComments] = useState({});
+  const [activeEditIdx, setActiveEditIdx] = useState(null); // Przechowuje ID edytowanego wycinka
+  const [draftComment, setDraftComment] = useState("");     // Roboczy tekst komentarza
+
   if (!activeReportRecord) return null;
 
   const handleGenerateReport = async () => {
@@ -54,12 +59,6 @@ const ReportScreen = ({
       setIsGenerating(false);
     }
   }; 
-  // Stany do obsługi komentarzy w nowym, pływającym oknie (Modal)
-  const [eventComments, setEventComments] = useState({});
-  const [activeEditIdx, setActiveEditIdx] = useState(null); // Przechowuje ID edytowanego wycinka
-  const [draftComment, setDraftComment] = useState("");     // Roboczy tekst komentarza
-
-  if (!activeReportRecord) return null; 
 
   const confirmFormatSD = () => {
     if (bleState !== 'connected') {
@@ -306,7 +305,7 @@ const ReportScreen = ({
                                   borderColor: '#3f3f46',
                                   alignItems: 'flex-start'
                                 }}>
-                                  <Text style={{color: '#a1a1aa', fontWeight: 'bold', fontSize: 10, textTransform: 'uppercase', marginBottom: 4}}>Notatka do zdarzenia</Text>
+                                  <Text style={{color: '#a1a1aa', fontWeight: 'bold', fontSize: 10, textTransform: 'uppercase', marginBottom: 4}}>Komentarz do zdarzenia</Text>
                                   <Text style={{ color: '#d4d4d8', fontSize: 13, lineHeight: 18 }}>
                                     {eventComments[idx]}
                                   </Text>
@@ -398,17 +397,31 @@ const ReportScreen = ({
           <View style={{ gap: 12 }}>
             
             <TouchableOpacity 
+              onPress={handleGenerateReport}
+              disabled={isGenerating}
+              style={[
+                {
+                  flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                  paddingVertical: 14, borderRadius: 12, gap: 8, borderWidth: 1,
+                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                  borderColor: 'rgba(59, 130, 246, 0.4)',      
+                },
+                isGenerating && { opacity: 0.6 }
+              ]}
+            >
+              <Sparkles size={20} color="#60a5fa" />
+              <Text style={{ color: '#60a5fa', fontSize: 14, fontWeight: '600' }}>
+                {isGenerating ? "Generowanie..." : "Wygeneruj raport AI"}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
               onPress={() => showToast("Zapisywanie pliku PDF...", "info")} 
               style={{
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                justifyContent: 'center',
+                flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                paddingVertical: 14, borderRadius: 12, gap: 8, borderWidth: 1,
                 backgroundColor: 'rgba(129, 140, 248, 0.1)', 
-                borderWidth: 1,
                 borderColor: 'rgba(129, 140, 248, 0.3)', 
-                paddingVertical: 14,
-                borderRadius: 12,
-                gap: 8
               }}
             >
               <Download size={20} color="#818cf8" />
@@ -424,15 +437,10 @@ const ReportScreen = ({
                 }
               }} 
               style={{
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                justifyContent: 'center',
+                flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                paddingVertical: 14, borderRadius: 12, gap: 8, borderWidth: 1,
                 backgroundColor: 'rgba(52, 211, 153, 0.1)', 
-                borderWidth: 1,
                 borderColor: 'rgba(52, 211, 153, 0.3)', 
-                paddingVertical: 14,
-                borderRadius: 12,
-                gap: 8
               }}
             >
               <FileSpreadsheet size={20} color="#34d399" />
@@ -441,16 +449,12 @@ const ReportScreen = ({
 
             <TouchableOpacity 
               onPress={confirmFormatSD} 
+              disabled={bleState !== 'connected'}
               style={{
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                justifyContent: 'center',
+                flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                paddingVertical: 14, borderRadius: 12, gap: 8, borderWidth: 1,
                 backgroundColor: 'rgba(251, 113, 133, 0.05)', 
-                borderWidth: 1,
                 borderColor: 'rgba(251, 113, 133, 0.2)', 
-                paddingVertical: 14,
-                borderRadius: 12,
-                gap: 8,
                 opacity: bleState === 'connected' ? 1 : 0.5 
               }}
             >
@@ -472,6 +476,7 @@ const ReportScreen = ({
           style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
         >
+          {/* Tło do zamykania */}
           <View style={{ flex: 1 }} onTouchStart={handleCancelEdit} />
           
           <View style={{ backgroundColor: '#18181b', padding: 16, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1, borderColor: '#3f3f46', borderBottomWidth: 0 }}>
@@ -490,13 +495,14 @@ const ReportScreen = ({
                 minHeight: 80,
                 textAlignVertical: 'top'
               }}
-              placeholder="Napisz, co robiłeś w tej chwili (np. wszedłem po schodach, poczułem duszności)..."
+              placeholder="Napisz, co robiłeś w tej chwili (np. wszedłem po schodach)..."
               placeholderTextColor="#71717a"
               value={draftComment}
               onChangeText={setDraftComment}
               multiline
               autoFocus 
             />
+            
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, gap: 12 }}>
               
               <View 
