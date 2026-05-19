@@ -32,6 +32,7 @@ const analyzeEcgTrend = (parsedTrend) => {
   
   let tachyDetails = []; 
   let bradyDetails = []; 
+  let importantDetails = [];
   
   let isCurrentlyTachy = false;
   let tachyStartTime = 0;
@@ -40,6 +41,10 @@ const analyzeEcgTrend = (parsedTrend) => {
   let isCurrentlyBrady = false;
   let bradyStartTime = 0;
   let lastBradyEndTime = 0;
+
+  let isCurrentlyImportant = false;
+  let importantStartTime = 0;
+  let importantMaxBpm = 0;
   
   const MIN_TIME_MS = 30000;       
   const MERGE_THRESHOLD_MS = 60000; 
@@ -51,6 +56,38 @@ const analyzeEcgTrend = (parsedTrend) => {
   const BRADY_STOP_THRESHOLD = 55; // Kończymy powyżej 55
 
   const IGNORE_FIRST_MS = 60000; 
+
+  for (let i = 0; i < parsedTrend.length; i++) {
+    const point = parsedTrend[i];
+    
+    let isImportant = false;
+    
+    if (point.originalLine) {
+      const parts = point.originalLine.split(',');
+      if (parts.length >= 6 && parseInt(parts[5], 10) === 1) {
+        isImportant = true;
+      }
+    } else if (point.Important !== undefined || point.important !== undefined) {
+      isImportant = (point.Important == 1 || point.important == 1);
+    }
+
+    if (!isCurrentlyImportant) {
+      if (isImportant) {
+        isCurrentlyImportant = true;
+        importantStartTime = point.timeMs;
+        importantMaxBpm = point.bpm;
+      }
+    } else {
+      if (point.bpm > importantMaxBpm) importantMaxBpm = point.bpm;
+      if (!isImportant) {
+        isCurrentlyImportant = false;
+        importantDetails.push({ start: importantStartTime, end: point.timeMs, maxBpm: importantMaxBpm });
+      }
+    }
+  }
+  if (isCurrentlyImportant && parsedTrend.length > 0) {
+    importantDetails.push({ start: importantStartTime, end: parsedTrend[parsedTrend.length - 1].timeMs, maxBpm: importantMaxBpm });
+  }
 
   const cleanData = parsedTrend.filter(p => p.bpm >= 35 && p.bpm <= 220 && !p.isNoise);
 
@@ -133,6 +170,7 @@ const analyzeEcgTrend = (parsedTrend) => {
     tachyDetails: tachyDetails,
     bradyEpisodes: bradyDetails.length, 
     bradyDetails: bradyDetails,         
+    importantDetails: importantDetails,
     arrhythmiaEvents: tachyDetails.length + bradyDetails.length 
   };
 };
@@ -438,6 +476,16 @@ function MainApp() {
     }
   };
 
+  const formatSDCard = () => {
+    if (bleState !== 'connected' || !deviceRef.current) {
+      showToast('Najpierw połącz urządzenie Bluetooth.', 'error');
+      return;
+    }
+    
+    showToast('Usuwanie badania z karty SD w urządzeniu...', 'info');
+    sendData(deviceRef.current.address, "REMOVE_FILE");
+  };
+
   const getFileFromDevice = async () => {
     transferResolveRef.current=null;
     if (bleState !== 'connected') {
@@ -530,6 +578,7 @@ function MainApp() {
               tachyDetails: stats.tachyDetails,
               bradyEpisodes: stats.bradyEpisodes,
               bradyDetails: stats.bradyDetails,
+              importantDetails: stats.importantDetails,
               arrhythmiaEvents: stats.arrhythmiaEvents, 
               veb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
               sveb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
@@ -684,6 +733,20 @@ function MainApp() {
     });
   });
 
+  const importantList = record.importantDetails || [];
+  importantList.forEach((ep, index) => { 
+    const duration = (ep.end && ep.end > ep.start) ? (ep.end - ep.start) : 0;
+    const centerTime = ep.start + duration / 2;
+
+    snippets.push({
+      title: `Ważne Zdarzenie #${index + 1}`,
+      description: `Zgłoszona anomalia. Czas trwania: ${Math.round(duration / 1000)}s`,
+      time: formatMsToTime(ep.start),
+      hr: ep.maxBpm || '--', 
+      data: getEcgSlice(record.hourlyTrend, centerTime, 600)
+    });
+  });
+
   const tachyFinding = tachyList.length > 0 
     ? `Wykryto ${tachyList.length} istotnych epizodów tachykardii (>100 BPM).` 
     : "Nie wykryto istotnych epizodów tachykardii.";
@@ -692,6 +755,10 @@ function MainApp() {
     ? `Wykryto ${bradyList.length} epizodów bradykardii (<50 BPM).` 
     : "Nie wykryto istotnych epizodów bradykardii.";
 
+  const importantFinding = importantList.length > 0 
+    ? `Wykryto ${importantList.length} ważnych zdarzeń oznaczonych przez pacjenta.` 
+    : "Nie zarejestrowano ważnych zdarzeń oznaczonych przez pacjenta.";
+
   setAiReport({
       date: new Date(record.date).toLocaleDateString('pl-PL'),
       summary: `Przeanalizowano zapis EKG trwający ${record.duration}.`,
@@ -699,11 +766,12 @@ function MainApp() {
         `Tętno: Max ${record.maxBpm} BPM (${record.maxBpmTime}), Min ${record.minBpm} BPM (${record.minBpmTime}).`,
         tachyFinding,
         bradyFinding, 
+        importantFinding,
         `Pauzy: Brak przerw > 2.0s.`
       ],
-      recommendation: (tachyList.length > 3 || bradyList.length > 3) 
-        ? "Wykryto znaczną liczbę epizodów arytmicznych. Bezwzględnie zalecana jest pilna konsultacja kardiologiczna. Pamiętaj: ta analiza to wyłącznie screening algorytmiczny, nie diagnoza medyczna." 
-        : "Algorytm nie wykrył istotnych, groźnych nieprawidłowości w badanym okresie. UWAGA: Raport wygenerowany przez AI ma wyłącznie charakter informacyjny i nie zastępuje profesjonalnej diagnozy lekarskiej. Zawsze konsultuj swoje wyniki ze specjalistą.",
+      recommendation: (tachyList.length > 3 || bradyList.length > 3 || importantList.length > 0) 
+        ? "Wykryto znaczną liczbę epizodów arytmicznych lub błędów technicznych. Zobacz wycinki EKG, aby zweryfikować zdarzenia krytyczne. Ta analiza jedynie obrazuje wybrane wycinki z badania i nie jest diagnozą medyczną." 
+        : "Algorytm nie wykrył istotnych, groźnych nieprawidłowości w badanym okresie. UWAGA: Raport ma wyłącznie charakter informacyjny i nie zastępuje profesjonalnej diagnozy lekarskiej. Zawsze konsultuj swoje wyniki ze specjalistą.",
       snippets: snippets, 
       tachyDetails: tachyList,
       bradyDetails: bradyList 
@@ -821,7 +889,9 @@ const saveToDownloads = async (trendData) => {
           <ReportScreen
             activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
             aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
-            showToast={showToast}
+            showToast={showToast} saveToDownloads={saveToDownloads} 
+
+            formatSDCard={formatSDCard} bleState={bleState}
           />
         )}
         {view === 'settings' && (

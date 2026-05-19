@@ -30,7 +30,7 @@ const LiveEcgChart = ({ isMeasuring }) => {
       }
 
       const scaleY = (CENTER_Y * 0.8) / maxAmplitude.current;
-      const stepX = CHART_WIDTH / (snapshot.length - 1); 
+      const stepX = CHART_WIDTH *3 / (snapshot.length - 1); 
       const pathArray = [];
       const stepSize = 3; 
 
@@ -138,8 +138,8 @@ const LiveEcgChart = ({ isMeasuring }) => {
           
           <LinearGradient id="coreGradient" x1="0" y1="0" x2="1" y2="0">
             <Stop offset="0" stopColor="#9333ea" stopOpacity="0" />
-            <Stop offset="0.15" stopColor="#9333ea" stopOpacity="0.2" />
-            <Stop offset="0.4" stopColor="#a855f7" stopOpacity="0.9" />
+            <Stop offset="0.05" stopColor="#9333ea" stopOpacity="0.2" />
+            <Stop offset="0.1" stopColor="#a855f7" stopOpacity="0.9" />
             <Stop offset="1" stopColor="#c084fc" stopOpacity="1" />
           </LinearGradient>
         </Defs>
