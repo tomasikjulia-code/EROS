@@ -24,12 +24,6 @@ const ReportScreen = ({
   formatSDCard, 
   bleState      
 }) => {
-  // Stany do obsługi komentarzy w nowym, pływającym oknie (Modal)
-  const [eventComments, setEventComments] = useState({});
-  const [activeEditIdx, setActiveEditIdx] = useState(null); // Przechowuje ID edytowanego wycinka
-  const [draftComment, setDraftComment] = useState("");     // Roboczy tekst komentarza
-
-  if (!activeReportRecord) return null; 
   const [isGenerating, setIsGenerating] = useState(false);
   
   // Stany do obsługi komentarzy w nowym, pływającym oknie (Modal)
