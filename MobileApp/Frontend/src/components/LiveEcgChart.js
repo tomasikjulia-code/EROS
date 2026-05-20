@@ -1,32 +1,52 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Dimensions, Text } from 'react-native';
+import { View, Text, Modal, Pressable, StyleSheet, Platform, StatusBar, useWindowDimensions } from 'react-native';
 import Svg, { Path, Line, Circle, G, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ecgBuffer } from '../utils/EcgBuffer';
 
-const { width } = Dimensions.get('window');
-const HEIGHT = 220;
-const CHART_WIDTH = Math.floor(width - 32);
-
-
-const SAMPLE_RATE = 250; // Częstotliwość próbkowania holtera (Hz)
-const PIXELS_PER_SECOND = 300; // ROZCIAGANIE/ZWEZANIE WYKRESU W POZIOMIE
+const SAMPLE_RATE = 250;
 const MIN_AMPLITUDE_RANGE = 2000;
 
 const LiveEcgChart = ({ isMeasuring }) => {
-  const [chartData, setChartData] = useState({ pathString: '', lastX: 0, lastY: HEIGHT / 2 });
+  const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
+  // Sprawdzamy czy telefon jest fizycznie w pionie
+  const isPortrait = windowHeight >= windowWidth;
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRotated, setIsRotated] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(350);
+  
+  const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
+  const [chartData, setChartData] = useState({ pathString: '', lastX: 0, lastY: 0 });
   
   const smoothedMin = useRef(-1000);
   const smoothedMax = useRef(1000);
+  const zoomRef = useRef(350);
+  const sizeRef = useRef({ width: 0, height: 0 });
+
+  useEffect(() => {
+    zoomRef.current = zoomLevel;
+  }, [zoomLevel]);
+
+  useEffect(() => {
+    sizeRef.current = chartSize;
+  }, [chartSize]);
 
   useEffect(() => {
     if (!isMeasuring) return;
 
     const renderLoop = setInterval(() => {
+      const W = sizeRef.current.width;
+      const H = sizeRef.current.height;
+      
+      if (W === 0 || H === 0) return;
+
       const snapshot = ecgBuffer.getSnapshot();
       if (!snapshot || snapshot.length === 0) return;
 
-      const visibleSamples = Math.floor((CHART_WIDTH / PIXELS_PER_SECOND) * SAMPLE_RATE);
-      
+      const visibleSamples = Math.floor((W / zoomRef.current) * SAMPLE_RATE);
       const displaySnapshot = snapshot.length > visibleSamples 
         ? snapshot.slice(-visibleSamples) 
         : snapshot;
@@ -49,15 +69,15 @@ const LiveEcgChart = ({ isMeasuring }) => {
       smoothedMin.current = smoothedMin.current * 0.9 + localMin * 0.1;
       smoothedMax.current = smoothedMax.current * 0.9 + localMax * 0.1;
 
-      const PADDING_Y = HEIGHT * 0.15; 
-      const USABLE_HEIGHT = HEIGHT - (PADDING_Y * 2);
+      const PADDING_Y = H * 0.15; 
+      const USABLE_HEIGHT = H - (PADDING_Y * 2);
       const rangeY = smoothedMax.current - smoothedMin.current;
 
       const effectiveLength = Math.max(displaySnapshot.length, visibleSamples);
-      const stepX = CHART_WIDTH / (effectiveLength - 1); 
+      const stepX = W / (effectiveLength - 1); 
       
       const pathArray = [];
-      const stepSize = 2; 
+      const stepSize = visibleSamples < 300 ? 1 : 2; 
 
       for (let i = 0; i < displaySnapshot.length - stepSize; i += stepSize) {
         let minVal = displaySnapshot[i] || 0;
@@ -71,8 +91,8 @@ const LiveEcgChart = ({ isMeasuring }) => {
           if (val > maxVal) { maxVal = val; maxIdx = i + j; }
         }
 
-        const y1 = HEIGHT - PADDING_Y - ((minVal - smoothedMin.current) / rangeY) * USABLE_HEIGHT;
-        const y2 = HEIGHT - PADDING_Y - ((maxVal - smoothedMin.current) / rangeY) * USABLE_HEIGHT;
+        const y1 = H - PADDING_Y - ((minVal - smoothedMin.current) / rangeY) * USABLE_HEIGHT;
+        const y2 = H - PADDING_Y - ((maxVal - smoothedMin.current) / rangeY) * USABLE_HEIGHT;
         const x1 = minIdx * stepX;
         const x2 = maxIdx * stepX;
 
@@ -88,7 +108,7 @@ const LiveEcgChart = ({ isMeasuring }) => {
       const lastIdx = displaySnapshot.length - 1;
       const finalX = lastIdx * stepX;
       const finalVal = displaySnapshot[lastIdx] || 0;
-      const finalY = HEIGHT - PADDING_Y - ((finalVal - smoothedMin.current) / rangeY) * USABLE_HEIGHT;
+      const finalY = H - PADDING_Y - ((finalVal - smoothedMin.current) / rangeY) * USABLE_HEIGHT;
       pathArray.push(`${finalX.toFixed(1)},${finalY.toFixed(1)}`);
 
       setChartData({
@@ -102,59 +122,135 @@ const LiveEcgChart = ({ isMeasuring }) => {
     return () => clearInterval(renderLoop);
   }, [isMeasuring]);
 
-  const CENTER_Y = HEIGHT / 2;
-  const distanceFromCenter = Math.abs(CENTER_Y - chartData.lastY);
-  const dynamicGlowRadius = 14 + (distanceFromCenter * 0.15); 
-
-  const renderMedicalGrid = () => {
+  const renderMedicalGrid = (W, H) => {
+    if (W === 0 || H === 0) return null;
     const gridLines = [];
-    const minorStep = HEIGHT / 25; 
+    const minorStep = 15; 
     
-    for (let i = 0; i <= 25; i++) {
+    const hSteps = Math.floor(H / minorStep);
+    for (let i = 0; i <= hSteps; i++) {
       const y = i * minorStep;
       const isMajor = i % 5 === 0;
       gridLines.push(
-        <Line 
-          key={`h${i}`} x1="0" y1={y} x2={CHART_WIDTH} y2={y} 
-          stroke={isMajor ? "#27272a" : "#18181b"} 
-          strokeWidth={isMajor ? "1.5" : "0.5"} 
-        />
+        <Line key={`h${i}`} x1="0" y1={y} x2={W} y2={y} stroke={isMajor ? "#27272a" : "#18181b"} strokeWidth={isMajor ? "1.5" : "0.5"} />
       );
     }
-    const vSteps = Math.floor(CHART_WIDTH / minorStep);
+    const vSteps = Math.floor(W / minorStep);
     for (let i = 0; i <= vSteps; i++) {
       const x = i * minorStep;
       const isMajor = i % 5 === 0;
       gridLines.push(
-        <Line 
-          key={`v${i}`} x1={x} y1="0" x2={x} y2={HEIGHT} 
-          stroke={isMajor ? "#27272a" : "#18181b"} 
-          strokeWidth={isMajor ? "1.5" : "0.5"} 
-        />
+        <Line key={`v${i}`} x1={x} y1="0" x2={x} y2={H} stroke={isMajor ? "#27272a" : "#18181b"} strokeWidth={isMajor ? "1.5" : "0.5"} />
       );
     }
+
+    gridLines.push(<Line key="v_end" x1={W} y1="0" x2={W} y2={H} stroke="#27272a" strokeWidth="1.5" />);
+    gridLines.push(<Line key="h_end" x1="0" y1={H} x2={W} y2={H} stroke="#27272a" strokeWidth="1.5" />);
+
     return gridLines;
   };
 
-  const displayMaxMv = (smoothedMax.current / 4000).toFixed(1);
-  const displayMinMv = (smoothedMin.current / 4000).toFixed(1);
+  const getSafePaddings = () => {
+    if (!isFullscreen) return { pt: 0, pb: 12, pl: 10, pr: 10 };
 
-  return (
-    <View style={{ 
-      height: HEIGHT, 
-      backgroundColor: '#050505', 
-      borderRadius: 16, 
-      borderWidth: 1, 
-      borderColor: '#27272a',
-      overflow: 'hidden',
-      position: 'relative'
-    }}>
-      
-      <View style={{ position: 'absolute', bottom: 10, right: 10, zIndex: 10 }}>
-        <Text style={{ color: '#71717a', fontSize: 10, fontWeight: '800', letterSpacing: 1 }}>ZAPIS NA ŻYWO (250Hz)</Text>
+    const androidTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0;
+
+    if (isRotated && isPortrait) {
+      return {
+        pt: Math.max(insets.right, 12), 
+        pb: Math.max(insets.left, 16),  
+        pl: Math.max(insets.top, androidTop, 16), 
+        pr: Math.max(insets.bottom, 16), 
+      };
+    } else {
+      return {
+        pt: Math.max(insets.top, androidTop, 12),
+        pb: Math.max(insets.bottom, 24), 
+        pl: Math.max(insets.left, 10),
+        pr: Math.max(insets.right, 10),
+      };
+    }
+  };
+
+  const safePad = getSafePaddings();
+
+  const renderControlPanel = (isFS) => {
+    return (
+      <View style={[styles.controlPanel, { 
+        paddingBottom: safePad.pb, 
+        paddingLeft: safePad.pl, 
+        paddingRight: safePad.pr 
+      }]}>
+        
+        {/* INFO */}
+        <View style={styles.infoCol}>
+          <View style={styles.badgeAuto}>
+            <Text style={styles.badgeText}>AUTO</Text>
+          </View>
+          <Text style={styles.hzText}>250 Hz</Text>
+        </View>
+
+        {/* ZOOM */}
+        <View style={styles.zoomControls}>
+          <Pressable 
+            style={({ pressed }) => [styles.zoomBtn, pressed && styles.zoomBtnPressed]} 
+            onPress={() => setZoomLevel(prev => Math.max(prev - 100, 50))}
+          >
+            <Text style={styles.zoomBtnText}>-</Text>
+          </Pressable>
+          
+          <View style={styles.zoomReadout}>
+            <Text style={styles.zoomValueText}>{zoomLevel}</Text>
+            <Text style={styles.zoomUnitText}>px/s</Text>
+          </View>
+
+          <Pressable 
+            style={({ pressed }) => [styles.zoomBtn, pressed && styles.zoomBtnPressed]} 
+            onPress={() => setZoomLevel(prev => Math.min(prev + 100, 3000))}
+          >
+            <Text style={styles.zoomBtnText}>+</Text>
+          </Pressable>
+        </View>
+
+        {/* ACTIONS */}
+        <View style={styles.actionGroup}>
+          {isFS && isPortrait && (
+            <Pressable 
+              style={({ pressed }) => [styles.actionBtn, styles.rotateBtn, pressed && { opacity: 0.8 }]} 
+              onPress={() => setIsRotated(!isRotated)}
+            >
+              <Text style={styles.actionBtnText}>↻ Obróć</Text>
+            </Pressable>
+          )}
+
+          <Pressable 
+            style={({ pressed }) => [
+              styles.actionBtn, 
+              isFS && styles.actionBtnActive,
+              pressed && { opacity: 0.8 }
+            ]} 
+            onPress={() => {
+              setIsFullscreen(!isFS);
+              if (isFS) setIsRotated(false); 
+            }}
+          >
+            <Text style={[styles.actionBtnText, isFS && styles.actionBtnTextActive]}>
+              {isFS ? 'Zamknij' : 'Pełny ekran'}
+            </Text>
+          </Pressable>
+        </View>
       </View>
+    );
+  };
 
-      <Svg width={CHART_WIDTH} height={HEIGHT}>
+  const renderChart = (W, H) => {
+    if (W === 0 || H === 0) return null;
+    const CENTER_Y = H / 2;
+    const distanceFromCenter = Math.abs(CENTER_Y - chartData.lastY);
+    const dynamicGlowRadius = 14 + (distanceFromCenter * 0.15); 
+
+    return (
+      <Svg width={W} height={H}>
         <Defs>
           <LinearGradient id="fadeGradient" x1="0" y1="0" x2="1" y2="0">
             <Stop offset="0" stopColor="#7c3aed" stopOpacity="0" />
@@ -162,7 +258,6 @@ const LiveEcgChart = ({ isMeasuring }) => {
             <Stop offset="0.5" stopColor="#9333ea" stopOpacity="0.21" />
             <Stop offset="1" stopColor="#a855f7" stopOpacity="0.35" />
           </LinearGradient>
-          
           <LinearGradient id="coreGradient" x1="0" y1="0" x2="1" y2="0">
             <Stop offset="0" stopColor="#9333ea" stopOpacity="0" />
             <Stop offset="0.15" stopColor="#9333ea" stopOpacity="0.2" />
@@ -172,47 +267,196 @@ const LiveEcgChart = ({ isMeasuring }) => {
         </Defs>
 
         <G>
-          {renderMedicalGrid()}
-          <Line x1="0" y1={CENTER_Y} x2={CHART_WIDTH} y2={CENTER_Y} stroke="#3f3f46" strokeWidth="1.5" strokeDasharray="4 4" />
+          {renderMedicalGrid(W, H)}
+          <Line x1="0" y1={CENTER_Y} x2={W} y2={CENTER_Y} stroke="#3f3f46" strokeWidth="1.5" strokeDasharray="4 4" />
         </G>
 
         {chartData.pathString !== '' && (
           <G>
-            <Path 
-              d={chartData.pathString} 
-              stroke="rgba(124, 58, 237, 0.05)" 
-              strokeWidth="22" 
-              fill="none" 
-              strokeLinejoin="round" 
-              strokeLinecap="round" 
-            />
-
-            <Path 
-              d={chartData.pathString} 
-              stroke="url(#fadeGradient)" 
-              strokeWidth="8" 
-              fill="none" 
-              strokeLinejoin="round" 
-              strokeLinecap="round" 
-            />
-            
-            <Path 
-              d={chartData.pathString} 
-              stroke="url(#coreGradient)" 
-              strokeWidth="2.5" 
-              fill="none" 
-              strokeLinejoin="round" 
-              strokeLinecap="round" 
-            />
-
+            <Path d={chartData.pathString} stroke="rgba(124, 58, 237, 0.05)" strokeWidth="22" fill="none" strokeLinejoin="round" strokeLinecap="round" />
+            <Path d={chartData.pathString} stroke="url(#fadeGradient)" strokeWidth="8" fill="none" strokeLinejoin="round" strokeLinecap="round" />
+            <Path d={chartData.pathString} stroke="url(#coreGradient)" strokeWidth="2.5" fill="none" strokeLinejoin="round" strokeLinecap="round" />
             <Circle cx={chartData.lastX} cy={chartData.lastY} r={dynamicGlowRadius} fill="rgba(168, 85, 247, 0.2)" />
             <Circle cx={chartData.lastX} cy={chartData.lastY} r="5" fill="rgba(192, 132, 252, 0.8)" />
             <Circle cx={chartData.lastX} cy={chartData.lastY} r="2.5" fill="#f3e8ff" />
           </G>
         )}
       </Svg>
-    </View>
+    );
+  };
+
+  return (
+    <>
+      {!isFullscreen && (
+        <View style={styles.cardContainer}>
+          <View 
+            style={{ height: 220, overflow: 'hidden' }}
+            onLayout={(e) => setChartSize(e.nativeEvent.layout)}
+          >
+            {renderChart(chartSize.width, chartSize.height)}
+          </View>
+          {renderControlPanel(false)}
+        </View>
+      )}
+
+      <Modal 
+        visible={isFullscreen} 
+        animationType="fade" 
+        transparent={false}
+        supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
+        onRequestClose={() => setIsFullscreen(false)}
+      >
+        <View style={styles.modalRoot}>
+          <View style={{
+            width: isRotated ? Math.max(windowWidth, windowHeight) : '100%',
+            height: isRotated ? Math.min(windowWidth, windowHeight) : '100%',
+            transform: isRotated ? [{ rotate: '90deg' }] : [],
+            backgroundColor: '#050505',
+            flexDirection: 'column',
+          }}>
+            
+            <View style={{
+              flex: 1, 
+              paddingTop: safePad.pt,
+              paddingLeft: safePad.pl,
+              paddingRight: safePad.pr,
+            }}>
+              <View 
+                style={{ flex: 1, overflow: 'hidden', borderRadius: 8 }}
+                onLayout={(e) => setChartSize(e.nativeEvent.layout)}
+              >
+                {renderChart(chartSize.width, chartSize.height)}
+              </View>
+            </View>
+            
+            {renderControlPanel(true)}
+
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 };
+
+const styles = StyleSheet.create({
+  cardContainer: {
+    backgroundColor: '#050505',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#27272a',
+    overflow: 'hidden',
+  },
+  modalRoot: {
+    flex: 1,
+    backgroundColor: '#000', 
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  controlPanel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    backgroundColor: '#09090b',
+    borderTopWidth: 1,
+    borderColor: '#27272a',
+  },
+  infoCol: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    gap: 4,
+    flexShrink: 1, 
+  },
+  badgeAuto: {
+    backgroundColor: '#27272a',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  badgeText: {
+    color: '#a1a1aa',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  hzText: {
+    color: '#71717a',
+    fontSize: 10,
+    fontWeight: '600',
+    paddingLeft: 2,
+  },
+  zoomControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#18181b',
+    padding: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#27272a',
+  },
+  zoomBtn: {
+    backgroundColor: '#27272a',
+    width: 36, 
+    height: 36, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  zoomBtnPressed: {
+    backgroundColor: '#3f3f46',
+  },
+  zoomBtnText: {
+    color: '#fff',
+    fontWeight: '400',
+    fontSize: 20,
+    lineHeight: 22,
+  },
+  zoomReadout: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 50, 
+  },
+  zoomValueText: {
+    color: '#e4e4e7',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  zoomUnitText: {
+    color: '#71717a',
+    fontSize: 9,
+    fontWeight: '500',
+  },
+  actionGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1, 
+  },
+  actionBtn: {
+    backgroundColor: '#18181b',
+    paddingHorizontal: 12, 
+    paddingVertical: 10,  
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#27272a',
+  },
+  rotateBtn: {
+    marginRight: 6,
+    backgroundColor: '#27272a',
+  },
+  actionBtnActive: {
+    backgroundColor: '#e11d48',
+    borderColor: '#be123c',
+  },
+  actionBtnText: {
+    color: '#e4e4e7',
+    fontWeight: '600',
+    fontSize: 12, 
+  },
+  actionBtnTextActive: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+});
 
 export default LiveEcgChart;
