@@ -19,12 +19,24 @@ import { Asset } from 'expo-asset';
 import * as Sharing from 'expo-sharing';
 import RNFS from 'react-native-fs';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import * as Notifications from 'expo-notifications';
+
 let Speech;
 try {
   Speech = require('expo-speech');
 } catch (e) {
   Speech = null;
 }
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const analyzeEcgTrend = (parsedTrend) => {
   let minBpm = 999, maxBpm = 0, sumBpm = 0, validBpmCount = 0;
@@ -105,7 +117,7 @@ const analyzeEcgTrend = (parsedTrend) => {
     sumBpm += bpm;
     validBpmCount++;
 
-    // --- TACHYKARDIA ---
+    //TACHYKARDIA
     if (!isCurrentlyTachy) {
       if (bpm >= TACHY_THRESHOLD) {
         if (tachyStartTime === 0) tachyStartTime = timeMs;
@@ -130,7 +142,7 @@ const analyzeEcgTrend = (parsedTrend) => {
       }
     }
 
-    // --- BRADYKARDIA ---
+    //BRADYKARDIA
     if (!isCurrentlyBrady) {
       if (bpm <= BRADY_THRESHOLD) {
         if (bradyStartTime === 0) bradyStartTime = timeMs;
@@ -145,7 +157,7 @@ const analyzeEcgTrend = (parsedTrend) => {
       }
     } else {
       let currentIdx = bradyDetails.length - 1;
-      // Podczas bradykardii szukamy "dna", czyli najniższej wartości
+      // Podczas bradykardii szukamy najniższej wartości
       if (bpm < bradyDetails[currentIdx].minBpm) bradyDetails[currentIdx].minBpm = bpm;
 
       if (bpm > BRADY_STOP_THRESHOLD) {
@@ -219,7 +231,44 @@ const getEcgSlice = (trend, centerTimeMs, pointsToSide = 150) => {
   return slice.length > 2 ? slice : fallbackLine; 
 };
 
+const speakReportSummary = (stats, durationMins, durationSecs, isVoiceEnabled) => {
+  if (!isVoiceEnabled || !Speech) return;
+  
+  Speech.stop();
+
+  const minText = durationMins === 1 ? "minutę" : [2, 3, 4].includes(durationMins % 10) && ![12, 13, 14].includes(durationMins % 100) ? "minuty" : "minut";
+  const secText = durationSecs === 1 ? "sekundę" : [2, 3, 4].includes(durationSecs % 10) && ![12, 13, 14].includes(durationSecs % 100) ? "sekundy" : "sekund";
+  
+  let textToSpeak = `Badanie zakończone. Zapisano ${durationMins} ${minText} i ${durationSecs} ${secText} pomiaru. `;
+  textToSpeak += `Średnie tętno wyniosło ${stats.avgBpm} Bi Pi Em . `;
+  textToSpeak += `Najniższe zanotowane tętno to ${stats.minBpm}, a najwyższe ${stats.maxBpm} Bi Pi Em . `;
+  
+  const arrhythmias = stats.arrhythmiaEvents || 0;
+  const manualEvents = stats.importantDetails?.length || 0;
+
+  if (arrhythmias > 0 || manualEvents > 0) {
+    if (arrhythmias > 0) {
+      const arrWord = arrhythmias === 1 ? "jeden epizod arytmii" : 
+                      [2, 3, 4].includes(arrhythmias % 10) && ![12, 13, 14].includes(arrhythmias % 100) ? "epizody arytmii" : "epizodów arytmii";
+      textToSpeak += `Algorytm wykrył ${arrhythmias === 1 ? "" : arrhythmias} ${arrWord}. `;
+    }
+    
+    if (manualEvents > 0) {
+      const manWord = manualEvents === 1 ? "jedno zdarzenie oznaczone" : 
+                      [2, 3, 4].includes(manualEvents % 10) && ![12, 13, 14].includes(manualEvents % 100) ? "zdarzenia oznaczone" : "zdarzeń oznaczonych";
+      textToSpeak += `Zanotowano ${manualEvents === 1 ? "" : manualEvents} ${manWord} przez pacjenta. `;
+    }
+    
+    textToSpeak += `Sprawdź raport, aby poznać szczegóły.`;
+  } else {
+    textToSpeak += `Algorytm nie wykrył żadnych nieprawidłowości.`;
+  }
+
+  Speech.speak(textToSpeak, { language: 'pl-PL', rate: 0.95, pitch: 1.0 });
+};
+
 const FILE_URI = FileSystem.documentDirectory + 'current_examination.csv';
+const HISTORY_FILE_URI = FileSystem.documentDirectory + 'history_records.json';
 
 function MainApp() {
   const insets = useSafeAreaInsets();
@@ -239,7 +288,7 @@ function MainApp() {
     }
   }, [view]);
 
-  const [records, setRecords] = useState(initialHistory);
+  const [records, setRecords] = useState([]);
   const [deviceData, setDeviceData] = useState(null);
 
   const [diagnostics, setDiagnostics] = useState(null);
@@ -250,7 +299,6 @@ function MainApp() {
 
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isNotifEnabled, setIsNotifEnabled] = useState(true);
-  const [isVibrateEnabled, setIsVibrateEnabled] = useState(true);
 
   const [toastMessage, setToastMessage] = useState(null);
   const toastAnim = useRef(new Animated.Value(200)).current;
@@ -270,6 +318,78 @@ function MainApp() {
   const flushIntervalRef = useRef(null);
   const isFlushingRef = useRef(false);
   const fileWriteQueue = useRef(Promise.resolve());
+
+  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Wczytywanie historii
+  useEffect(() => {
+    const loadPersistedData = async () => {
+      try {
+        const fileInfo = await FileSystem.getInfoAsync(HISTORY_FILE_URI);
+        if (fileInfo.exists) {
+          const savedRecords = await FileSystem.readAsStringAsync(HISTORY_FILE_URI);
+          setRecords(JSON.parse(savedRecords));
+        }
+
+        const savedSessionId = await AsyncStorage.getItem('@eros_session_id');
+        if (savedSessionId) setCurrentSessionId(savedSessionId);
+
+        // Wczytywanie ustawień
+        const savedVoice = await AsyncStorage.getItem('@eros_voice');
+        const savedNotif = await AsyncStorage.getItem('@eros_notif');
+        
+        if (savedVoice !== null) setIsVoiceEnabled(savedVoice === 'true');
+        if (savedNotif !== null) setIsNotifEnabled(savedNotif === 'true');
+
+      } catch (e) {
+        console.error('Błąd podczas wczytywania danych:', e);
+      } finally {
+      setIsLoaded(true); 
+      }
+    };
+    loadPersistedData();
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const saveData = async () => {
+      try {
+        await FileSystem.writeAsStringAsync(HISTORY_FILE_URI, JSON.stringify(records), { encoding: FileSystem.EncodingType.UTF8 });
+        
+        if (currentSessionId) await AsyncStorage.setItem('@eros_session_id', currentSessionId);
+        else await AsyncStorage.removeItem('@eros_session_id'); 
+
+        // Zapis ustawień
+        await AsyncStorage.setItem('@eros_voice', isVoiceEnabled.toString());
+        await AsyncStorage.setItem('@eros_notif', isNotifEnabled.toString());
+
+      } catch (e) {
+        console.error('Błąd podczas zapisywania:', e);
+      }
+    };
+    saveData();
+  }, [records, currentSessionId, isVoiceEnabled, isNotifEnabled]);
+
+  // Zapytanie o uprawnienia do powiadomień
+  useEffect(() => {
+    const requestNotificationPermissions = async () => {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      
+      // Jeśli nie ma uprawnień, poproś o nie
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      
+      if (finalStatus !== 'granted') {
+        console.log('Brak uprawnień do powiadomień Push!');
+      }
+    };
+
+    requestNotificationPermissions();
+  }, []);
   
   // useEffect(() => {
   //   flushIntervalRef.current = setInterval(() => {
@@ -281,7 +401,7 @@ function MainApp() {
   //   };
   // }, []);
 
-  const showToast = (message, type = 'success') => {
+  const showToast = (message, type = 'success', suppressVoice = false) => {
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
     }
@@ -289,7 +409,7 @@ function MainApp() {
     setToastMessage({ message, type });
     Animated.spring(toastAnim, { toValue: 0, useNativeDriver: true, friction: 8 }).start();
 
-    if (isVoiceEnabled && Speech && type !== 'loading') {
+    if (isVoiceEnabled && Speech && type !== 'loading' && !suppressVoice) {
       Speech.stop();
       Speech.speak(message, { language: 'pl-PL', rate: 1.05 });
     }
@@ -562,39 +682,77 @@ function MainApp() {
       const durationMins = Math.floor(lastTimeMs / 60000);
       const durationSecs = Math.floor((lastTimeMs % 60000) / 1000);
 
+      let sessionId = currentSessionId;
+      if (!sessionId) {
+        sessionId = Date.now().toString();
+        setCurrentSessionId(sessionId);
+      }
+
       const newData = {
-              id: Date.now().toString(),
-              date: new Date().toISOString(),
-              duration: `${durationMins}m ${durationSecs}s`,
-              totalBeats: parsedTrend.length,
-              avgBpm: stats.avgBpm,
-              minBpm: stats.minBpm,
-              minBpmTime: formatMsToTime(stats.minBpmTimeMs),
-              minBpmTimeMs: stats.minBpmTimeMs, 
-              maxBpm: stats.maxBpm,
-              maxBpmTime: formatMsToTime(stats.maxBpmTimeMs),
-              maxBpmTimeMs: stats.maxBpmTimeMs,
-              tachyEpisodes: stats.tachyEpisodes,
-              tachyDetails: stats.tachyDetails,
-              bradyEpisodes: stats.bradyEpisodes,
-              bradyDetails: stats.bradyDetails,
-              importantDetails: stats.importantDetails,
-              arrhythmiaEvents: stats.arrhythmiaEvents, 
-              veb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
-              sveb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
-              pauses: { count: 0, longest: "0", longestTime: "--" },
-              hourlyTrend: parsedTrend
-            };
+        id: sessionId,
+        date: new Date().toISOString(),
+        duration: `${durationMins}m ${durationSecs}s`,
+        totalBeats: parsedTrend.length,
+        avgBpm: stats.avgBpm,
+        minBpm: stats.minBpm,
+        minBpmTime: formatMsToTime(stats.minBpmTimeMs),
+        minBpmTimeMs: stats.minBpmTimeMs, 
+        maxBpm: stats.maxBpm,
+        maxBpmTime: formatMsToTime(stats.maxBpmTimeMs),
+        maxBpmTimeMs: stats.maxBpmTimeMs,
+        tachyEpisodes: stats.tachyEpisodes,
+        tachyDetails: stats.tachyDetails,
+        bradyEpisodes: stats.bradyEpisodes,
+        bradyDetails: stats.bradyDetails,
+        importantDetails: stats.importantDetails,
+        arrhythmiaEvents: stats.arrhythmiaEvents, 
+        veb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
+        sveb: { total: 0, pairs: 0, runs: 0, burden: "0%" },
+        pauses: { count: 0, longest: "0", longestTime: "--" },
+        hourlyTrend: parsedTrend
+      };
 
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       setProgressPercent(100);
 
       setTimeout(() => {
         setDeviceData(newData);
-        setRecords(prev => [newData, ...prev]);
+        
+        setRecords(prev => {
+          const existingIdx = prev.findIndex(r => r.id === sessionId);
+          if (existingIdx >= 0) {
+            const updated = [...prev];
+            newData.date = updated[existingIdx].date; 
+            updated[existingIdx] = newData;
+            return updated;
+          } else {
+            return [newData, ...prev];
+          }
+        });
+
         setSyncState('synced');
         setAiReport(null);
-        showToast('Badanie odebrane i przeanalizowane!', 'success');
+        
+        // Asystent głosowy
+        if (isVoiceEnabled && Speech) {
+          showToast('Analiza zakończona. Odtwarzam podsumowanie.', 'success', true);
+          speakReportSummary(stats, durationMins, durationSecs, isVoiceEnabled);
+        } else {
+          showToast('Badanie odebrane i przeanalizowane!', 'success');
+        }
+
+        // Powiadomienia push
+        if (isNotifEnabled) {
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: "Raport gotowy 🫀",
+              body: `Analiza EKG zakończona. Średnie tętno: ${stats.avgBpm} BPM. Zobacz szczegóły w raporcie.`,
+              smallIcon: 'assets/eros_logo.png',
+            },
+            trigger: null, // trigger: null oznacza wysłanie NATYCHMIAST
+          });
+        }
+
       }, 400);
 
     } catch (error) {
@@ -797,7 +955,6 @@ const saveToDownloads = async (trendData) => {
       }
 
       const uniqueId = Date.now();
-      // zmienilam na cache zeby nie zasmiecac telefonu
       const EXPORT_URI = FileSystem.cacheDirectory + `badanie_EKG_${uniqueId}.csv`;
       
       console.log(`Generowanie pliku wyjściowego z ${trendData.length} rekordami...`);
@@ -837,12 +994,23 @@ const saveToDownloads = async (trendData) => {
     return new Date(dateString).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
-  const deleteCurrentFile = async () => {
+const deleteRecordFromHistory = (id) => {
+  setRecords(prev => prev.filter(record => record.id !== id));
+
+  if (currentSessionId === id) {
+     setCurrentSessionId(null);
+  }
+    
+  showToast("Raport został usunięty z archiwum.", "info");
+};
+
+const deleteCurrentFile = async () => {
     try {
       const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
       if (fileInfo.exists) {
         await FileSystem.deleteAsync(FILE_URI);
-        setDeviceData(null); // Czyścimy aktualnie wyświetlane dane
+        setDeviceData(null); 
+        setCurrentSessionId(null); 
         showToast("Plik badania został usunięty.", "info");
       } else {
         showToast("Brak pliku do usunięcia.", "error");
@@ -883,7 +1051,12 @@ const saveToDownloads = async (trendData) => {
           />
         )}
         {view === 'history' && (
-          <HistoryScreen records={records} openReport={openReport} formatDate={formatDate} />
+          <HistoryScreen 
+            records={records} 
+            openReport={openReport} 
+            formatDate={formatDate} 
+            deleteRecord={deleteRecordFromHistory} 
+          />
         )}
         {view === 'report' && (
           <ReportScreen
@@ -898,7 +1071,6 @@ const saveToDownloads = async (trendData) => {
           <SettingsScreen
             isVoiceEnabled={isVoiceEnabled} handleVoiceToggle={handleVoiceToggle}
             isNotifEnabled={isNotifEnabled} setIsNotifEnabled={setIsNotifEnabled}
-            isVibrateEnabled={isVibrateEnabled} setIsVibrateEnabled={setIsVibrateEnabled}
           />
         )}
       </ScrollView>

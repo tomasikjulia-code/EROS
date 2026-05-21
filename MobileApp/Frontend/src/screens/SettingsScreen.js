@@ -1,15 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Volume2, Bell, Smartphone } from 'lucide-react-native';
+import { Volume2, Bell } from 'lucide-react-native';
 import { styles } from '../constants/Theme';
 
 const SettingsScreen = ({ 
   isVoiceEnabled, 
   handleVoiceToggle, 
   isNotifEnabled, 
-  setIsNotifEnabled, 
-  isVibrateEnabled, 
-  setIsVibrateEnabled 
+  setIsNotifEnabled 
 }) => {
   return (
     <View style={styles.screenContent}>
@@ -44,7 +42,7 @@ const SettingsScreen = ({
       <View style={styles.settingCard}>
         
         {/* Przełącznik Powiadomień */}
-        <View style={[styles.settingRow, styles.settingBorderBottom]}>
+        <View style={styles.settingRow}>
           <View style={styles.row}>
             <View style={[styles.settingIconBg, isNotifEnabled && { backgroundColor: 'rgba(59,130,246,0.15)' }]}>
               <Bell size={22} color={isNotifEnabled ? "#60a5fa" : "#a1a1aa"} />
@@ -59,24 +57,6 @@ const SettingsScreen = ({
             style={[styles.toggleTrack, isNotifEnabled && { backgroundColor: '#2563eb', borderColor: '#3b82f6' }]}
           >
             <View style={[styles.toggleThumb, isNotifEnabled && styles.toggleThumbActive]} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.settingRow}>
-          <View style={styles.row}>
-            <View style={[styles.settingIconBg, isVibrateEnabled && { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
-              <Smartphone size={22} color={isVibrateEnabled ? "#34d399" : "#a1a1aa"} />
-            </View>
-            <View style={{ marginLeft: 12 }}>
-              <Text style={styles.settingTitle}>Wibracje</Text>
-              <Text style={styles.settingSub}>Haptyka przy akcjach systemu.</Text>
-            </View>
-          </View>
-          <TouchableOpacity 
-            onPress={() => setIsVibrateEnabled(!isVibrateEnabled)} 
-            style={[styles.toggleTrack, isVibrateEnabled && { backgroundColor: '#059669', borderColor: '#10b981' }]}
-          >
-            <View style={[styles.toggleThumb, isVibrateEnabled && styles.toggleThumbActive]} />
           </TouchableOpacity>
         </View>
         

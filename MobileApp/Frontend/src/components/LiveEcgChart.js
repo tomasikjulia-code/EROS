@@ -151,7 +151,7 @@ const LiveEcgChart = ({ isMeasuring }) => {
   };
 
   const getSafePaddings = () => {
-    if (!isFullscreen) return { pt: 0, pb: 12, pl: 10, pr: 10 };
+    if (!isFullscreen) return { pt: 0, pb: 12, pl: 12, pr: 12 };
 
     const androidTop = Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0;
 
@@ -182,15 +182,25 @@ const LiveEcgChart = ({ isMeasuring }) => {
         paddingRight: safePad.pr 
       }]}>
         
-        {/* INFO */}
-        <View style={styles.infoCol}>
-          <View style={styles.badgeAuto}>
-            <Text style={styles.badgeText}>AUTO</Text>
-          </View>
-          <Text style={styles.hzText}>250 Hz</Text>
+        {/* Lewa strona: Obrót w Fullscreen, Info w normalnym widoku */}
+        <View style={{ width: 44, alignItems: 'flex-start' }}>
+          {isFS ? (
+            isPortrait && (
+              <Pressable onPress={() => setIsRotated(!isRotated)} style={styles.squareBtn}>
+                <Text style={styles.squareBtnIcon}>↻</Text>
+              </Pressable>
+            )
+          ) : (
+            <View style={styles.infoCol}>
+              <View style={styles.badgeAuto}>
+                <Text style={styles.badgeText}>AUTO</Text>
+              </View>
+              <Text style={styles.hzText}>250 Hz</Text>
+            </View>
+          )}
         </View>
 
-        {/* ZOOM */}
+        {/* Środek: Kontrola Zoomu */}
         <View style={styles.zoomControls}>
           <Pressable 
             style={({ pressed }) => [styles.zoomBtn, pressed && styles.zoomBtnPressed]} 
@@ -212,33 +222,19 @@ const LiveEcgChart = ({ isMeasuring }) => {
           </Pressable>
         </View>
 
-        {/* ACTIONS */}
-        <View style={styles.actionGroup}>
-          {isFS && isPortrait && (
-            <Pressable 
-              style={({ pressed }) => [styles.actionBtn, styles.rotateBtn, pressed && { opacity: 0.8 }]} 
-              onPress={() => setIsRotated(!isRotated)}
-            >
-              <Text style={styles.actionBtnText}>↻ Obróć</Text>
+        {/* Prawa strona: Zamknij w Fullscreen, Pełny Ekran w normalnym widoku */}
+        <View style={{ width: 44, alignItems: 'flex-end' }}>
+          {isFS ? (
+            <Pressable onPress={() => { setIsFullscreen(false); setIsRotated(false); }} style={[styles.squareBtn, { backgroundColor: '#e11d48' }]}>
+              <Text style={styles.squareBtnIcon}>✕</Text>
+            </Pressable>
+          ) : (
+            <Pressable onPress={() => setIsFullscreen(true)} style={styles.squareBtn}>
+              <Text style={[styles.squareBtnIcon, { fontSize: 20 }]}>⛶</Text>
             </Pressable>
           )}
-
-          <Pressable 
-            style={({ pressed }) => [
-              styles.actionBtn, 
-              isFS && styles.actionBtnActive,
-              pressed && { opacity: 0.8 }
-            ]} 
-            onPress={() => {
-              setIsFullscreen(!isFS);
-              if (isFS) setIsRotated(false); 
-            }}
-          >
-            <Text style={[styles.actionBtnText, isFS && styles.actionBtnTextActive]}>
-              {isFS ? 'Zamknij' : 'Pełny ekran'}
-            </Text>
-          </Pressable>
         </View>
+
       </View>
     );
   };
@@ -322,9 +318,19 @@ const LiveEcgChart = ({ isMeasuring }) => {
               paddingRight: safePad.pr,
             }}>
               <View 
-                style={{ flex: 1, overflow: 'hidden', borderRadius: 8 }}
+                style={{ flex: 1, overflow: 'hidden', borderRadius: 8, position: 'relative' }}
                 onLayout={(e) => setChartSize(e.nativeEvent.layout)}
               >
+                {/* Pływające informacje o częstotliwości w trybie pełnego ekranu */}
+                <View style={{ position: 'absolute', top: 12, left: 12, zIndex: 10, flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                  <View style={[styles.badgeAuto, { backgroundColor: 'rgba(39, 39, 42, 0.8)' }]}>
+                    <Text style={styles.badgeText}>AUTO</Text>
+                  </View>
+                  <View style={{ backgroundColor: 'rgba(39, 39, 42, 0.8)', paddingHorizontal: 6, paddingVertical: 3, borderRadius: 4 }}>
+                    <Text style={[styles.badgeText, { color: '#d4d4d8' }]}>250 Hz</Text>
+                  </View>
+                </View>
+
                 {renderChart(chartSize.width, chartSize.height)}
               </View>
             </View>
@@ -366,7 +372,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'center',
     gap: 4,
-    flexShrink: 1, 
   },
   badgeAuto: {
     backgroundColor: '#27272a',
@@ -427,36 +432,19 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '500',
   },
-  actionGroup: {
-    flexDirection: 'row',
+  squareBtn: {
+    width: 44, 
+    height: 44, 
+    backgroundColor: '#3f3f46', 
+    borderRadius: 8, 
+    justifyContent: 'center', 
     alignItems: 'center',
-    flexShrink: 1, 
   },
-  actionBtn: {
-    backgroundColor: '#18181b',
-    paddingHorizontal: 12, 
-    paddingVertical: 10,  
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#27272a',
-  },
-  rotateBtn: {
-    marginRight: 6,
-    backgroundColor: '#27272a',
-  },
-  actionBtnActive: {
-    backgroundColor: '#e11d48',
-    borderColor: '#be123c',
-  },
-  actionBtnText: {
-    color: '#e4e4e7',
-    fontWeight: '600',
-    fontSize: 12, 
-  },
-  actionBtnTextActive: {
-    color: '#fff',
-    fontWeight: '700',
-  },
+  squareBtnIcon: {
+    color: '#fff', 
+    fontSize: 18, 
+    fontWeight: 'bold',
+  }
 });
 
 export default LiveEcgChart;
