@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Holter EKG",
-    "slug": "eros-mobile-app",
+    "name": "RYTHMIO",
+    "slug": "rythmio-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.eros.app"
+      "bundleIdentifier": "com.rythmio.app"
     },
     "android": {
       "allowBackup": false,
@@ -23,7 +23,7 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.eros.app"
+      "package": "com.rythmio.app"
     },
     "web": {
       "favicon": "./assets/logo.png"
@@ -37,8 +37,8 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "Allow EROS to access your ECG reports.",
-          "savePhotosPermission": "Allow EROS to save ECG reports to your device.",
+          "photosPermission": "Allow RYTHMIO to access your ECG reports.",
+          "savePhotosPermission": "Allow RYTHMIO to save ECG reports to your device.",
           "isAccessMediaLocationEnabled": true
         }
       ]
