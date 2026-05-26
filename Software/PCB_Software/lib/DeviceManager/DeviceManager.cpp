@@ -16,8 +16,6 @@ DeviceManager::DeviceManager(){
     testTimeChosen = false;
 
     currentDisplayState = DISPLAY_OFF;
-
-
 }
 
 void DeviceManager::init(){
@@ -62,6 +60,7 @@ void DeviceManager::init(){
     readyToWriteBuffer = nullptr;
     bufferIndex = 0;
 
+    BuzzerManager.begin(); 
 }
 
 void DeviceManager::setStartTime(){
@@ -69,19 +68,32 @@ void DeviceManager::setStartTime(){
 }
 
 void DeviceManager::chooseTestTime(){
-    currentDisplayState=DISPLAY_FIRST_SCREEN;
+
+    currentDisplayState = DISPLAY_FIRST_SCREEN;
     if(testTimeChosen) return;
-    uint8_t lastDisplayedTime=EKGTestTime;
+    
+    uint8_t lastDisplayedTime = EKGTestTime;
     displayFirstScreen(EKGTestTime);
     displayFirstScreen(EKGTestTime);
 
+    unsigned long lastTimeChangeMillis = 0; 
+    bool needsDisplayUpdate = false;        
+
     while(!testTimeChosen){
         checkTestTimeButtons();
-        if(EKGTestTime!=lastDisplayedTime){
-            updateTimeChoice(EKGTestTime);
-            lastDisplayedTime=EKGTestTime;
+        
+        if(EKGTestTime != lastDisplayedTime){
+            lastTimeChangeMillis = millis(); 
+            needsDisplayUpdate = true;       
+            lastDisplayedTime = EKGTestTime;
         }
-        delay(10);
+        
+        if(needsDisplayUpdate && (millis() - lastTimeChangeMillis > 1100)){
+            updateTimeChoice(EKGTestTime);   
+            needsDisplayUpdate = false;      
+        }
+        
+        delay(10); 
     }
     clearDisplay();
 }
@@ -318,8 +330,34 @@ void DeviceManager::waitingForSDcard(){
 }
 
 void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
-   
-    uint32_t timeout = 2000; // Krótki bezpiecznik
+
+    buzzerSampleCounter++;
+    
+    if (buzzerSampleCounter >= 125) {
+        buzzerSampleCounter = 0; 
+
+        if (isLeadOff() && !isTimeEnded()) { 
+
+            if (!alarmTriggered || (millis() - lastAlarmTime >= 5000UL)) {
+                //Serial.println("[ALARM] Elektrody odpięte! Krótkie przypomnienie.");
+                
+                BuzzerManager.setVolume(15);      
+                BuzzerManager.playContinuous();   
+                vTaskDelay(pdMS_TO_TICKS(125));      
+                BuzzerManager.stop();             
+
+                lastAlarmTime = millis();         
+                alarmTriggered = true;            
+            }
+        } else {
+
+            if (alarmTriggered) {
+                //Serial.println("[ALARM] Elektrody podłączone ponownie. Reset blokady.");
+                alarmTriggered = false; 
+            }
+        }
+    }
+    uint32_t timeout = 2000; 
     while (digitalRead(ADS1292_DRDY_PIN) == HIGH && timeout > 0) {
         timeout--;
         delayMicroseconds(1);
@@ -331,7 +369,7 @@ void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
         return; 
     }
 
-    //wypełniam sobie bufor nowymi danym na giga chillu
+    //wypełniam sobie bufor nowymi danym 
     currentBuffer[bufferIndex].timestamp = millis() - startTime; //czas od rozpoczecia badania
     currentBuffer[bufferIndex].rawValue = isLeadOff() ? 0 : (int32_t)getFilteredValue();
     currentBuffer[bufferIndex].bpm = getAverageBPM();
@@ -451,11 +489,26 @@ bool DeviceManager::isTimeEnded()
 
 void DeviceManager::updateDisplay(uint32_t timeInMs, SemaphoreHandle_t sdMutex){
     if (currentDisplayState==DISPLAY_END){
+
+        static bool hasEndBeeped = false;
+
+        // --- PIKNIĘCIE NA ZAKOŃCZENIE BADANIA ---
+        if (!hasEndBeeped) {
+
+            for (int i = 0; i < 3; i++) {
+                BuzzerManager.setVolume(15);
+                BuzzerManager.playContinuous();
+                vTaskDelay(pdMS_TO_TICKS(200)); // Piknięcie przez 200 ms
+                BuzzerManager.stop();
+                vTaskDelay(pdMS_TO_TICKS(150)); // Przerwa ciszy 150 ms
+            }
+            hasEndBeeped = true; // Oznaczamy, że już raz zapikaliśmy i wyciszamy na zawsze
+        }
+
         //czekam na semafor od karty sd zeby moc uzyc wyswietlacza
         xSemaphoreTake(sdMutex, portMAX_DELAY);
         displayEndScreen();
         xSemaphoreGive(sdMutex);
-
     }
     else if (displayEnabled && !isTimeEnded()){
         uint16_t refreshTime = 200; //jesli warunek spelniony to ustawiam sobie refresh time na wyswietlacz
@@ -564,6 +617,11 @@ void DeviceManager::checkButtons()
 
 }
 
+/*
+Przycisk górny zwiększa czas trwania badania. Jego przytrzymanie inkrementuje co sekundę o 1. 
+Przycisk dolny działa tak samo tylko dekrementuje. 
+Wciśnięcie przycisków w tym samym momencie zatwierdza czas trwania badania.
+*/
 void DeviceManager::checkTestTimeButtons()
 {
     bool btnUp = (digitalRead(BTN_T_UP) == LOW);
@@ -571,6 +629,10 @@ void DeviceManager::checkTestTimeButtons()
 
     static bool upTriggered = false;
     static bool downTriggered = false;
+    
+    static int holdCounter = 0;
+
+    const unsigned long DEBOUNCE_DELAY = 150;    
 
     // LOGIKA ZATWIERDZANIA 
     if (btnUp && btnDown)
@@ -579,6 +641,7 @@ void DeviceManager::checkTestTimeButtons()
         downTriggered = true;
         upPressStart = 0;
         downPressStart = 0;
+        holdCounter = 0;
 
         if (confirmPressStart == 0) confirmPressStart = millis();
 
@@ -595,47 +658,89 @@ void DeviceManager::checkTestTimeButtons()
         confirmPressStart = 0;
     }
 
-    //PRZYCISK GÓRA
+    unsigned long currentRepeatRate = 1000; 
+
+
+    // PRZYCISK GÓRA
     if (btnUp && !btnDown)
     {
-        if (upPressStart == 0) upPressStart = millis();
-        if (!upTriggered && (millis() - upPressStart > 150)) 
+        if (upPressStart == 0) {
+            upPressStart = millis();
+        }
+        if (!upTriggered && (millis() - upPressStart > DEBOUNCE_DELAY)) 
         {
             EKGTestTime++;
             upTriggered = true;
+            upPressStart = millis(); 
+            holdCounter = 1;
             Serial.printf("Zwiększono: %d h\n", EKGTestTime);
         }
+        else if (upTriggered && (millis() - upPressStart > currentRepeatRate))
+        {
+            EKGTestTime++;
+            upPressStart = millis(); 
+            holdCounter++; 
+            Serial.printf("Zwiększono: %d h \n", EKGTestTime);
+        }
     }
-    else if (!btnUp) 
+    else 
     {
         upPressStart = 0;
         upTriggered = false;
     }
 
-    //PRZYCISK DÓŁ
+    // PRZYCISK DÓŁ
     if (btnDown && !btnUp)
     {
-        if (downPressStart == 0) downPressStart = millis();
-        if (!downTriggered && (millis() - downPressStart > 150))
+        if (downPressStart == 0) {
+            downPressStart = millis();
+        }
+
+        if (!downTriggered && (millis() - downPressStart > DEBOUNCE_DELAY))
         {
             downTriggered = true;
+            downPressStart = millis(); 
+            holdCounter = 1;
             if (EKGTestTime > 0) 
             {
                 EKGTestTime--;
                 Serial.printf("Zmniejszono: %d h\n", EKGTestTime);
             }            
         }
+        else if (downTriggered && (millis() - downPressStart > currentRepeatRate))
+        {
+            downPressStart = millis(); 
+            holdCounter++; 
+            if (EKGTestTime > 0) 
+            {
+                EKGTestTime--;
+                Serial.printf("Zmniejszono: %d h \n", EKGTestTime);
+            }
+        }
     }
-    else if (!btnDown)
+    else 
     {
         downPressStart = 0;
         downTriggered = false;
     }
+
+    if (!btnUp && !btnDown)
+    {
+        holdCounter = 0;
+    }
 }
+
+/*
+ * Okresowo mierzy i wygładza poziom aktywności fizycznej pacjenta.
+ * Funkcja uruchamia się co 5 sekund. Pobiera serię 15 szybkich pomiarów z akcelerometru
+ * (w odstępach 20 ms), uśrednia je, a następnie przepuszcza przez filtr wygładzający (EMA),
+ * aby zapobiec nagłym skokom na wykresie. Na koniec wystawia gotową wartość 
+ * do zapisu w najbliższym buforze danych na karcie SD.
+ */
 
 void DeviceManager::processAccelerometer() {
 
-    if (millis() - lastAccelCheck >= 10000UL) {
+    if (millis() - lastAccelCheck >= 5000UL) {
         float sum = 0;
         int samplesCount = 15;
 
@@ -652,7 +757,7 @@ void DeviceManager::processAccelerometer() {
         lastActivityValue = accel.averageActivity;
         newActivityReady = true; 
 
-        Serial.printf("Zaktualizowano średnią aktywność: %.2f\n", accel.averageActivity);
+        //Serial.printf("Zaktualizowano średnią aktywność: %.2f\n", accel.averageActivity);
         lastAccelCheck = millis();
     }
 }

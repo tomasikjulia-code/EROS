@@ -70,6 +70,7 @@ void Buzzer::applyPWM(bool active)
 
 void Buzzer::update()
 {
+    if (!_isToneActive || _volume == 0) return;
     if (_isModulated)
     {
         if (millis() - _lastToggleTime >= BUZZER_MOD_INTERVAL)

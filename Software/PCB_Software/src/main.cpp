@@ -99,8 +99,10 @@ void setup()
     xTaskCreatePinnedToCore(btTask, "BT Task", 8192, NULL, 1, &btTaskHandle, 0);
     xTaskCreatePinnedToCore(displayTask, "Display Task", 8192, NULL, 1, &displayTaskHandle, 0);
     xTaskCreatePinnedToCore(accelTask, "Accel Task", 4096, NULL, 1, &accelTaskHandle, 0);
+
 }
 void loop(){
     HolterDevice.checkButtons(); 
     vTaskDelay(pdMS_TO_TICKS(200));
+
 }

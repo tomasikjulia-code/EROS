@@ -9,10 +9,10 @@
 #include <driver/adc.h>
 
 //definicje pinow do przyciskow
-#define BTN_LCD 35
-#define BTN_EVENT 39
-#define BTN_T_UP 35
-#define BTN_T_DOWN 39
+#define BTN_LCD 39
+#define BTN_EVENT 35
+#define BTN_T_UP 39
+#define BTN_T_DOWN 35
 #define MS_PER_HOUR 3600000UL
 #define MS_PER_MINUTE 60000UL
 #define BATTERY_LEVEL_PIN 36
@@ -99,6 +99,10 @@ class DeviceManager{
     private:
         volatile float lastActivityValue = -1.0f; // Przechowuje aktualną wartość do zapisu
         volatile bool newActivityReady = false; // Flaga informująca o nowym pomiarze
+
+        int buzzerSampleCounter = 0;
+        bool alarmTriggered = false;
+        unsigned long lastAlarmTime = 0;
 
 };
 
