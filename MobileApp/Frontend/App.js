@@ -481,7 +481,7 @@ function MainApp() {
 
       deviceRef.current = device;
       setBleState('connected');
-      showToast('Nawiązano bezpieczne połączenie z RYTHMIO.');
+      showToast('Nawiązano bezpieczne połączenie z holterem.');
 
       setIsLiveEcgActive(false);
       setLastConnectedTime(new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }));
@@ -618,7 +618,7 @@ function MainApp() {
     const lastSavedTS = await getLastTimestampFromFile();
     console.log("Last timestamp found in file:", lastSavedTS);
 
-    showToast('Pobieranie badania z Holtera...', 'loading');
+    showToast('Pobieranie badania z holtera...', 'loading');
 
     try {
 
@@ -746,8 +746,7 @@ function MainApp() {
           Notifications.scheduleNotificationAsync({
             content: {
               title: "Raport gotowy 🫀",
-              body: `Analiza EKG zakończona. Średnie tętno: ${stats.avgBpm} BPM. Zobacz szczegóły w raporcie.`,
-              smallIcon: 'assets/rythmio_logo.png',
+              body: `Analiza EKG zakończona. Średnie tętno: ${stats.avgBpm} BPM. Zobacz szczegóły w raporcie.`
             },
             trigger: null, // trigger: null oznacza wysłanie NATYCHMIAST
           });

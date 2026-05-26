@@ -41,6 +41,13 @@
           "savePhotosPermission": "Allow RYTHMIO to save ECG reports to your device.",
           "isAccessMediaLocationEnabled": true
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/rythmio_logo.png",
+          "color": "#FFFFFF"
+        }
       ]
     ]
   }
