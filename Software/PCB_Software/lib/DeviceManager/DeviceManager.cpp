@@ -336,7 +336,7 @@ void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
     if (buzzerSampleCounter >= 125) {
         buzzerSampleCounter = 0; 
 
-        if (isLeadOff()) { 
+        if (isLeadOff() && !isTimeEnded()) { 
 
             if (!alarmTriggered || (millis() - lastAlarmTime >= 5000UL)) {
                 //Serial.println("[ALARM] Elektrody odpięte! Krótkie przypomnienie.");
@@ -489,11 +489,26 @@ bool DeviceManager::isTimeEnded()
 
 void DeviceManager::updateDisplay(uint32_t timeInMs, SemaphoreHandle_t sdMutex){
     if (currentDisplayState==DISPLAY_END){
+
+        static bool hasEndBeeped = false;
+
+        // --- PIKNIĘCIE NA ZAKOŃCZENIE BADANIA ---
+        if (!hasEndBeeped) {
+
+            for (int i = 0; i < 3; i++) {
+                BuzzerManager.setVolume(15);
+                BuzzerManager.playContinuous();
+                vTaskDelay(pdMS_TO_TICKS(200)); // Piknięcie przez 200 ms
+                BuzzerManager.stop();
+                vTaskDelay(pdMS_TO_TICKS(150)); // Przerwa ciszy 150 ms
+            }
+            hasEndBeeped = true; // Oznaczamy, że już raz zapikaliśmy i wyciszamy na zawsze
+        }
+
         //czekam na semafor od karty sd zeby moc uzyc wyswietlacza
         xSemaphoreTake(sdMutex, portMAX_DELAY);
         displayEndScreen();
         xSemaphoreGive(sdMutex);
-
     }
     else if (displayEnabled && !isTimeEnded()){
         uint16_t refreshTime = 200; //jesli warunek spelniony to ustawiam sobie refresh time na wyswietlacz
