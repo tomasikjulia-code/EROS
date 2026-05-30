@@ -313,6 +313,10 @@ function MainApp() {
   const isReceivingFileRef = useRef(false);
   const readyResolveRef = useRef(null);
   const transferResolveRef = useRef(null);
+  const previousFileSize = useRef(null);
+  const fileSize = useRef(null);
+  const toBeReceived = useRef(null);
+  const receivedFileSize = useRef(null);
 
   const fileBufferRef = useRef([]);
   const flushIntervalRef = useRef(null);
@@ -390,16 +394,13 @@ function MainApp() {
 
     requestNotificationPermissions();
   }, []);
-  
-  // useEffect(() => {
-  //   flushIntervalRef.current = setInterval(() => {
-  //     flushBuffer();
-  //   }, 500); // every 500ms
 
-  //   return () => {
-  //     clearInterval(flushIntervalRef.current);
-  //   };
-  // }, []);
+  // Zapisanie otrzymanej wielkości pliku
+  useEffect(() => {
+    AsyncStorage.getItem('fileSize').then(val => {
+      if (val) fileSize.current = parseInt(val, 10);
+    });
+  }, []);
 
   const showToast = (message, type = 'success', suppressVoice = false) => {
     if (toastTimeoutRef.current) {
@@ -420,11 +421,7 @@ function MainApp() {
       
       progressIntervalRef.current = setInterval(() => {
         setProgressPercent(prev => {
-          if (prev >= 90) {
-            clearInterval(progressIntervalRef.current);
-            return 90;
-          }
-          return prev + 1;
+            return Math.floor(Math.min(99, (receivedFileSize.current / (toBeReceived.current || 1)) * 100));
         });
       }, 130); 
     } else {
@@ -440,6 +437,7 @@ function MainApp() {
           if (finished) {
             setToastMessage(null);
             setProgressPercent(0);
+            receivedFileSize.current = 0;
           }
         });
       }, 3500);
@@ -510,7 +508,15 @@ function MainApp() {
       //console.log(trimmed);
       if (!trimmed) return;
 
-      if (trimmed === 'READY') {
+      if (trimmed.startsWith('READY')) {
+        const totalSize = parseInt(trimmed.split(' ')[1], 10);
+        previousFileSize.current = fileSize.current || 0;
+        toBeReceived.current = Math.max(0, totalSize - previousFileSize.current);
+        
+        fileSize.current = totalSize;
+        AsyncStorage.setItem('fileSize', String(totalSize)).catch(e =>
+          console.warn('Failed to persist fileSize:', e)
+        );
         readyResolveRef.current?.();
         readyResolveRef.current = null;
         return;
@@ -607,6 +613,7 @@ function MainApp() {
   };
 
   const getFileFromDevice = async () => {
+    receivedFileSize.current = 0;
     transferResolveRef.current=null;
     if (bleState !== 'connected') {
       showToast('Najpierw połącz urządzenie.', 'error');
@@ -645,7 +652,7 @@ function MainApp() {
         };
       });
 
-      sendData(deviceRef.current.address, `OK${lastSavedTS}`);
+      sendData(deviceRef.current.address, `OK ${lastSavedTS} ${previousFileSize.current}`);
       await transferComplete;
       await flushBuffer();
 
@@ -812,6 +819,7 @@ function MainApp() {
     fileWriteQueue.current = fileWriteQueue.current.then(async () => {
       try {
         await RNFS.appendFile(FILE_URI, dataToWrite, 'utf8');
+        receivedFileSize.current=receivedFileSize.current+dataToWrite.length;
         console.log('Flush success');
       } catch (error) {
         console.error('Flush failed:', error);
@@ -1008,6 +1016,8 @@ const deleteCurrentFile = async () => {
       const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
       if (fileInfo.exists) {
         await FileSystem.deleteAsync(FILE_URI);
+        fileSize.current = 0;
+        prevoiusFileSize.current = 0;
         setDeviceData(null); 
         setCurrentSessionId(null); 
         showToast("Plik badania został usunięty.", "info");
