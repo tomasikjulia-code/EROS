@@ -3,7 +3,7 @@
 **Low-Cost ECG Holter**
 
 ## System Overview
-EROS is an integrated, low-cost ambulatory electrocardiogram (ECG) monitoring system designed for continuous cardiac acquisition. The project encompasses a custom-designed hardware front-end, an embedded microcontroller executing a Real-Time Operating System (RTOS), a mobile application for data telemetry and visualization, and mechanical CAD designs for the device housing.
+Rythmio is an integrated, low-cost ambulatory electrocardiogram (ECG) monitoring system designed for continuous cardiac acquisition. The project encompasses a custom-designed hardware front-end, an embedded microcontroller executing a Real-Time Operating System (RTOS), a mobile application for data telemetry and visualization, and mechanical CAD designs for the device housing.
 
 ## Repository Structure
 
