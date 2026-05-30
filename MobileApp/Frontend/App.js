@@ -332,12 +332,12 @@ function MainApp() {
           setRecords(JSON.parse(savedRecords));
         }
 
-        const savedSessionId = await AsyncStorage.getItem('@eros_session_id');
+        const savedSessionId = await AsyncStorage.getItem('@rythmio_session_id');
         if (savedSessionId) setCurrentSessionId(savedSessionId);
 
         // Wczytywanie ustawień
-        const savedVoice = await AsyncStorage.getItem('@eros_voice');
-        const savedNotif = await AsyncStorage.getItem('@eros_notif');
+        const savedVoice = await AsyncStorage.getItem('@rythmio_voice');
+        const savedNotif = await AsyncStorage.getItem('@rythmio_notif');
         
         if (savedVoice !== null) setIsVoiceEnabled(savedVoice === 'true');
         if (savedNotif !== null) setIsNotifEnabled(savedNotif === 'true');
@@ -357,12 +357,12 @@ function MainApp() {
       try {
         await FileSystem.writeAsStringAsync(HISTORY_FILE_URI, JSON.stringify(records), { encoding: FileSystem.EncodingType.UTF8 });
         
-        if (currentSessionId) await AsyncStorage.setItem('@eros_session_id', currentSessionId);
-        else await AsyncStorage.removeItem('@eros_session_id'); 
+        if (currentSessionId) await AsyncStorage.setItem('@rythmio_session_id', currentSessionId);
+        else await AsyncStorage.removeItem('@rythmio_session_id'); 
 
         // Zapis ustawień
-        await AsyncStorage.setItem('@eros_voice', isVoiceEnabled.toString());
-        await AsyncStorage.setItem('@eros_notif', isNotifEnabled.toString());
+        await AsyncStorage.setItem('@rythmio_voice', isVoiceEnabled.toString());
+        await AsyncStorage.setItem('@rythmio_notif', isNotifEnabled.toString());
 
       } catch (e) {
         console.error('Błąd podczas zapisywania:', e);
@@ -467,13 +467,13 @@ function MainApp() {
       }
 
       const paired = await getPairedDevices();
-      const eros = paired.find(device => device.name === "EROS");
-      if (!eros) {
+      const rythmio = paired.find(device => device.name === "RYTHMIO");
+      if (!rythmio) {
         showToast("Nie znaleziono urządzenia. Sparuj je w ustawieniach telefonu.", "error");
         return;
       }
 
-      const device = await connectToDevice(eros.address);
+      const device = await connectToDevice(rythmio.address);
       if (!device) {
         showToast("Nie udało połączyć się z urządzeniem.", "error");
         return;
@@ -481,13 +481,13 @@ function MainApp() {
 
       deviceRef.current = device;
       setBleState('connected');
-      showToast('Nawiązano bezpieczne połączenie z EROS.');
+      showToast('Nawiązano bezpieczne połączenie z holterem.');
 
       setIsLiveEcgActive(false);
       setLastConnectedTime(new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }));
 
-      sendData(eros.address, "GET_STATE");
-      subscriptionRef.current = receiveData(eros.address, (rawData) => {
+      sendData(rythmio.address, "GET_STATE");
+      subscriptionRef.current = receiveData(rythmio.address, (rawData) => {
         handleIncomingData(rawData);
       });
 
@@ -544,7 +544,7 @@ function MainApp() {
       }
 
     } catch (e) {
-      console.warn('Failed to parse data from EROS:', rawData);
+      console.warn('Failed to parse data from RYTHMIO:', rawData);
     }
   }
 
@@ -618,7 +618,7 @@ function MainApp() {
     const lastSavedTS = await getLastTimestampFromFile();
     console.log("Last timestamp found in file:", lastSavedTS);
 
-    showToast('Pobieranie badania z Holtera...', 'loading');
+    showToast('Pobieranie badania z holtera...', 'loading');
 
     try {
 
@@ -746,8 +746,7 @@ function MainApp() {
           Notifications.scheduleNotificationAsync({
             content: {
               title: "Raport gotowy 🫀",
-              body: `Analiza EKG zakończona. Średnie tętno: ${stats.avgBpm} BPM. Zobacz szczegóły w raporcie.`,
-              smallIcon: 'assets/eros_logo.png',
+              body: `Analiza EKG zakończona. Średnie tętno: ${stats.avgBpm} BPM. Zobacz szczegóły w raporcie.`
             },
             trigger: null, // trigger: null oznacza wysłanie NATYCHMIAST
           });

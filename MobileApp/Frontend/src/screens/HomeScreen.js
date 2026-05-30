@@ -48,8 +48,8 @@ const HomeScreen = ({
             <HeartPulse color="#fff" size={24} />
           </View>
           <View>
-            <Text style={styles.logoText}>EROS</Text>
-            <Text style={styles.logoSubtext}>MOBILE SYNC</Text>
+            <Text style={styles.logoText}>RYTHMIO</Text>
+            <Text style={styles.logoSubtext}>Holter EKG</Text>
           </View>
         </View>
         <TouchableOpacity 
