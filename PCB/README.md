@@ -20,4 +20,4 @@ co oznacza że wewnątrz krzemu jest podciągnięcie i one jest bardzo słabe. j
 
 ## Schemat PCB
 
-<img src="images/pcb_schematic.png" alt="PCB schemati" width="600">
+<img src="images/pcb_schematic.png" alt="PCB schematic" width="600">
