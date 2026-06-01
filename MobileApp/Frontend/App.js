@@ -23,6 +23,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import * as Notifications from 'expo-notifications';
 
+import * as Print from 'expo-print';
+
 let Speech;
 try {
   Speech = require('expo-speech');
@@ -945,6 +947,102 @@ function MainApp() {
   setView('report');
 };
 
+  const loadMockReport = () => {
+    const record = createMockReportRecord();
+    setDeviceData(record);
+    setRecords(prev => [record, ...prev]);
+    setAiReport(null);
+    openReport(record);
+    showToast('Wczytano próbne dane i otwarto raport testowy.', 'success');
+  };
+
+  const handleGeneratePdfReport = async (eventComments = {}) => {
+    if (!activeReportRecord) {
+      showToast('Brak raportu do wygenerowania PDF.', 'error');
+      return;
+    }
+
+    const reportData = {
+      ...activeReportRecord,
+      summary: aiReport?.summary || `Raport EKG z dnia ${formatDate(activeReportRecord.date)}`,
+      findings: aiReport?.findings || [],
+      recommendation: aiReport?.recommendation || '',
+      snippets: aiReport?.snippets || [],
+      tachyDetails: activeReportRecord.tachyDetails || [],
+      bradyDetails: activeReportRecord.bradyDetails || [],
+      importantDetails: activeReportRecord.importantDetails || [],
+      eventComments: eventComments
+    };
+
+    await generatePdfReport(reportData);
+  };
+
+const createMockReportRecord = () => {
+  const now = new Date();
+
+  const generateEcgSample = (tick) => {
+    let value = Math.random() * 600 - 300;
+    const cycle = tick % 250;
+
+    if (cycle > 20 && cycle < 40) value += 1000 * Math.sin((cycle - 20) * Math.PI / 20);
+    else if (cycle === 50) value -= 2000;
+    else if (cycle === 53) value += 7800;
+    else if (cycle === 56) value -= 6500;
+    else if (cycle > 90 && cycle < 130) value += 2000 * Math.sin((cycle - 90) * Math.PI / 40);
+
+    if (tick % 1000 > 750) {
+      if (cycle === 50) value -= 3000;
+      else if (cycle === 55) value += 12000;
+      else if (cycle === 65) value -= 9000;
+      else if (cycle > 90 && cycle < 140) value -= 3000 * Math.sin((cycle - 90) * Math.PI / 50);
+    }
+
+    return Math.round(value);
+  };
+
+  const hourlyTrend = Array.from({ length: 120 }).map((_, index) => {
+    const timeMs = index * 120000;
+    const baseBpm = 70 + Math.round(12 * Math.sin(index / 12));
+    const bpm = Math.max(40, Math.min(150, baseBpm + Math.round(Math.random() * 16 - 8)));
+    const activity = Math.round(Math.random() * 10);
+    const ecgRaw = generateEcgSample(index * 7);
+    return {
+      time: `${Math.floor(timeMs / 60000)}:${String(Math.floor((timeMs % 60000) / 1000)).padStart(2, '0')}`,
+      bpm,
+      timeMs,
+      activity,
+      EKG_Raw: ecgRaw,
+      originalLine: `${timeMs},${ecgRaw},${bpm},0,${activity},0`
+    };
+  });
+
+  const stats = analyzeEcgTrend(hourlyTrend);
+  const mockRecord = {
+    id: `mock-${Date.now()}`,
+    date: now.toISOString(),
+    duration: "24:00:00",
+    totalBeats: hourlyTrend.length,
+    avgBpm: stats.avgBpm,
+    minBpm: stats.minBpm,
+    minBpmTime: formatMsToTime(stats.minBpmTimeMs),
+    minBpmTimeMs: stats.minBpmTimeMs,
+    maxBpm: stats.maxBpm,
+    maxBpmTime: formatMsToTime(stats.maxBpmTimeMs),
+    maxBpmTimeMs: stats.maxBpmTimeMs,
+    tachyEpisodes: stats.tachyEpisodes,
+    tachyDetails: stats.tachyDetails.length ? stats.tachyDetails : [{ start: 1800000, end: 1860000, maxBpm: 128 }],
+    bradyEpisodes: stats.bradyEpisodes,
+    bradyDetails: stats.bradyDetails.length ? stats.bradyDetails : [{ start: 7200000, end: 7260000, minBpm: 48 }],
+    importantDetails: stats.importantDetails.length ? stats.importantDetails : [{ start: 10800000, end: 10860000, maxBpm: 72 }],
+    arrhythmiaEvents: stats.arrhythmiaEvents,
+    veb: { total: 3, pairs: 0, runs: 0, burden: "< 0.1%" },
+    sveb: { total: 8, pairs: 0, runs: 0, burden: "< 0.1%" },
+    pauses: { count: 1, longest: "2.2s", longestTime: "03:15:10" },
+    hourlyTrend: hourlyTrend,
+  };
+  return mockRecord;
+};
+
   const buildNoiseCsvContent = (trendData) => {
     if (!trendData || trendData.length === 0) return '';
     
@@ -997,9 +1095,227 @@ const saveToDownloads = async (trendData) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
+function generateBpmTrendSvg(trend) {
+  if (!trend || trend.length < 2) return '';
+  const W = 700, H = 200, PL = 40, PR = 10, PT = 15, PB = 28;
+  const dW = W - PL - PR, dH = H - PT - PB;
+  const bpmV = trend.map(d => d.bpm);
+  const mn = Math.max(0, Math.floor((Math.min(...bpmV) - 5) / 10) * 10);
+  const mx = Math.ceil((Math.max(...bpmV) + 5) / 10) * 10;
+  const rng = mx - mn || 1;
+  const gX = i => PL + (i / (trend.length - 1)) * dW;
+  const gY = b => PT + dH - ((b - mn) / rng) * dH;
+  const pD = trend.map((d, i) => `${i === 0 ? 'M' : 'L'}${gX(i).toFixed(1)},${gY(d.bpm).toFixed(1)}`).join('');
+  const aD = `${pD}L${gX(trend.length - 1).toFixed(1)},${(PT + dH).toFixed(1)}L${PL.toFixed(1)},${(PT + dH).toFixed(1)}Z`;
+  const nY = 3;
+  const yL = Array.from({ length: nY }, (_, i) => ({ y: gY(mn + (rng / (nY - 1)) * i), l: Math.round(mn + (rng / (nY - 1)) * i) }));
+  const nX = Math.min(7, Math.max(3, Math.floor(trend.length / 15)));
+  const xL = Array.from({ length: nX }, (_, i) => { const idx = Math.floor(i * (trend.length - 1) / (nX - 1)); const s = Math.floor(trend[idx].timeMs / 1000); return { x: gX(idx), l: `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}` }; });
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6366f1" stop-opacity="0.15"/><stop offset="100%" stop-color="#6366f1" stop-opacity="0"/></linearGradient></defs>${yL.map(l => `<line x1="${PL}" y1="${l.y.toFixed(1)}" x2="${W - PR}" y2="${l.y.toFixed(1)}" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/><text x="${PL - 6}" y="${(l.y + 4).toFixed(1)}" fill="#666" font-size="10" text-anchor="end">${l.l}</text>`).join('')}${xL.map(l => `<text x="${l.x.toFixed(1)}" y="${H - 8}" fill="#666" font-size="9" text-anchor="middle">${l.l}</text>`).join('')}<path d="${aD}" fill="url(#bg)"/><path d="${pD}" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
+function generateActivityTrendSvg(trend) {
+  if (!trend || trend.length < 2) return '';
+  const W = 700, H = 150, PL = 40, PR = 10, PT = 10, PB = 25;
+  const dW = W - PL - PR, dH = H - PT - PB;
+  const maxA = 10;
+  const gX = i => PL + (i / (trend.length - 1)) * dW;
+  const gY = a => PT + dH - (Math.min(a || 0, maxA) / maxA) * dH;
+  const pD = trend.map((d, i) => `${i === 0 ? 'M' : 'L'}${gX(i).toFixed(1)},${gY(d.activity || 0).toFixed(1)}`).join('');
+  const aD = `${pD}L${gX(trend.length - 1).toFixed(1)},${(PT + dH).toFixed(1)}L${PL.toFixed(1)},${(PT + dH).toFixed(1)}Z`;
+  const nX = Math.min(7, Math.max(3, Math.floor(trend.length / 15)));
+  const xL = Array.from({ length: nX }, (_, i) => { const idx = Math.floor(i * (trend.length - 1) / (nX - 1)); const s = Math.floor(trend[idx].timeMs / 1000); return { x: gX(idx), l: `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}` }; });
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#34d399" stop-opacity="0.2"/><stop offset="100%" stop-color="#34d399" stop-opacity="0"/></linearGradient></defs><line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT + dH}" stroke="#e0e0e0" stroke-width="1"/><line x1="${PL}" y1="${(PT + dH / 2).toFixed(1)}" x2="${W - PR}" y2="${(PT + dH / 2).toFixed(1)}" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/><line x1="${PL}" y1="${PT + dH}" x2="${W - PR}" y2="${PT + dH}" stroke="#e0e0e0" stroke-width="1"/><text x="${PL - 6}" y="${PT + 4}" fill="#666" font-size="10" text-anchor="end">100%</text><text x="${PL - 6}" y="${(PT + dH / 2 + 4).toFixed(1)}" fill="#666" font-size="10" text-anchor="end">50%</text><text x="${PL - 6}" y="${PT + dH + 4}" fill="#666" font-size="10" text-anchor="end">0%</text>${xL.map(l => `<text x="${l.x.toFixed(1)}" y="${H - 8}" fill="#666" font-size="9" text-anchor="middle">${l.l}</text>`).join('')}<path d="${aD}" fill="url(#ag)"/><path d="${pD}" fill="none" stroke="#34d399" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
+function generateEcgStripSvg(data) {
+  if (!data || data.length < 2) return '';
+  const W = 600, H = 100, PL = 5, PR = 5, PT = 5, PB = 5;
+  const dW = W - PL - PR, dH = H - PT - PB;
+  const mn = Math.min(...data), mx = Math.max(...data), rng = (mx - mn) || 1;
+  const gX = i => PL + (i / (data.length - 1)) * dW;
+  const gY = v => PT + dH - ((v - mn) / rng) * dH;
+  const pD = data.map((v, i) => `${i === 0 ? 'M' : 'L'}${gX(i).toFixed(1)},${gY(v).toFixed(1)}`).join('');
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}"><rect x="0" y="0" width="${W}" height="${H}" fill="#f8f8f8" rx="4"/><path d="${pD}" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
+const generatePdfReport = async (reportData) => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  try {
+    if (!reportData) {
+      showToast('Brak danych do wygenerowania raportu PDF.', 'error');
+      return;
+    }
+
+    const tachyRows = (reportData.tachyDetails || []).slice(0, 10).map((d, i) => `
+      <tr>
+        <td>Epizod #${i + 1}</td>
+        <td>${formatMsToTime(d.start)}</td>
+        <td>${formatMsToTime(d.end)}</td>
+        <td>${Math.round((d.end - d.start) / 1000)}s</td>
+        <td>${d.maxBpm} BPM</td>
+      </tr>`).join('');
+
+    const bradyRows = (reportData.bradyDetails || []).slice(0, 10).map((d, i) => `
+      <tr>
+        <td>Epizod #${i + 1}</td>
+        <td>${formatMsToTime(d.start)}</td>
+        <td>${formatMsToTime(d.end)}</td>
+        <td>${Math.round((d.end - d.start) / 1000)}s</td>
+        <td>${d.minBpm} BPM</td>
+      </tr>`).join('');
+
+    const importantRows = (reportData.importantDetails || []).map((d, i) => `
+      <tr>
+        <td>Zdarzenie #${i + 1}</td>
+        <td>${formatMsToTime(d.start)}</td>
+        <td>${formatMsToTime(d.end)}</td>
+        <td>${Math.round((d.end - d.start) / 1000)}s</td>
+        <td>${d.maxBpm || '--'} BPM</td>
+      </tr>`).join('');
+
+    const findingsHtml = (reportData.findings || [])
+      .map(f => `<li>${f}</li>`).join('');
+
+    const bpmChartSvg = generateBpmTrendSvg(reportData.hourlyTrend);
+    const activityChartSvg = generateActivityTrendSvg(reportData.hourlyTrend);
+
+    const eventComments = reportData.eventComments || {};
+    const snippetsHtml = (reportData.snippets || []).map((s, i) => {
+      const ecgSvg = generateEcgStripSvg(s.data);
+      if (!ecgSvg) return '';
+      const comment = eventComments[i];
+      return `
+        <div style="margin: 12px 0; padding: 8px; border: 1px solid #e0e0e0; border-radius: 6px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-weight: bold; font-size: 12px; color: #333;">${s.title}</span>
+            <span style="font-size: 11px; color: #666;">${s.time || ''} &mdash; HR: ${s.hr || '--'} bpm</span>
+          </div>
+          ${ecgSvg}
+          ${comment ? `
+          <div style="margin-top: 6px; padding: 6px 10px; background: #f5f5ff; border-left: 3px solid #818cf8; border-radius: 4px;">
+            <span style="font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase;">Komentarz pacjenta:</span>
+            <p style="margin: 2px 0 0; font-size: 11px; color: #444;">${comment}</p>
+          </div>` : ''}
+        </div>`;
+    }).join('');
+
+    const html = `
+      <html>
+      <head>
+        <meta charset="utf-8"/>
+        <style>
+          @page { margin: 40px 24px; }
+          body { font-family: Helvetica, Arial, sans-serif; color: #222; padding: 0 24px; font-size: 13px; }
+          h1 { text-align: center; font-size: 22px; margin-bottom: 4px; }
+          h2 { font-size: 15px; margin-top: 20px; margin-bottom: 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+          .subtitle { text-align: center; color: #777; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
+          th { background: #f0f0f0; text-align: left; padding: 5px 8px; }
+          td { padding: 4px 8px; border-bottom: 1px solid #eee; }
+          .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; margin-top: 6px; }
+          .stat { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #f0f0f0; }
+          .stat-label { color: #666; }
+          .stat-value { font-weight: bold; }
+          .chart-caption { font-size: 11px; color: #888; text-align: center; margin-top: 2px; margin-bottom: 10px; }
+          .recommendation { background: #f9f9f9; border-left: 3px solid #818cf8; padding: 10px 14px; margin-top: 6px; font-size: 12px; color: #444; }
+          .footer { text-align: center; color: #aaa; font-size: 10px; margin-top: 30px; }
+          .page-start { page-break-before: always; }
+          .keep-together { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        <h1>RAPORT EKG</h1>
+        <p class="subtitle">Data badania: ${reportData.date || '--'}</p>
+
+        <h2>Podsumowanie</h2>
+        <p>${reportData.summary || ''}</p>
+
+        <h2>Statystyki</h2>
+        <div class="stats-grid">
+          <div class="stat"><span class="stat-label">Czas badania:</span><span class="stat-value">${reportData.duration || '--'}</span></div>
+          <div class="stat"><span class="stat-label">Liczba QRS:</span><span class="stat-value">${(reportData.totalBeats || 0).toLocaleString()}</span></div>
+          <div class="stat"><span class="stat-label">Średnie tętno:</span><span class="stat-value">${reportData.avgBpm || 0} BPM</span></div>
+          <div class="stat"><span class="stat-label">Min tętno:</span><span class="stat-value">${reportData.minBpm || 0} BPM</span></div>
+          <div class="stat"><span class="stat-label">Max tętno:</span><span class="stat-value">${reportData.maxBpm || 0} BPM</span></div>
+          <div class="stat"><span class="stat-label">Epizody tachykardii:</span><span class="stat-value">${reportData.tachyEpisodes || 0}</span></div>
+          <div class="stat"><span class="stat-label">Epizody bradykardii:</span><span class="stat-value">${reportData.bradyEpisodes || 0}</span></div>
+          <div class="stat"><span class="stat-label">Ważne zdarzenia:</span><span class="stat-value">${reportData.importantDetails?.length || 0}</span></div>
+        </div>
+
+        ${bpmChartSvg ? `
+        <h2>Trend tętna</h2>
+        ${bpmChartSvg}
+        <div class="chart-caption">Tętno (BPM) w czasie badania</div>` : ''}
+
+        ${activityChartSvg ? `
+        <h2>Trend aktywności</h2>
+        ${activityChartSvg}
+        <div class="chart-caption">Poziom aktywności pacjenta</div>` : ''}
+
+        ${tachyRows ? `
+        <h2>Epizody Tachykardii</h2>
+        <table><thead><tr><th>#</th><th>Start</th><th>Koniec</th><th>Czas trwania</th><th>Max BPM</th></tr></thead>
+        <tbody>${tachyRows}</tbody></table>` : ''}
+
+        ${bradyRows ? `
+        <h2>Epizody Bradykardii</h2>
+        <table><thead><tr><th>#</th><th>Start</th><th>Koniec</th><th>Czas trwania</th><th>Min BPM</th></tr></thead>
+        <tbody>${bradyRows}</tbody></table>` : ''}
+
+        ${importantRows ? `
+        <div class="page-start keep-together">
+        <h2>Ważne Zdarzenia Pacjenta</h2>
+        <table><thead><tr><th>#</th><th>Start</th><th>Koniec</th><th>Czas trwania</th><th>BPM</th></tr></thead>
+        <tbody>${importantRows}</tbody></table>
+        </div>` : ''}
+
+        ${snippetsHtml ? `
+        <h2>Wycinki EKG</h2>
+        ${snippetsHtml}` : ''}
+
+        ${findingsHtml ? `
+        <div class="keep-together">
+        <h2>Wnioski</h2>
+        <ul>${findingsHtml}</ul>
+        </div>` : ''}
+
+        ${reportData.recommendation ? `
+        <div class="keep-together">
+        <h2>Zalecenia</h2>
+        <div class="recommendation">${reportData.recommendation}</div>
+        </div>` : ''}
+
+        <p class="footer">Wygenerowano przez Rythmio &bull; Raport ma charakter informacyjny i nie zastępuje diagnozy lekarskiej.</p>
+      </body>
+      </html>
+    `;
+
+    const { uri } = await Print.printToFileAsync({ html });
+
+    const isAvailable = await Sharing.isAvailableAsync();
+    if (!isAvailable) {
+      showToast('Udostępnianie niedostępne na tym urządzeniu.', 'error');
+      return;
+    }
+
+    await Sharing.shareAsync(uri, {
+      mimeType: 'application/pdf',
+      dialogTitle: 'Zapisz raport EKG w formacie PDF',
+      UTI: 'com.adobe.pdf',
+    });
+
+    await FileSystem.deleteAsync(uri, { idempotent: true });
+
+  } catch (error) {
+    console.error('Błąd generowania PDF:', error);
+    showToast('Nie udało się wygenerować pliku PDF.', 'error');
+  }
+};
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
 
 const deleteRecordFromHistory = (id) => {
   setRecords(prev => prev.filter(record => record.id !== id));
@@ -1057,6 +1373,7 @@ const deleteCurrentFile = async () => {
             openReport={openReport}
             formatDate={formatDate}
             deleteCurrentFile={deleteCurrentFile}
+            loadMockReport={loadMockReport}
           />
         )}
         {view === 'history' && (
@@ -1071,8 +1388,7 @@ const deleteCurrentFile = async () => {
           <ReportScreen
             activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
             aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
-            showToast={showToast} saveToDownloads={saveToDownloads} 
-
+            showToast={showToast} saveToDownloads={saveToDownloads} generatePdfReport={handleGeneratePdfReport}
             formatSDCard={formatSDCard} bleState={bleState}
           />
         )}
