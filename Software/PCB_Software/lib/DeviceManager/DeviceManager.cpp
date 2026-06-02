@@ -105,7 +105,7 @@ void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
         //inicjalizacja Bluetooth
         //czekamy jakis tam czas i sprawdzamy czy ktos sie polaczy do naszego holtera a jesli enabled juz jest wlaczony to nie wlaczaj
         if(!btStarted){
-            SerialBT.begin("EROS");
+            SerialBT.begin("RYTHMIO");
             btStarted = true;
         }
 
