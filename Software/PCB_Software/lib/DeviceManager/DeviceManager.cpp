@@ -105,7 +105,7 @@ void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
         //inicjalizacja Bluetooth
         //czekamy jakis tam czas i sprawdzamy czy ktos sie polaczy do naszego holtera a jesli enabled juz jest wlaczony to nie wlaczaj
         if(!btStarted){
-            SerialBT.begin("EROS");
+            SerialBT.begin("RYTHMIO");
             btStarted = true;
         }
 
@@ -156,7 +156,14 @@ void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
                 BTSendingFile(sdMutex);
             } else if(response == "GET_STATE") {
                 BTSendingState();
-            } else {
+            } else if(response == "REMOVE_FILE") {
+
+                if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
+                    holter.begin("/test_ekg.csv");
+                    setStartTime();
+                    xSemaphoreGive(sdMutex);
+                }
+            }else{
                 //tutaj moze w przyszlosci obsluga w przypadku nieznanej komendy
                 Serial.println("nieznana komenda: " + response);
             }
@@ -167,9 +174,17 @@ void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
 void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
     if (!SerialBT.hasClient()) return;
 
-    // Handshake bez muteksu
-    SerialBT.println("READY");  
-    Serial.println("[BT] Wysłano READY, czekam na OK...");
+    uint32_t fileSize = 0;
+    // Handshake bez muteksu wysylamy rozmiar pliku razem z READY do wizualizacja paska ladowania w aplikacji mobilnej
+    if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
+        fileSize = holter.getFileSize();
+        xSemaphoreGive(sdMutex);
+    }
+
+        SerialBT.print("READY ");
+        SerialBT.println(fileSize);
+
+    Serial.printf("[BT] Wysłano READY %lu, czekam na OK...", fileSize);
 
     unsigned long waitStart = millis();
     while (!SerialBT.available()) {
@@ -183,66 +198,57 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
     String response = SerialBT.readStringUntil('\n');
     response.trim();
 
-    uint32_t lastSampleReceived = 0;
-    if (response.startsWith("OK")) {
-        lastSampleReceived = response.substring(2).toInt();
-        Serial.printf("[BT] Start od próbki: %d\n", lastSampleReceived);
-    } else {
-        Serial.println("[BT] Niepoprawna odpowiedź, przerywam.");
-        return;
-    }
+    //szukamy komunikatu OK oraz pobieramy z niego dlugosc pliku jakim aktualnie dysponuje aplikacja
+    int32_t fileSizeReceived = 0;
 
-    // dostep do kart SD przez muteks
-    if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
-        File file = SD.open("/test_ekg.csv");
-        if (!file) {
-            xSemaphoreGive(sdMutex);
+    if (response.startsWith("OK ")) { // Sprawdzamy czy zaczyna się od "OK "
+        // Szukamy pozycji ostatniej spacji, która oddziela timestamp od rozmiaru
+        int lastSpaceIndex = response.lastIndexOf(' ');
+
+        if (lastSpaceIndex != -1) {
+            // Wycinamy tekst od znaku po spacji do samego końca
+            String sizeStr = response.substring(lastSpaceIndex + 1);
+            fileSizeReceived = sizeStr.toInt(); // Konwersja na liczbę
+
+            Serial.printf("[BT] Odebrany rozmiar pliku z aplikacji: %lu bajtów\n", fileSizeReceived);
+        } else {
+            Serial.println("[BT] Błąd formatu wiadomości (brak drugiej spacji).");
             return;
         }
 
-        //Szybkie przewijanie do odpowiedniej linii 
-        uint32_t targetLine = lastSampleReceived / 4;
-        uint32_t currentLine = 0;
-
-        if (targetLine > 0) {
-            Serial.printf("[BT] Przeskakuje do linii: %d\n", targetLine);
-
-            while (file.available() && currentLine < targetLine) {
-                if (file.read() == '\n') {
-                    currentLine++;
-                    
-                    // Resetowanie licznika Watchdoga co 600 przeczytanych linii
-                    //UWAGA JESLI PLIK BEDZIE DUZY TO TRZEBA ALBO ZWIEKSZYC TIMEOUT W APLIKACJI 
-                    //ALBO TUTAJ ZWIEKSZYL LICZBE LINII PO KTOREJ JEST DELAY DLA PROCESORA
-                    if (currentLine % 600 == 0) {
-
-                        xSemaphoreGive(sdMutex); // Oddajemy muteks, żeby inne zadania mogły działać
-                        vTaskDelay(pdMS_TO_TICKS(2)); 
-                        xSemaphoreTake(sdMutex, portMAX_DELAY); // Bierzemy muteks z powrotem, żeby kontynuować wysyłanie
-                    }
-                }
+        // dostep do kart SD przez muteks
+        if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
+            File fileToSend = SD.open("/test_ekg.csv");
+            if (!fileToSend) {
+                xSemaphoreGive(sdMutex);
+                return;
             }
-        }
 
-        //Wysyłanie w porcjach 
-        const size_t bufferSize = 512;
-        uint8_t buffer[bufferSize];
-        
-        while (file.available() && SerialBT.hasClient()) {
-            size_t bytesRead = file.read(buffer, bufferSize);
+            //przed wyslaniem danych robimy gigantyczny skok o wartosc podana przez aplikacje
+            fileToSend.seek(fileSizeReceived); // Ustawiamy wskaźnik na pozycję, od której zaczniemy wysyłać dane
+
+            //Wysyłanie w porcjach 
+            const size_t bufferSize = 512;
+            uint8_t buffer[bufferSize];
             
-            SerialBT.write(buffer, bytesRead);
+            while (fileToSend.available() && SerialBT.hasClient()) {
+                size_t bytesRead = fileToSend.read(buffer, bufferSize);
+                
+                SerialBT.write(buffer, bytesRead);
 
-            xSemaphoreGive(sdMutex); // Oddajemy muteks, żeby inne zadania mogły działać
-            vTaskDelay(pdMS_TO_TICKS(2)); 
-            xSemaphoreTake(sdMutex, portMAX_DELAY); // Bierzemy muteks z powrotem, żeby kontynuować wysyłanie
+                xSemaphoreGive(sdMutex); // Oddajemy muteks, żeby inne zadania mogły działać
+                vTaskDelay(pdMS_TO_TICKS(2)); 
+                xSemaphoreTake(sdMutex, portMAX_DELAY); // Bierzemy muteks z powrotem, żeby kontynuować wysyłanie
+            }
+
+            fileToSend.close();
+            xSemaphoreGive(sdMutex); // Oddajemy dostęp do karty SD
         }
 
-        file.close();
-        xSemaphoreGive(sdMutex); // Oddajemy dostęp do karty SD
+        SerialBT.println("S"); // Koniec transmisji
+    }else {
+        Serial.println("[BT] Otrzymano niepoprawną odpowiedź (nie zaczyna się od OK).");
     }
-
-    SerialBT.println("S"); // Koniec transmisji
 }
 
 
@@ -302,7 +308,11 @@ void DeviceManager::waitingForSDcard(){
 
     Serial.println("Initializing SD card.");
 
-    do {
+    SDcardEnabled = SD.begin(SD_CS_PIN, vspi, 4000000);
+    delay(100);
+    fileSystemEnabled = holter.begin("/test_ekg.csv");
+    delay(100);
+    while(!SDcardEnabled || !fileSystemEnabled){
 
         SDcardEnabled = SD.begin(SD_CS_PIN, vspi, 4000000);
         delay(100);
@@ -326,7 +336,8 @@ void DeviceManager::waitingForSDcard(){
         Serial.println("File opened, press middle button to stop. Writing data...");
         
         clearDisplay();
-    }while(!SDcardEnabled || !fileSystemEnabled);
+    }
+
 }
 
 void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
