@@ -55,8 +55,8 @@ bool processHeartRate() {
     float centered = (float)rawValue - slowAverage;
     filteredValue = (ALPHA * centered) + ((1.0f - ALPHA) * filteredValue);
 
-    Serial.print(">FiltredValue:");
-    Serial.println(getFilteredValue());
+    //Serial.print(">FiltredValue:");
+    //Serial.println(getFilteredValue());
 
     float derivative = filteredValue - lastValue;
     lastValue = filteredValue;

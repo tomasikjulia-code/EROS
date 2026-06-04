@@ -23,6 +23,8 @@ public:
     void closeFile();
     bool isRecording() { return _recording; }
     void writeBuffer(const Sample* samples, size_t count);
+
+    uint32_t getFileSize() const;
     
 private:
     File _file;

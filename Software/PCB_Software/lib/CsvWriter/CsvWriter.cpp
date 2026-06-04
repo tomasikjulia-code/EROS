@@ -67,6 +67,10 @@ void CsvWriter::writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool l
         syncCounter = 0;
     }
 }
+uint32_t CsvWriter::getFileSize() const {
+    if (!_recording) return 0;
+    return _file.size();
+}
 
 void CsvWriter::closeFile() {
     if (!_recording) return;
