@@ -314,6 +314,7 @@ function MainApp() {
 
   const isReceivingFileRef = useRef(false);
   const readyResolveRef = useRef(null);
+  const readyRejectRef = useRef(null);
   const transferResolveRef = useRef(null);
   const previousFileSize = useRef(null);
   const fileSize = useRef(null);
@@ -524,6 +525,15 @@ function MainApp() {
         return;
       }
 
+      if (trimmed.startsWith('SIZE')) {
+        showToast('Plik na urządzeniu jest mniejszy niż lokalny. Usuń lokalny plik przed nowym transferem.', 'error');
+        isReceivingFileRef.current = false;
+        readyRejectRef.current?.('SIZE_MISMATCH');
+        readyRejectRef.current = null;
+        readyResolveRef.current = null;
+        return;
+      }
+
       if (trimmed.startsWith('E')) {
         const sample = parseEcgPacket(trimmed);
         ecgBuffer.pushData(sample);
@@ -636,6 +646,10 @@ function MainApp() {
         readyResolveRef.current = () => {
           clearTimeout(timeout);
           resolve();
+        };
+        readyRejectRef.current = (reason) => {
+          clearTimeout(timeout);
+          reject(new Error(reason));
         };
       });
 
