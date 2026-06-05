@@ -21,6 +21,7 @@ const ReportScreen = ({
   setDoctorEmail, 
   showToast,
   saveToDownloads,
+  generatePdfReport,
   formatSDCard, 
   bleState      
 }) => {
@@ -410,7 +411,10 @@ const ReportScreen = ({
             </TouchableOpacity>
             
             <TouchableOpacity 
-              onPress={() => showToast("Zapisywanie pliku PDF...", "info")} 
+              onPress={() => {
+                showToast("Zapisywanie pliku PDF...", "info");
+                generatePdfReport(eventComments);
+              }} 
               style={{
                 flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
                 paddingVertical: 14, borderRadius: 12, gap: 8, borderWidth: 1,

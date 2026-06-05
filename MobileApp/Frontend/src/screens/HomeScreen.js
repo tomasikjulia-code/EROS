@@ -25,7 +25,8 @@ const HomeScreen = ({
   isLiveEcgActive,
   getFileFromDevice, 
   lastConnectedTime,
-  deleteCurrentFile
+  deleteCurrentFile,
+  loadMockReport
 }) => {
 
   const confirmDelete = () => {
@@ -164,6 +165,29 @@ const HomeScreen = ({
             fontSize: 12, fontWeight: '800', marginLeft: 8, letterSpacing: 0.5
           }}>
             POBIERZ BADANIE 
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+        <TouchableOpacity 
+          onPress={loadMockReport}
+          style={{
+            flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+            padding: 16, borderRadius: 16, borderWidth: 1,
+            backgroundColor: 'rgba(129, 140, 248, 0.12)',
+            borderColor: '#818cf8'
+          }}
+        >
+          <Database size={18} color="#818cf8" />
+          <Text style={{
+            color: '#818cf8',
+            fontSize: 12,
+            fontWeight: '800',
+            marginLeft: 8,
+            letterSpacing: 0.5
+          }}>
+            GENERUJ PRÓBNY RAPORT
           </Text>
         </TouchableOpacity>
       </View>
