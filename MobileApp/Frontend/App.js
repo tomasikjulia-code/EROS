@@ -1347,7 +1347,7 @@ const deleteCurrentFile = async () => {
       if (fileInfo.exists) {
         await FileSystem.deleteAsync(FILE_URI);
         fileSize.current = 0;
-        prevoiusFileSize.current = 0;
+        previousFileSize.current = 0;
         setDeviceData(null); 
         setCurrentSessionId(null); 
         showToast("Plik badania został usunięty.", "info");

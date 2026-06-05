@@ -1,4 +1,5 @@
 #include "DeviceManager.h"
+#include <esp_task_wdt.h>
 
 DeviceManager::DeviceManager(){
 
@@ -77,21 +78,22 @@ void DeviceManager::chooseTestTime(){
     displayFirstScreen(EKGTestTime);
 
     unsigned long lastTimeChangeMillis = 0; 
-    bool needsDisplayUpdate = false;        
+    // bool needsDisplayUpdate = false;        
 
     while(!testTimeChosen){
         checkTestTimeButtons();
         
         if(EKGTestTime != lastDisplayedTime){
             lastTimeChangeMillis = millis(); 
-            needsDisplayUpdate = true;       
+            updateTimeChoice(EKGTestTime);  
+            // needsDisplayUpdate = true;       
             lastDisplayedTime = EKGTestTime;
         }
         
-        if(needsDisplayUpdate && (millis() - lastTimeChangeMillis > 1100)){
-            updateTimeChoice(EKGTestTime);   
-            needsDisplayUpdate = false;      
-        }
+        // if(needsDisplayUpdate && (millis() - lastTimeChangeMillis > 1100)){
+        //     updateTimeChoice(EKGTestTime);   
+        //     needsDisplayUpdate = false;      
+        // }
         
         delay(10); 
     }
@@ -210,6 +212,12 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             String sizeStr = response.substring(lastSpaceIndex + 1);
             fileSizeReceived = sizeStr.toInt(); // Konwersja na liczbę
 
+            if(fileSizeReceived > fileSize){
+                Serial.println("Plik w aplikacji ma większy rozmiar!\n");
+                SerialBT.println("SIZE");
+                return;
+            }
+
             Serial.printf("[BT] Odebrany rozmiar pliku z aplikacji: %lu bajtów\n", fileSizeReceived);
         } else {
             Serial.println("[BT] Błąd formatu wiadomości (brak drugiej spacji).");
@@ -234,11 +242,19 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             while (fileToSend.available() && SerialBT.hasClient()) {
                 size_t bytesRead = fileToSend.read(buffer, bufferSize);
                 
-                SerialBT.write(buffer, bytesRead);
+                esp_task_wdt_reset();
 
-                xSemaphoreGive(sdMutex); // Oddajemy muteks, żeby inne zadania mogły działać
-                vTaskDelay(pdMS_TO_TICKS(2)); 
-                xSemaphoreTake(sdMutex, portMAX_DELAY); // Bierzemy muteks z powrotem, żeby kontynuować wysyłanie
+                size_t written = 0;
+                while (written < bytesRead && SerialBT.hasClient()) {
+                    size_t ret = SerialBT.write(buffer + written, bytesRead - written);
+                    if (ret > 0) written += ret;
+                    esp_task_wdt_reset();
+                    vTaskDelay(pdMS_TO_TICKS(1));
+                }
+
+                xSemaphoreGive(sdMutex);
+                vTaskDelay(pdMS_TO_TICKS(5)); 
+                xSemaphoreTake(sdMutex, portMAX_DELAY);
             }
 
             fileToSend.close();
@@ -688,6 +704,9 @@ void DeviceManager::checkTestTimeButtons()
         }
         else if (upTriggered && (millis() - upPressStart > currentRepeatRate))
         {
+            if(holdCounter>=5){
+                EKGTestTime++;
+            }
             EKGTestTime++;
             upPressStart = millis(); 
             holdCounter++; 
@@ -724,7 +743,8 @@ void DeviceManager::checkTestTimeButtons()
             holdCounter++; 
             if (EKGTestTime > 0) 
             {
-                EKGTestTime--;
+                if(holdCounter>=5)  EKGTestTime--;
+                if(EKGTestTime > 0) EKGTestTime--;
                 Serial.printf("Zmniejszono: %d h \n", EKGTestTime);
             }
         }

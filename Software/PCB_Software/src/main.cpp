@@ -95,8 +95,8 @@ void setup()
 
 
     xTaskCreatePinnedToCore(measureTask, "Measure Task", 4096, NULL, 2, &measureTaskHandle, 1);
-    xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 8192, NULL, 2, &sdWriteTaskHandle, 0);
-    xTaskCreatePinnedToCore(btTask, "BT Task", 8192, NULL, 1, &btTaskHandle, 0);
+    xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 10240, NULL, 2, &sdWriteTaskHandle, 0);
+    xTaskCreatePinnedToCore(btTask, "BT Task", 10240, NULL, 1, &btTaskHandle, 0);
     xTaskCreatePinnedToCore(displayTask, "Display Task", 8192, NULL, 1, &displayTaskHandle, 0);
     xTaskCreatePinnedToCore(accelTask, "Accel Task", 4096, NULL, 1, &accelTaskHandle, 0);
 
