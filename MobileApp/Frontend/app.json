@@ -23,7 +23,8 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.rythmio.app"
+      "package": "com.rythmio.app",
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/logo.png"
@@ -47,6 +48,14 @@
         {
           "icon": "./assets/rythmio_logo.png",
           "color": "#FFFFFF"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
     ]
