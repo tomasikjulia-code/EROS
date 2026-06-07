@@ -8,6 +8,8 @@ TaskHandle_t displayTaskHandle;
 TaskHandle_t accelTaskHandle;
 TaskHandle_t sdWriteTaskHandle; 
 
+QueueHandle_t sdWriteQueue;
+
 //uchwyty na mutexy
 SemaphoreHandle_t displayMutex;
 SemaphoreHandle_t btMutex;
@@ -27,22 +29,35 @@ void measureTask(void *parameter)
     while (true)
     {
         vTaskDelayUntil(&xLastWakeTime, xFrequency); 
-        HolterDevice.collectAndBufferSample(sdWriteTaskHandle);
+        HolterDevice.collectAndBufferSample();
     }
 }
 
-void sdWriteTask(void *parameter)
-{
-    while (true)
-    {
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        if (xSemaphoreTake(sdMutex, portMAX_DELAY))
-        {
-            HolterDevice.writeBufferToSD();
-            xSemaphoreGive(sdMutex);
+// void sdWriteTask(void *parameter)
+// {
+//     while (true)
+//     {
+//         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+//         if (xSemaphoreTake(sdMutex, portMAX_DELAY))
+//         {
+//             HolterDevice.writeBufferToSD();
+//             xSemaphoreGive(sdMutex);
+//         }
+//     }
+// }
+
+void sdWriteTask(void *parameter) {
+    Sample* bufferToWrite = nullptr;
+    while (true) {
+        if (xQueueReceive(sdWriteQueue, &bufferToWrite, portMAX_DELAY)) {
+            if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
+                HolterDevice.writeBufferToSD(bufferToWrite);
+                xSemaphoreGive(sdMutex);
+            }
         }
     }
 }
+
 void btTask(void *parameter)
 {
     while (true)
@@ -86,6 +101,9 @@ void setup()
     btMutex = xSemaphoreCreateMutex();
     sdMutex = xSemaphoreCreateMutex();
     accMutex = xSemaphoreCreateMutex();
+
+    sdWriteQueue = xQueueCreate(4, sizeof(Sample*));
+    HolterDevice.setWriteQueue(sdWriteQueue);
     
     HolterDevice.chooseTestTime();
     
@@ -96,7 +114,7 @@ void setup()
 
     xTaskCreatePinnedToCore(measureTask, "Measure Task", 4096, NULL, 2, &measureTaskHandle, 1);
     xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 10240, NULL, 2, &sdWriteTaskHandle, 0);
-    xTaskCreatePinnedToCore(btTask, "BT Task", 10240, NULL, 1, &btTaskHandle, 0);
+    xTaskCreatePinnedToCore(btTask, "BT Task", 16384, NULL, 1, &btTaskHandle, 0);
     xTaskCreatePinnedToCore(displayTask, "Display Task", 8192, NULL, 1, &displayTaskHandle, 0);
     xTaskCreatePinnedToCore(accelTask, "Accel Task", 4096, NULL, 1, &accelTaskHandle, 0);
 
