@@ -1,4 +1,5 @@
 #include "DeviceManager.h"
+#include <esp_task_wdt.h>
 
 DeviceManager::DeviceManager(){
 
@@ -77,20 +78,15 @@ void DeviceManager::chooseTestTime(){
     displayFirstScreen(EKGTestTime);
 
     unsigned long lastTimeChangeMillis = 0; 
-    bool needsDisplayUpdate = false;        
+    // bool needsDisplayUpdate = false;        
 
     while(!testTimeChosen){
         checkTestTimeButtons();
         
         if(EKGTestTime != lastDisplayedTime){
             lastTimeChangeMillis = millis(); 
-            needsDisplayUpdate = true;       
+            updateTimeChoice(EKGTestTime);  
             lastDisplayedTime = EKGTestTime;
-        }
-        
-        if(needsDisplayUpdate && (millis() - lastTimeChangeMillis > 1100)){
-            updateTimeChoice(EKGTestTime);   
-            needsDisplayUpdate = false;      
         }
         
         delay(10); 
@@ -210,6 +206,12 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             String sizeStr = response.substring(lastSpaceIndex + 1);
             fileSizeReceived = sizeStr.toInt(); // Konwersja na liczbę
 
+            if(fileSizeReceived > fileSize){
+                Serial.println("Plik w aplikacji ma większy rozmiar!\n");
+                SerialBT.println("SIZE");
+                return;
+            }
+
             Serial.printf("[BT] Odebrany rozmiar pliku z aplikacji: %lu bajtów\n", fileSizeReceived);
         } else {
             Serial.println("[BT] Błąd formatu wiadomości (brak drugiej spacji).");
@@ -218,30 +220,46 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
 
         // dostep do kart SD przez muteks
         if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
-            File fileToSend = SD.open("/test_ekg.csv");
-            if (!fileToSend) {
+            
+            _fileToSend = SD.open("/test_ekg.csv");
+            if (!_fileToSend) {
                 xSemaphoreGive(sdMutex);
                 return;
             }
 
             //przed wyslaniem danych robimy gigantyczny skok o wartosc podana przez aplikacje
-            fileToSend.seek(fileSizeReceived); // Ustawiamy wskaźnik na pozycję, od której zaczniemy wysyłać dane
+            _fileToSend.seek(fileSizeReceived); // Ustawiamy wskaźnik na pozycję, od której zaczniemy wysyłać dane
 
             //Wysyłanie w porcjach 
             const size_t bufferSize = 512;
             uint8_t buffer[bufferSize];
             
-            while (fileToSend.available() && SerialBT.hasClient()) {
-                size_t bytesRead = fileToSend.read(buffer, bufferSize);
-                
-                SerialBT.write(buffer, bytesRead);
+            while (_fileToSend.available() && SerialBT.hasClient()) {
+                while (esp_get_free_heap_size() < 8000) {
+                    //Serial.printf("[BT] Low heap (%lu), waiting...\n", esp_get_free_heap_size());
+                    xSemaphoreGive(sdMutex);
+                    vTaskDelay(pdMS_TO_TICKS(20));
+                    xSemaphoreTake(sdMutex, portMAX_DELAY);
+                    continue;
+                }
 
-                xSemaphoreGive(sdMutex); // Oddajemy muteks, żeby inne zadania mogły działać
-                vTaskDelay(pdMS_TO_TICKS(2)); 
-                xSemaphoreTake(sdMutex, portMAX_DELAY); // Bierzemy muteks z powrotem, żeby kontynuować wysyłanie
+                size_t bytesRead = _fileToSend.read(buffer, bufferSize);
+                esp_task_wdt_reset();
+
+                size_t written = 0;
+                while (written < bytesRead && SerialBT.hasClient()) {
+                    size_t ret = SerialBT.write(buffer + written, bytesRead - written);
+                    if (ret > 0) written += ret;
+                    esp_task_wdt_reset();
+                    vTaskDelay(pdMS_TO_TICKS(1));
+                }
+
+                xSemaphoreGive(sdMutex);
+                vTaskDelay(pdMS_TO_TICKS(5)); 
+                xSemaphoreTake(sdMutex, portMAX_DELAY);
             }
 
-            fileToSend.close();
+            _fileToSend.close();
             xSemaphoreGive(sdMutex); // Oddajemy dostęp do karty SD
         }
 
@@ -688,6 +706,9 @@ void DeviceManager::checkTestTimeButtons()
         }
         else if (upTriggered && (millis() - upPressStart > currentRepeatRate))
         {
+            if(holdCounter>=5){
+                EKGTestTime++;
+            }
             EKGTestTime++;
             upPressStart = millis(); 
             holdCounter++; 
@@ -724,7 +745,8 @@ void DeviceManager::checkTestTimeButtons()
             holdCounter++; 
             if (EKGTestTime > 0) 
             {
-                EKGTestTime--;
+                if(holdCounter>=5)  EKGTestTime--;
+                if(EKGTestTime > 0) EKGTestTime--;
                 Serial.printf("Zmniejszono: %d h \n", EKGTestTime);
             }
         }

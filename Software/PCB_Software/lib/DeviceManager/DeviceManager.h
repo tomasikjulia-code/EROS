@@ -70,6 +70,8 @@ class DeviceManager{
         Sample* readyToWriteBuffer;
         volatile size_t bufferIndex;
 
+        File _fileToSend;
+
         DeviceManager();
         void init();
         void setStartTime();//funkcja ustawiajaca start badania na aktualna wartosc millis() tak zeby pozniej mozna bylo sprawdzac ile zostalo

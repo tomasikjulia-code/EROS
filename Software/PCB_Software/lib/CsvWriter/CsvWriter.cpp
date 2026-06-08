@@ -7,7 +7,7 @@ bool CsvWriter::begin(const char* path) {
         SD.remove(path); 
     }
 
-    _file = SD.open(path, FILE_WRITE);
+    _file = SD.open(path, FILE_APPEND);
     if (!_file) return false;
 
     _file.println("Timestamp_ms,EKG_Raw,BPM,LeadOff,Activity,Important");
