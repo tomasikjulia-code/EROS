@@ -52,6 +52,7 @@ class DeviceManager{
 
         unsigned long btPressStart = 0; //zmienna do zliczania czasu nacisku przycisku bluetooth
         unsigned long lcdPressStart = 0; //zmienna do zliczania czasu nacisku przycisku wysweitlacza
+        unsigned long eventPressStart = 0; //zmienna do zliczania czasu nacisku przycisku oznaczania zdarzeń
 
         volatile int importantButton = 0;
 

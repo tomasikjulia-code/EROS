@@ -9,6 +9,7 @@ DeviceManager::DeviceManager(){
 
     btPressStart = 0;
     lcdPressStart = 0;
+    eventPressStart = 0;
 
     SDcardEnabled = 0; //na początek nic nie ma i dopiero pozneij w inicie sprawdzam czy karta jest
     fileSystemEnabled = 0; //na poczatek nie ma systemu plikow bo nawet nie wiadomo czy jest karta
@@ -224,6 +225,7 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             _fileToSend = SD.open("/test_ekg.csv");
             if (!_fileToSend) {
                 xSemaphoreGive(sdMutex);
+                SerialBT.println("S"); // Koniec transmisji
                 return;
             }
 
@@ -632,7 +634,9 @@ void DeviceManager::checkButtons()
     //Ważne zdarzenie 
     if (btnEvent && !btnLcd) 
     {
-        if (!eventTriggered)
+        if (eventPressStart == 0) eventPressStart = millis();
+
+        if (!eventTriggered&& (millis() - eventPressStart > 1000))
         {
             importantButton = 1;
             eventTriggered = true;
