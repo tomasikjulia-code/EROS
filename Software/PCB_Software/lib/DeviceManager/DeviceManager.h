@@ -7,7 +7,6 @@
 #include <ArduinoJson.h>
 #include <BuzzerManager.h>
 #include <driver/adc.h>
-#include <esp_task_wdt.h>
 
 //definicje pinow do przyciskow
 #define BTN_LCD 39
@@ -71,6 +70,8 @@ class DeviceManager{
         Sample* readyToWriteBuffer;
         volatile size_t bufferIndex;
 
+        File _fileToSend;
+
         DeviceManager();
         void init();
         void setStartTime();//funkcja ustawiajaca start badania na aktualna wartosc millis() tak zeby pozniej mozna bylo sprawdzac ile zostalo
@@ -94,10 +95,8 @@ class DeviceManager{
         void processAccelerometer(); //funkcja odpowiadająca za obliczanie wspolczynnika aktywnosci i opbsluge akclerometru 
 
 
-        void collectAndBufferSample(); 
-        void writeBufferToSD(Sample * buffer);
-
-        void setWriteQueue(QueueHandle_t queue);
+        void collectAndBufferSample(TaskHandle_t sdTaskHandle); 
+        void writeBufferToSD();
 
     private:
         volatile float lastActivityValue = -1.0f; // Przechowuje aktualną wartość do zapisu
@@ -106,7 +105,6 @@ class DeviceManager{
         int buzzerSampleCounter = 0;
         bool alarmTriggered = false;
         unsigned long lastAlarmTime = 0;
-        QueueHandle_t sdWriteQueue = nullptr;
 
 };
 

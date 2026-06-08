@@ -8,8 +8,6 @@ TaskHandle_t displayTaskHandle;
 TaskHandle_t accelTaskHandle;
 TaskHandle_t sdWriteTaskHandle; 
 
-QueueHandle_t sdWriteQueue;
-
 //uchwyty na mutexy
 SemaphoreHandle_t displayMutex;
 SemaphoreHandle_t btMutex;
@@ -29,35 +27,22 @@ void measureTask(void *parameter)
     while (true)
     {
         vTaskDelayUntil(&xLastWakeTime, xFrequency); 
-        HolterDevice.collectAndBufferSample();
+        HolterDevice.collectAndBufferSample(sdWriteTaskHandle);
     }
 }
 
-// void sdWriteTask(void *parameter)
-// {
-//     while (true)
-//     {
-//         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-//         if (xSemaphoreTake(sdMutex, portMAX_DELAY))
-//         {
-//             HolterDevice.writeBufferToSD();
-//             xSemaphoreGive(sdMutex);
-//         }
-//     }
-// }
-
-void sdWriteTask(void *parameter) {
-    Sample* bufferToWrite = nullptr;
-    while (true) {
-        if (xQueueReceive(sdWriteQueue, &bufferToWrite, portMAX_DELAY)) {
-            if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
-                HolterDevice.writeBufferToSD(bufferToWrite);
-                xSemaphoreGive(sdMutex);
-            }
+void sdWriteTask(void *parameter)
+{
+    while (true)
+    {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        if (xSemaphoreTake(sdMutex, portMAX_DELAY))
+        {
+            HolterDevice.writeBufferToSD();
+            xSemaphoreGive(sdMutex);
         }
     }
 }
-
 void btTask(void *parameter)
 {
     while (true)
@@ -101,9 +86,6 @@ void setup()
     btMutex = xSemaphoreCreateMutex();
     sdMutex = xSemaphoreCreateMutex();
     accMutex = xSemaphoreCreateMutex();
-
-    sdWriteQueue = xQueueCreate(4, sizeof(Sample*));
-    HolterDevice.setWriteQueue(sdWriteQueue);
     
     HolterDevice.chooseTestTime();
     

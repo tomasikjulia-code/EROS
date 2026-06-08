@@ -1,22 +1,18 @@
 #include "CsvWriter.h"
 
-CsvWriter::CsvWriter() {
-    _path[0] = '\0';
-    _flushCounter = 0;
-}
+CsvWriter::CsvWriter() {}
 
 bool CsvWriter::begin(const char* path) {
     if (SD.exists(path)) {
         SD.remove(path); 
     }
+
     _file = SD.open(path, FILE_APPEND);
     if (!_file) return false;
-    strncpy(_path, path, sizeof(_path) - 1);
-    _path[sizeof(_path) - 1] = '\0';
 
     _file.println("Timestamp_ms,EKG_Raw,BPM,LeadOff,Activity,Important");
     _file.flush();
-
+    
     _recording = true;
     return true;
 }
@@ -43,10 +39,7 @@ void CsvWriter::writeBuffer(const Sample* samples, size_t count) {
         _file.print(",");
         _file.println(samples[i].important);
     }
-    if (++_flushCounter >= 8) {
-        _file.flush();
-        _flushCounter = 0;
-    }
+    _file.flush(); 
 }
 
 void CsvWriter::writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool leadOff, float activity, int important) {
@@ -74,54 +67,9 @@ void CsvWriter::writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool l
         syncCounter = 0;
     }
 }
-
-uint32_t CsvWriter::getFileSize() {
-    _file.flush();
+uint32_t CsvWriter::getFileSize() const {
+    if (!_recording) return 0;
     return _file.size();
-}
-
-bool CsvWriter::openReadSession() {
-    _file.flush();
-
-    if (_readFile) {
-        _readFile.close();
-    }
-
-    _readFile = SD.open(_path, FILE_READ);
-
-    if (!_readFile) {
-        Serial.println("[CSV] FAILED TO OPEN READ FILE");
-        return false;
-    }
-
-    Serial.printf(
-        "[CSV] Read session opened. Size=%lu\n",
-        (unsigned long)_readFile.size()
-    );
-
-    return true;
-}
-
-void CsvWriter::closeReadSession() {
-
-    if (_readFile) {
-        _readFile.close();
-    }
-}
-
-size_t CsvWriter::readAt(uint32_t pos, uint8_t* buf, size_t bufSize) {
-
-    if (!_readFile) {
-        Serial.println("[CSV] readAt: invalid read handle");
-        return 0;
-    }
-
-    if (!_readFile.seek(pos)) {
-        Serial.printf("[CSV] SEEK FAILED pos=%lu\n", pos);
-        return 0;
-    }
-
-    return _readFile.read(buf, bufSize);
 }
 
 void CsvWriter::closeFile() {

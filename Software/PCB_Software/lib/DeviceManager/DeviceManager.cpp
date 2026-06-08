@@ -1,5 +1,5 @@
 #include "DeviceManager.h"
-
+#include <esp_task_wdt.h>
 
 DeviceManager::DeviceManager(){
 
@@ -86,14 +86,8 @@ void DeviceManager::chooseTestTime(){
         if(EKGTestTime != lastDisplayedTime){
             lastTimeChangeMillis = millis(); 
             updateTimeChoice(EKGTestTime);  
-            // needsDisplayUpdate = true;       
             lastDisplayedTime = EKGTestTime;
         }
-        
-        // if(needsDisplayUpdate && (millis() - lastTimeChangeMillis > 1100)){
-        //     updateTimeChoice(EKGTestTime);   
-        //     needsDisplayUpdate = false;      
-        // }
         
         delay(10); 
     }
@@ -183,8 +177,8 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
         xSemaphoreGive(sdMutex);
     }
 
-    SerialBT.print("READY ");
-    SerialBT.println(fileSize);
+        SerialBT.print("READY ");
+        SerialBT.println(fileSize);
 
     Serial.printf("[BT] Wysłano READY %lu, czekam na OK...", fileSize);
 
@@ -217,10 +211,6 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
                 SerialBT.println("SIZE");
                 return;
             }
-            if (fileSizeReceived==fileSize) {
-                Serial.println("The same file size");
-                return;
-            }
 
             Serial.printf("[BT] Odebrany rozmiar pliku z aplikacji: %lu bajtów\n", fileSizeReceived);
         } else {
@@ -228,75 +218,51 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             return;
         }
 
-        // SerialBT.flush();
-        // vTaskDelay(pdMS_TO_TICKS(50));
-        // Serial.printf("[BT] Heap after flush: %lu\n", esp_get_free_heap_size());
-
-        const size_t bufferSize = 512;
-        uint8_t buffer[bufferSize];
-        uint32_t currentPos = fileSizeReceived;
-        size_t bytesRead = 0;
-        
-        if (!holter.openReadSession()) {
-            Serial.println("Failed to open read session");
-            return;
-        }
-        
-        while (SerialBT.hasClient()) {
-            Serial.printf(
-                "ready=%p current=%p idx=%d freeHeap=%u\n",
-                readyToWriteBuffer,
-                currentBuffer,
-                bufferIndex,
-                ESP.getFreeHeap()
-            );
-            if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
-                bytesRead = holter.readAt(currentPos, buffer, bufferSize);
+        // dostep do kart SD przez muteks
+        if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
+            
+            _fileToSend = SD.open("/test_ekg.csv");
+            if (!_fileToSend) {
                 xSemaphoreGive(sdMutex);
-            } else break;
-
-            if (bytesRead == 0) break;  // caught up with file end
-
-            currentPos += bytesRead;
-
-            // Send over BT (no SD access needed)
-            size_t written = 0;
-            int retries = 0;
-            while (written < bytesRead && SerialBT.hasClient()) {
-
-                size_t chunk = min((size_t)128, bytesRead - written);
-
-                size_t ret = SerialBT.write(buffer + written, chunk);
-
-                if (ret > 0) {
-
-                    written += ret;
-
-                    Serial.printf(
-                        "[BT] sent %u/%u\n",
-                        written,
-                        bytesRead
-                    );
-
-                } else {
-
-                    Serial.println("[BT] write failed");
-
-                    vTaskDelay(pdMS_TO_TICKS(50));
-                }
-
-                // VERY IMPORTANT
-                SerialBT.flush();
-
-                vTaskDelay(pdMS_TO_TICKS(10));
-
-                esp_task_wdt_reset();
+                return;
             }
 
-            vTaskDelay(pdMS_TO_TICKS(1)); // throttle
+            //przed wyslaniem danych robimy gigantyczny skok o wartosc podana przez aplikacje
+            _fileToSend.seek(fileSizeReceived); // Ustawiamy wskaźnik na pozycję, od której zaczniemy wysyłać dane
+
+            //Wysyłanie w porcjach 
+            const size_t bufferSize = 512;
+            uint8_t buffer[bufferSize];
+            
+            while (_fileToSend.available() && SerialBT.hasClient()) {
+                while (esp_get_free_heap_size() < 8000) {
+                    //Serial.printf("[BT] Low heap (%lu), waiting...\n", esp_get_free_heap_size());
+                    xSemaphoreGive(sdMutex);
+                    vTaskDelay(pdMS_TO_TICKS(20));
+                    xSemaphoreTake(sdMutex, portMAX_DELAY);
+                    continue;
+                }
+
+                size_t bytesRead = _fileToSend.read(buffer, bufferSize);
+                esp_task_wdt_reset();
+
+                size_t written = 0;
+                while (written < bytesRead && SerialBT.hasClient()) {
+                    size_t ret = SerialBT.write(buffer + written, bytesRead - written);
+                    if (ret > 0) written += ret;
+                    esp_task_wdt_reset();
+                    vTaskDelay(pdMS_TO_TICKS(1));
+                }
+
+                xSemaphoreGive(sdMutex);
+                vTaskDelay(pdMS_TO_TICKS(5)); 
+                xSemaphoreTake(sdMutex, portMAX_DELAY);
+            }
+
+            _fileToSend.close();
+            xSemaphoreGive(sdMutex); // Oddajemy dostęp do karty SD
         }
-        holter.closeReadSession();
-        Serial.println("Koniec transmisji");
+
         SerialBT.println("S"); // Koniec transmisji
     }else {
         Serial.println("[BT] Otrzymano niepoprawną odpowiedź (nie zaczyna się od OK).");
@@ -392,7 +358,7 @@ void DeviceManager::waitingForSDcard(){
 
 }
 
-void DeviceManager::collectAndBufferSample() {
+void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
 
     buzzerSampleCounter++;
     
@@ -404,10 +370,10 @@ void DeviceManager::collectAndBufferSample() {
             if (!alarmTriggered || (millis() - lastAlarmTime >= 5000UL)) {
                 //Serial.println("[ALARM] Elektrody odpięte! Krótkie przypomnienie.");
                 
-                // BuzzerManager.setVolume(15);      
-                // BuzzerManager.playContinuous();   
+                BuzzerManager.setVolume(15);      
+                BuzzerManager.playContinuous();   
                 vTaskDelay(pdMS_TO_TICKS(125));      
-                // BuzzerManager.stop();             
+                BuzzerManager.stop();             
 
                 lastAlarmTime = millis();         
                 alarmTriggered = true;            
@@ -453,59 +419,37 @@ void DeviceManager::collectAndBufferSample() {
     bufferIndex++;
 
     // jesli bufor sie zapelnil zamien i wyslij powiadomienie
-    // if (bufferIndex >= EKG_BUFFER_SIZE) {
-    //     readyToWriteBuffer = currentBuffer; // Przekaż pełny bufor do zapisu
-        
-    //     // Zamień wskaźniki ze starego bufora na nowy pusty
-    //     if (currentBuffer == bufferA) currentBuffer = bufferB;
-    //     else currentBuffer = bufferA;
-        
-    //     bufferIndex = 0;
-
-    //     // Wyślij sygnał (Notyfikację) do taska zapisującego na SD
-    //     if (sdTaskHandle != nullptr) {
-    //         xTaskNotifyGive(sdTaskHandle);
-    //     }
-    // }
-
     if (bufferIndex >= EKG_BUFFER_SIZE) {
-        Sample* fullBuffer = currentBuffer;
+        readyToWriteBuffer = currentBuffer; // Przekaż pełny bufor do zapisu
         
+        // Zamień wskaźniki ze starego bufora na nowy pusty
         if (currentBuffer == bufferA) currentBuffer = bufferB;
         else currentBuffer = bufferA;
         
         bufferIndex = 0;
-        readyToWriteBuffer = nullptr; // no longer needed
 
-        // Non-blocking send — if queue full, we have a bigger problem
-        if (xQueueSend(sdWriteQueue, &fullBuffer, 0) != pdTRUE) {
-            Serial.println("[ERR] SD queue full — buffer dropped!");
+        // Wyślij sygnał (Notyfikację) do taska zapisującego na SD
+        if (sdTaskHandle != nullptr) {
+            xTaskNotifyGive(sdTaskHandle);
         }
     }
 }
 
-void DeviceManager::writeBufferToSD(Sample* buffer) {
+void DeviceManager::writeBufferToSD() {
     // Sprawdź, czy czas badania się skończył
-    if (isTimeEnded()) {
-        // Write any pending buffer before closing
-        if (buffer != nullptr && holter.isRecording()) {
-            holter.writeBuffer(buffer, EKG_BUFFER_SIZE);
-            readyToWriteBuffer = nullptr;
-        }
-        if (holter.isRecording()) {
-            holter.closeFile();
-            Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
-            displayEnabled = false;
-            currentDisplayState = DISPLAY_END;
-        }
+    if (isTimeEnded() && holter.isRecording()) {
+        holter.closeFile();
+        Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
+        displayEnabled = false;
+        currentDisplayState = DISPLAY_END;
         vTaskDelay(pdMS_TO_TICKS(200));
         return; 
     }
 
     // Zapisz gotowy bufor na kartę SD
     if (readyToWriteBuffer != nullptr && holter.isRecording()) {
-        holter.writeBuffer(buffer, EKG_BUFFER_SIZE);
-        //readyToWriteBuffer = nullptr; //zeruje po zapisaniu zeby na pewno byl pusty
+        holter.writeBuffer(readyToWriteBuffer, EKG_BUFFER_SIZE);
+        readyToWriteBuffer = nullptr; //zeruje po zapisaniu zeby na pewno byl pusty
     }
 }
 
@@ -613,7 +557,6 @@ void DeviceManager::updateDisplay(uint32_t timeInMs, SemaphoreHandle_t sdMutex){
 
             if(!displayEnabled){
                 clearDisplay();
-                xSemaphoreGive(sdMutex);
                 return;
             }
             displayMainScreen(getAverageBPM(), calculateLeftHours(),calculateLeftMinutes(), getBatteryIconLevel(getBatteryLevel()), btEnabled);  //to trzeba uzupelnic ladnie o czas trwania do konca badania ktory bedzie obliczny
@@ -850,8 +793,4 @@ void DeviceManager::processAccelerometer() {
         //Serial.printf("Zaktualizowano średnią aktywność: %.2f\n", accel.averageActivity);
         lastAccelCheck = millis();
     }
-}
-
-void DeviceManager::setWriteQueue(QueueHandle_t queue) {
-    sdWriteQueue = queue;
 }
