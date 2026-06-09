@@ -61,7 +61,6 @@ const ReportScreen = ({
 
     showToast("Przygotowywanie raportu...", "info");
     
-    // Opóźnienie zapobiega jednoczesnemu zamykaniu modala i otwieraniu natywnego widoku poczty
     setTimeout(() => {
       generatePdfReport(eventComments, 'email', emailData);
     }, 400);
@@ -74,7 +73,7 @@ const ReportScreen = ({
     }
 
     setIsGenerating(true);
-    showToast("Generowanie raport AI...", "loading");
+    showToast("Generowanie raportu AI...", "loading");
 
     try {
       const result = await generateReport(aiReport, activeReportRecord);

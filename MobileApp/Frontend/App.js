@@ -1337,8 +1337,6 @@ const generatePdfReport = async (reportData, mode = 'share', emailData = null) =
             attachments: [safeUri],
           });
           
-          // NOWOŚĆ: Przytrzymujemy proces na 4 sekundy, dając Outlookowi pełny czas 
-          // na odczytanie intencji i stabilne załadowanie pliku w tle systemu Android
           await new Promise(resolve => setTimeout(resolve, 4000));
         }
       } catch (err) {
