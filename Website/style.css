@@ -14,9 +14,14 @@
     --text-primary: #ffffff;   /* Główny biały tekst */
     --text-secondary: #8e8e93; /* Szary tekst poboczny */
     --accent-purple: #7b61ff;  /* Fioletowy kolor przewodzący */
+    --accent-purple-hover: #6346eb;
     --accent-green: #30d158;   /* Zielony akcent */
     --accent-red: #ff453a;     /* Czerwony akcent */
     --border-color: #2c2c2e;   /* Ramki wokół kart i sekcji */
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 body {
@@ -24,37 +29,49 @@ body {
     background-color: var(--bg-main);
     color: var(--text-primary);
     line-height: 1.6;
+    overflow-x: hidden; /* Blokuje kołysanie się strony na boki na telefonie */
 }
 
 .container {
-    width: 90%;
+    width: 100%;
     max-width: 1100px;
     margin: 0 auto;
+    padding: 0 1.5rem; /* Elastyczny margines wewnętrzny dla bezpieczeństwa krawędzi */
 }
 
 h1, h2, h3, h5 {
     line-height: 1.2;
 }
 
+/* Skrót do wielokolumnowych sekcji (używany m.in. na podstronie O nas) */
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4rem;
+}
+
 /* ==========================================================================
-   2. NAWIGACJA (NAVBAR)
+   2. NAWIGACJA (NAVBAR + WERSJA MOBILNA)
    ========================================================================== */
 .navbar {
-    background: rgba(13, 13, 13, 0.8);
+    background: rgba(13, 13, 13, 0.85);
     backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 9999;
     border-bottom: 1px solid var(--border-color);
+    height: 75px; /* Stała, bezpieczna wysokość paska */
 }
 
 .nav-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
-    max-width: 100%;
+    height: 100%;
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 0 1.5rem;
 }
 
 .logo-container {
@@ -65,7 +82,7 @@ h1, h2, h3, h5 {
 }
 
 .nav-logo {
-    height: 48px;
+    height: 40px;
     width: auto;         
     display: block;
     filter: invert(44%) sepia(91%) saturate(3025%) hue-rotate(231deg) brightness(101%) contrast(101%);
@@ -73,7 +90,7 @@ h1, h2, h3, h5 {
 
 .logo-text {
     color: var(--accent-purple);
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 700;
     letter-spacing: -0.5px;
     font-family: 'Inter', sans-serif;
@@ -82,13 +99,14 @@ h1, h2, h3, h5 {
 .nav-links {
     display: flex;
     list-style: none;
-    gap: 1.5rem; /* Zmniejszone z 2rem, aby pomieścić 5 linków w rzędzie */
+    gap: 1.5rem; 
 }
 
 .nav-links a {
     text-decoration: none;
     color: var(--text-secondary);
     font-weight: 500;
+    font-size: 0.95rem;
     transition: color 0.3s;
 }
 
@@ -96,31 +114,53 @@ h1, h2, h3, h5 {
     color: var(--accent-purple);
 }
 
+/* Przycisk hamburgera (Domyślnie ukryty na komputerach) */
+.menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 10000;
+}
+
+.menu-toggle .bar {
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
 /* ==========================================================================
    3. SEKCJA GŁÓWNA (HERO)
    ========================================================================== */
 .hero {
-    padding: 3rem 0 5rem 0; 
+    padding: 4rem 0 5rem 0; 
     background: radial-gradient(circle at top center, rgba(123, 97, 255, 0.12), transparent 50%);
 }
 
 .hero-grid {
     display: grid;
-    grid-template-columns: 1.2fr 1fr; /* Tekst dostaje 55% szerokości, zdjęcie aplikacji 45% */
+    grid-template-columns: 1.2fr 1fr; 
     gap: 4rem;
     align-items: center;
 }
 
 .badge {
-    background: rgba(123, 97, 255, 0.2);
+    background: rgba(123, 97, 255, 0.15);
     color: var(--accent-purple);
     padding: 0.4rem 1rem;
     border-radius: 50px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     display: inline-block;
     margin-bottom: 1rem;
-    border: 1px solid rgba(123, 97, 255, 0.3);
+    border: 1px solid rgba(123, 97, 255, 0.25);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .hero-text h1 {
@@ -152,11 +192,14 @@ h1, h2, h3, h5 {
     gap: 10px;
 }
 
+.hero-features-list li::before {
+    content: "✓";
+    color: var(--accent-purple);
+    font-weight: bold;
+}
+
 .hero-features-list strong {
     color: var(--text-primary);
-    white-space: nowrap;
-    display: inline-block;
-    width: 160px; /* Równe wyrównanie tekstów opisów */
 }
 
 /* Elementy interaktywne (Przyciski) */
@@ -174,26 +217,28 @@ h1, h2, h3, h5 {
     border-radius: 12px;
     text-decoration: none;
     font-weight: 600;
+    font-size: 0.95rem;
     transition: background 0.3s, transform 0.2s;
     border: none;
     cursor: pointer;
+    text-align: center;
 }
 
 .btn:hover {
-    background-color: #6a4ff0;
+    background-color: var(--accent-purple-hover);
     transform: translateY(-2px);
 }
 
 .btn-secondary {
-    color: var(--accent-purple);
+    color: var(--text-primary);
     text-decoration: none;
     font-weight: 600;
-    font-size: 1rem;
-    transition: opacity 0.3s;
+    font-size: 0.95rem;
+    transition: opacity 0.3s, color 0.3s;
 }
 
 .btn-secondary:hover {
-    opacity: 0.8;
+    color: var(--accent-purple);
 }
 
 .img-fluid {
@@ -218,7 +263,7 @@ h1, h2, h3, h5 {
 
 .grid-enclosure {
     display: grid;
-    grid-template-columns: 1.3fr 1fr; /* Zdjęcie 57%, tekst 43% */
+    grid-template-columns: 1fr 1.1fr; 
     gap: 4rem;
     align-items: center;
 }
@@ -230,7 +275,7 @@ h1, h2, h3, h5 {
 
 .img-fluid-large {
     width: 100%;
-    max-width: 750px;
+    max-width: 420px; /* Dopasowanie szerokości obudowy do estetycznego wyglądu */
     height: auto;
     border-radius: 24px;
     display: block;
@@ -268,14 +313,16 @@ h1, h2, h3, h5 {
 /* ==========================================================================
    5. SEKCJA: KAFELKI / ARCHITEKTURA (FEATURES)
    ========================================================================== */
-.features {
-    padding: 4rem 0;
+.features, .content-section {
+    padding: 6rem 0;
 }
 
 .section-title {
     text-align: center;
-    font-size: 2rem;
-    margin-bottom: 3rem;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 3.5rem;
+    letter-spacing: -0.5px;
 }
 
 .grid-3 {
@@ -290,6 +337,9 @@ h1, h2, h3, h5 {
     border-radius: 20px;
     border: 1px solid var(--border-color);
     transition: transform 0.3s, background 0.3s;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .card:hover {
@@ -309,6 +359,7 @@ h1, h2, h3, h5 {
     font-size: 0.95rem;
     line-height: 1.6;
     margin-bottom: 1.5rem;
+    flex-grow: 1; /* Wyrównuje optycznie dół kafelków */
 }
 
 .card-link {
@@ -319,6 +370,19 @@ h1, h2, h3, h5 {
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    transition: color 0.2s;
+}
+
+.card-link:hover {
+    color: var(--accent-purple-hover);
+}
+
+/* Dedykowany układ dla kafelków interfejsu (aplikacja) */
+.grid-interfaces {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 2rem;
+    align-items: stretch;
 }
 
 /* ==========================================================================
@@ -326,36 +390,14 @@ h1, h2, h3, h5 {
    ========================================================================== */
 .footer {
     text-align: center;
-    padding: 3rem 0;
+    padding: 2.5rem 0;
     color: var(--text-secondary);
     font-size: 0.9rem;
     border-top: 1px solid var(--border-color);
-    margin-top: 4rem;
 }
 
 /* ==========================================================================
-   7. RESPONSYWNOŚĆ (MEDIA QUERIES)
-   ========================================================================== */
-@media (max-width: 850px) {
-    .hero-grid, .grid-enclosure {
-        grid-template-columns: 1fr;
-        gap: 2.5rem;
-    }
-    .img-fluid-large {
-        max-width: 100%;
-    }
-}
-
-@media (max-width: 480px) {
-    .hero-actions {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-}
-
-/* ==========================================================================
-   8. STRONY POMOCNICZE (Tabela specyfikacji z hardware.html)
+   7. STRONY POMOCNICZE (Tabela specyfikacji z hardware.html)
    ========================================================================== */
 .tech-spec-box {
     margin-top: 2rem;
@@ -391,19 +433,115 @@ h1, h2, h3, h5 {
 }
 
 
+/* ==========================================================================
+   8. RESPONSYWNOŚĆ (MEDIA QUERIES) -> ADAPTACJA DO TELEFONÓW I TABLETÓW
+   ========================================================================== */
 
-/* Dedykowany układ dla kafelków interfejsu */
-.grid-interfaces {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Dwie równe kolumny sztywno obok siebie */
-    gap: 2rem;
-    align-items: stretch;
+/* Tablety i mniejsze monitory komputerowe */
+@media (max-width: 850px) {
+    .hero-grid, .grid-enclosure, .grid-2 {
+        grid-template-columns: 1fr !important;
+        gap: 3rem;
+    }
+    
+    .hero {
+        padding-top: 2rem;
+    }
+
+    .hero-text h1 {
+        font-size: 2.4rem;
+    }
+
+    .hero-text p {
+        font-size: 1rem;
+    }
+
+    .img-fluid-large {
+        max-width: 340px;
+    }
 }
 
-/* Przejście w tryb pionowy dopasowany tylko do małych smartfonów */
-@media (max-width: 680px) {
+/* Smartfony i mniejsze urządzenia mobilne (Ekran telefonu) */
+@media (max-width: 768px) {
+    /* --- Aktywacja menu mobilnego --- */
+    .menu-toggle {
+        display: flex; /* Pokazuje hamburgera */
+    }
+
+    .nav-links {
+        position: fixed;
+        top: 75px;
+        left: 100%; /* Domyślnie schowane za ekranem */
+        width: 100%;
+        height: calc(100vh - 75px);
+        background-color: var(--bg-main);
+        flex-direction: column;
+        align-items: center;
+        padding-top: 3rem;
+        gap: 2.5rem;
+        transition: left 0.3s ease-in-out;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Klasa dodawana przez JavaScript po kliknięciu hamburgera */
+    .nav-links.active {
+        left: 0; 
+    }
+
+    .nav-links a {
+        font-size: 1.2rem;
+    }
+
+    /* Animacja zmiany trzech kresek w X (zamknięcie menu) */
+    .menu-toggle.active .bar:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+    .menu-toggle.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+    .menu-toggle.active .bar:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+
+    /* --- Korekta pustych przestrzeni --- */
+    .enclosure-section, .features, .content-section {
+        padding: 4rem 0;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 2.5rem;
+    }
+
+    /* Wymuszenie układu pionowego dla interfejsów i specyfikacji */
     .grid-interfaces {
-        grid-template-columns: 1fr; /* Jeden pod drugim dopiero na ekranie telefonu */
+        grid-template-columns: 1fr;
         gap: 1.5rem;
+    }
+
+    .spec-table td:first-child {
+        width: 50%;
+        font-size: 0.9rem;
+    }
+    
+    .spec-table td:last-child {
+        font-size: 0.9rem;
+    }
+}
+
+/* Bardzo małe smartfony */
+@media (max-width: 480px) {
+    .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .btn-secondary {
+        text-align: center;
     }
 }
