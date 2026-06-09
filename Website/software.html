@@ -15,7 +15,14 @@
                 <img src="images/logo.png" alt="Rythmio Logo" class="nav-logo">
                 <span class="logo-text">Rythmio</span>
             </a>
-            <ul class="nav-links">
+            
+            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+
+            <ul class="nav-links" id="nav-menu">
                 <li><a href="index.html">Pulpit</a></li>
                 <li><a href="hardware.html">Urządzenie</a></li>
                 <li><a href="software.html" class="active">Aplikacja</a></li>
@@ -25,54 +32,50 @@
         </div>
     </nav>
 
-    <section class="content-section" style="padding-top: 4rem; padding-bottom: 4rem;">
-        <div class="container grid-2" style="gap: 4rem; align-items: center;">
+    <section class="content-section">
+        <div class="container grid-2">
             <div class="text-block">
                 <span class="badge">Aplikacja mobilna</span>
-                <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Kardiologia Live w Twoim Telefonie</h1>
+                <h1>Kardiologia Live w Twoim Telefonie</h1>
                 <p>Aplikacja mobilna Rythmio stanowi centrum dowodzenia Twoim sercem. Po naciśnięciu dedykowanej ikony <strong>Bluetooth</strong> i nawiązaniu stabilnego połączenia bezprzewodowego z urządzeniem, zyskujesz pełną kontrolę nad trwającym badaniem i natychmiastowy wgląd w kondycję swojego organizmu.</p>
                 
-                <div style="display: flex; flex-direction: column; gap: 1.2rem; margin-top: 2rem;">
-                    <div class="card" style="padding: 1.5rem;">
-                        <h4 style="color: #7b61ff; margin-bottom: 5px;">Monitorowanie EKG na Żywo</h4>
-                        <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Uruchomienie trybu <strong>Live</strong> pozwala na strumieniowanie sygnału EKG w czasie rzeczywistym bezpośrednio na ekran smartfona. Idealne rozwiązanie do natychmiastowej weryfikacji poprawności zapisu.</p>
+                <div class="card-group" style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem;">
+                    <div class="card">
+                        <h4 style="color: #7b61ff; margin-bottom: 0.5rem; font-size: 1.1rem;">Monitorowanie EKG na Żywo</h4>
+                        <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary);">Uruchomienie trybu <strong>Live</strong> pozwala na strumieniowanie sygnału EKG w czasie rzeczywistym bezpośrednio na ekran smartfona. Idealne rozwiązanie do natychmiastowej weryfikacji poprawności zapisu.</p>
                     </div>
                     
-                    <div class="card" style="padding: 1.5rem;">
-                        <h4 style="color: #7b61ff; margin-bottom: 5px;">Szybkie Odświeżenie Statusu</h4>
-                        <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Po wyłączeniu podglądu na żywo, ikona <strong>odświeżania</strong> pozwala błyskawicznie pobrać z urządzenia status pakietów: poziom naładowania baterii, informację o prawidłowym podpięciu elektrod oraz potwierdzenie, czy pomiar jest stabilny.</p>
+                    <div class="card">
+                        <h4 style="color: #7b61ff; margin-bottom: 0.5rem; font-size: 1.1rem;">Szybkie Odświeżenie Statusu</h4>
+                        <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary);">Po wyłączeniu podglądu na żywo, ikona <strong>odświeżania</strong> pozwala błyskawicznie pobrać z urządzenia status pakietów: poziom naładowania baterii, informację o prawidłowym podpięciu elektrod oraz potwierdzenie, czy pomiar jest stabilny.</p>
                     </div>
                 </div>
 
-                <div style="margin-top: 1.5rem; padding: 0.5rem 1rem; background: rgba(123, 97, 255, 0.03); border-radius: 8px; border: 1px dashed rgba(123, 97, 255, 0.2); font-size: 0.9rem; color: var(--text-secondary);">
+                <div class="info-note" style="margin-top: 2rem; padding: 1rem; background: rgba(123, 97, 255, 0.03); border-radius: 8px; border: 1px dashed rgba(123, 97, 255, 0.2); font-size: 0.95rem; color: var(--text-secondary);">
                     🔄 <strong>Pełna swoboda widoku:</strong> Zarówno wykres fali EKG w trybie <strong>Live</strong>, jak i dobowe wykresy tętna są w pełni <strong>skalowalne</strong>. Możesz swobodnie obracać telefon – interfejs automatycznie dopasuje się do widoku pionowego lub poziomego, ułatwiając precyzyjną analizę załamków.
                 </div>
             </div>
             
-            <div class="image-block" style="text-align: center; width: 100%;">
-                <div style="position: relative; display: inline-block; width: 100%; max-width: 340px;">
-                    <img src="images/694262992_2488082638318660_9103735274492992762_n.jpg" alt="Pulpit i Trend Aktywności Rythmio" class="img-fluid" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); display: block; width: 100%; height: auto;" onerror="this.src='https://via.placeholder.com/340x680/1c1c1e/7b61ff?text=Trend+Aktywnosci+Aplikacji'">
-                </div>
+            <div class="image-block">
+                <img src="images/694262992_2488082638318660_9103735274492992762_n.jpg" alt="Pulpit i Trend Aktywności Rythmio" class="img-fluid" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-width: 340px; width: 100%; height: auto; margin: 0 auto;" onerror="this.src='https://via.placeholder.com/340x680/1c1c1e/7b61ff?text=Trend+Aktywnosci+Aplikacji'">
             </div>
         </div>
     </section>
 
-    <section class="content-section" style="border-top: 1px solid var(--border-color); padding-top: 5rem; padding-bottom: 5rem; background: linear-gradient(180deg, transparent, rgba(123, 97, 255, 0.01));">
-        <div class="container grid-2" style="gap: 4rem; align-items: center;">
+    <section class="content-section" style="border-top: 1px solid var(--border-color); background: linear-gradient(180deg, transparent, rgba(123, 97, 255, 0.01));">
+        <div class="container grid-2">
             
-            <div class="image-block" style="text-align: center; width: 100%;">
-                <div style="position: relative; display: inline-block; width: 100%; max-width: 340px;">
-                    <img src="images/695683353_996459172841414_1569255405900289876_n.jpg" alt="Raport Kliniczny Parametry" class="img-fluid" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); display: block; width: 100%; height: auto;" onerror="this.src='https://via.placeholder.com/340x680/1c1c1e/7b61ff?text=Zestawienie+Zdarzen+BPM'">
-                </div>
+            <div class="image-block">
+                <img src="images/695683353_996459172841414_1569255405900289876_n.jpg" alt="Raport Kliniczny Parametry" class="img-fluid" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-width: 340px; width: 100%; height: auto; margin: 0 auto;" onerror="this.src='https://via.placeholder.com/340x680/1c1c1e/7b61ff?text=Zestawienie+Zdarzen+BPM'">
             </div>
 
             <div class="text-block">
-                <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Pobieranie i Automatyczna Analiza</h1>
+                <h1>Pobieranie i Automatyczna Analiza</h1>
                 <p>Kliknięcie ikony synchronizacji uruchamia szybki transfer zapisanego materiału z karty microSD wprost do pamięci telefonu. Aplikacja natychmiast przelicza surowe dane, aktualizując kluczowe metryki diagnostyczne na pulpicie:</p>
                 
-                <div class="tech-spec-box" style="margin-top: 2rem; margin-bottom: 2rem;">
-                    <h3 style="margin-bottom: 1rem;">Wskaźniki aktualizowane po synchronizacji:</h3>
-                    <table class="spec-table">
+                <div class="tech-spec-box" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                    <h3>Wskaźniki aktualizowane po synchronizacji:</h3>
+                    <table class="spec-table" style="width: 100%;">
                         <tr><td>Czas trwania zapisu</td><td>Precyzyjny licznik czasu zapisanego badania</td></tr>
                         <tr><td>Trendy tętna</td><td>Automatyczne wyznaczenie średniego, najniższego oraz najwyższego BPM</td></tr>
                         <tr><td>Licznik arytmii</td><td>Suma zarejestrowanych dobowych epizodów anomalii</td></tr>
@@ -85,68 +88,66 @@
         </div>
     </section>
 
-    <section class="content-section" style="border-top: 1px solid var(--border-color); padding-top: 5rem; padding-bottom: 5rem;">
-        <div class="container grid-2" style="gap: 4rem; align-items: flex-start;">
+    <section class="content-section" style="border-top: 1px solid var(--border-color); clear: both;">
+        <div class="container grid-2" style="align-items: flex-start;">
             
-            <div class="text-block" style="position: sticky; top: 6rem;">
+            <div class="text-block">
                 <span class="badge">Moduł Ekspercki</span>
-                <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Raport Kliniczny i Wsparcie AI</h1>
+                <h1>Raport Kliniczny i Wsparcie AI</h1>
                 <p>Z poziomu aplikacji jednym kliknięciem wygenerujesz kompleksowy <strong>Raport Kliniczny</strong>. Zawiera on pełne zestawienie matematyczne sesji pomiarowej, w tym całkowitą liczbę wykrytych zespołów QRS, liczbę tachykardii, bradykardii oraz groźnych pauz trwających powyżej 2.0s.</p>
                 
-                <div class="card" style="padding: 1.5rem; margin-top: 1.5rem; border-left: 4px solid #22c55e; background: rgba(34, 197, 94, 0.02);">
-                    <h4 style="color: #22c55e; margin-bottom: 5px;">✍️ Dziennik Zdarzeń i Notatki Pacjenta</h4>
-                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Gdy podczas badania poczujesz się gorzej i wciśniesz <strong>dolny przycisk na obudowie urządzenia</strong>, system postawi znacznik w sygnale. Po zgraniu danych, aplikacja pozwoli Ci dodać własny komentarz do tego momentu (np. opisując duszność czy stres), dając lekarzowi pełny kontekst sytuacyjny.</p>
+                <div class="card" style="margin-top: 1.5rem; border-left: 4px solid #22c55e; background: rgba(34, 197, 94, 0.02); height: auto;">
+                    <h4 style="color: #22c55e; margin-bottom: 0.5rem;">✍️ Dziennik Zdarzeń i Notatki Pacjenta</h4>
+                    <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary);">Gdy podczas badania poczujesz się gorzej i wciśniesz <strong>dolny przycisk na obudowie urządzenia</strong>, system postawi znacznik w sygnale. Po zgraniu danych, aplikacja pozwoli Ci dodać własny komentarz do tego momentu (np. opisując duszność czy stres), dając lekarzowi pełny kontekst sytuacyjny.</p>
                 </div>
 
                 <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Przegląd anomalii i wycinków</h3>
                 <p>Aplikacja automatycznie wycina z sygnału i archiwizuje dokładne momenty wystąpienia anomalii wraz z czasem ich trwania. Wszystkie wycinki raportu (tak jak podgląd na żywo) są w pełni <strong>interaktywne i skalowalne pionowo oraz poziomo</strong>.</p>
 
-                <div class="card" style="padding: 1.5rem; margin-top: 1.5rem; border-left: 4px solid #7b61ff;">
-                    <h4 style="margin-bottom: 5px;">🤖 Zintegrowany Asystent AI</h4>
-                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">Wbudowany moduł sztucznej inteligencji przetwarza badanie i generuje <strong>Raport AI</strong> z podsumowaniem klinicznym. Klasyfikuje on epizody jako "łagodne" lub "krytyczne", ocenia ciągłość pracy serca i dostarcza wstępne zalecenia dotyczące stylu życia lub pilności konsultacji lekarskiej.</p>
+                <div class="card" style="margin-top: 1.5rem; border-left: 4px solid #7b61ff; background: rgba(123, 97, 255, 0.01); height: auto;">
+                    <h4 style="color: #7b61ff; margin-bottom: 0.5rem;">🤖 Zintegrowany Asystent AI</h4>
+                    <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary);">Wbudowany moduł sztucznej inteligencji przetwarza badanie i generuje <strong>Raport AI</strong> z podsumowaniem klinicznym. Klasyfikuje on epizody jako "łagodne" lub "krytyczne", ocenia ciągłość pracy serca i dostarcza wstępne zalecenia dotyczące stylu życia lub pilności konsultacji lekarskiej.</p>
                 </div>
 
                 <p style="margin-top: 2rem;">Gotowe opracowanie możesz natychmiast zapisać w formacie <strong>PDF</strong>, uzupełnić adres e-mail i bezpośrednio z poziomu telefonu przesłać swojemu kardiologowi.</p>
             </div>
             
-            <div class="image-block" style="text-align: center; width: 100%;">
-                <div style="position: relative; display: inline-block; width: 100%; max-width: 340px;">
-                    <div style="max-height: 650px; overflow-y: auto; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); scrollbar-width: thin;">
-                        <img src="images/691053923_2794953764177663_2867582462266637719_n.jpg" alt="Pełny Raport Kliniczny EKG Rythmio" style="max-width: 100%; height: auto; display: block; margin: 0 auto; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" onerror="this.src='https://via.placeholder.com/340x1200/1c1c1e/22c55e?text=Pełny+Długi+Raport+Kliniczny+PDF'">
-                    </div>
+            <div class="image-block">
+                <div style="max-height: 650px; overflow-y: auto; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); scrollbar-width: thin; max-width: 340px; width: 100%; margin: 0 auto;">
+                    <img src="images/691053923_2794953764177663_2867582462266637719_n.jpg" alt="Pełny Raport Kliniczny EKG Rythmio" style="width: 100%; height: auto; display: block;" onerror="this.src='https://via.placeholder.com/340x1200/1c1c1e/22c55e?text=Pełny+Długi+Raport+Kliniczny+PDF'">
                 </div>
             </div>
 
         </div>
     </section>
 
-    <section class="features" style="border-top: 1px solid var(--border-color); padding-top: 5rem; padding-bottom: 5rem; background: rgba(123, 97, 255, 0.005);">
+    <section class="features" style="border-top: 1px solid var(--border-color); background: rgba(123, 97, 255, 0.005); clear: both; position: relative; z-index: 1;">
         <div class="container">
-            <h2 class="section-title" style="margin-bottom: 1rem;">Dodatkowe Możliwości Aplikacji</h2>
+            <h2 class="section-title" style="text-align: center; margin-bottom: 1rem;">Dodatkowe Możliwości Aplikacji</h2>
             <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem; max-width: 700px; margin-left: auto; margin-right: auto;">
                 Rythmio to nie tylko bieżący pomiar, ale też wygodne zarządzanie historią zdrowia oraz funkcje ułatwiające codzienną dostępność.
             </p>
 
-            <div class="grid-3">
+            <div class="grid-3" style="display: grid; gap: 2rem;">
                 
-                <div class="card">
+                <div class="card" style="height: auto;">
                     <h3>Dedykowane Archiwum</h3>
                     <p>Osobna zakładka historyczna gromadzi wszystkie wykonane do tej pory badania kardiologiczne. Masz do nich stały dostęp, a w celu optymalizacji pamięci telefonu lub zachowania porządku, stare i nieaktualne rekordy możesz w każdej chwili bezpowrotnie usunąć.</p>
                 </div>
 
-                <div class="card">
+                <div class="card" style="height: auto;">
                     <h3>Asystent Głosowy</h3>
                     <p>W menu ustawień zaawansowanych możesz włączyć inteligentnego asystenta audio. System będzie regularnie odczytywał komunikaty głosowe o zaktualizowanych danych telemetrycznych i stanie pracy serca – idealne podczas treningu lub dla osób starszych.</p>
                 </div>
 
-                <div class="card">
+                <div class="card" style="height: auto;">
                     <h3>Bezpieczeństwo Danych</h3>
                     <p>Wszystkie badania zapisywane lokalnie w aplikacji podlegają restrykcyjnemu szyfrowaniu. Eksport do formatów PDF oraz CSV realizowany jest za pomocą bezpiecznych protokołów systemowych, dbając o pełną poufność dokumentacji medycznej.</p>
                 </div>
 
             </div>
 
-            <div class="medical-alert" style="margin-top: 4rem; background: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.15); border-left: 4px solid #ef4444; padding: 1.5rem; border-radius: 12px;">
+            <div class="medical-alert" style="margin-top: 4rem; background: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.15); border-left: 4px solid #ef4444; padding: 1.5rem; border-radius: 12px; height: auto;">
                 <h4 style="color: #ef4444; margin-top: 0; margin-bottom: 0.5rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
                     ⚠️ Ważna uwaga medyczna
                 </h4>
@@ -162,7 +163,17 @@
         <div class="container">
             <p>&copy; 2026 Projekt Rythmio.</p>
         </div>
-    </footer>
+    </footer >
+
+    <script>
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const navMenu = document.getElementById('nav-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenuBtn.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+    </script>
 
 </body>
 </html>

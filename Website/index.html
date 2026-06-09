@@ -15,7 +15,14 @@
                 <img src="images/logo.png" alt="Rythmio Logo" class="nav-logo">
                 <span class="logo-text">Rythmio</span>
             </a>
-            <ul class="nav-links">
+            
+            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+
+            <ul class="nav-links" id="nav-menu">
                 <li><a href="index.html" class="active">Pulpit</a></li>
                 <li><a href="hardware.html">Urządzenie</a></li>
                 <li><a href="software.html">Aplikacja</a></li>
@@ -112,6 +119,16 @@
             <p>&copy; 2026 Projekt Rythmio.</p>
         </div>
     </footer>
+
+    <script>
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const navMenu = document.getElementById('nav-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenuBtn.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+    </script>
 
 </body>
 </html>
