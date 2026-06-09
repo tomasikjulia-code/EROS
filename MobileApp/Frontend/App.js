@@ -334,13 +334,21 @@ function MainApp() {
     const loadPersistedData = async () => {
       try {
         const fileInfo = await FileSystem.getInfoAsync(HISTORY_FILE_URI);
+        let loadedRecords = [];
         if (fileInfo.exists) {
           const savedRecords = await FileSystem.readAsStringAsync(HISTORY_FILE_URI);
-          setRecords(JSON.parse(savedRecords));
+          loadedRecords = JSON.parse(savedRecords);
+          setRecords(loadedRecords);
         }
 
         const savedSessionId = await AsyncStorage.getItem('@rythmio_session_id');
-        if (savedSessionId) setCurrentSessionId(savedSessionId);
+        if (savedSessionId) {
+          setCurrentSessionId(savedSessionId);
+          const matchingRecord = loadedRecords.find(r => r.id === savedSessionId);
+          if (matchingRecord) {
+            setDeviceData(matchingRecord);
+          }
+        }
 
         // Wczytywanie ustawień
         const savedVoice = await AsyncStorage.getItem('@rythmio_voice');
