@@ -34,6 +34,39 @@ const ReportScreen = ({
 
   if (!activeReportRecord) return null;
 
+  const [isEmailModalVisible, setIsEmailModalVisible] = useState(false);
+  const [emailMessage, setEmailMessage] = useState("");
+  const [patientEmail, setPatientEmail] = useState("");
+
+  const openEmailModal = () => {
+    const dateStr = formatDate(activeReportRecord.date);
+    const duration = activeReportRecord.duration;
+    // Domyślna, stała treść wiadomości
+    setEmailMessage(`Dzień dobry,\n\nPrzesyłam w załączniku raport z badania EKG z dnia ${dateStr}. Czas trwania badania to ${duration}.\n\nBędę wdzięczny/a za analizę i informację zwrotną.`);
+    setIsEmailModalVisible(true);
+  };
+
+  const handleSendEmail = () => {
+    setIsEmailModalVisible(false);
+    
+    // Jeśli pacjent podał mail zwrotny, doklejamy go do wiadomości
+    const finalMessage = patientEmail 
+      ? `${emailMessage}\n\nProszę o informację zwrotną na adres: ${patientEmail}` 
+      : emailMessage;
+
+    const emailData = {
+      doctorEmail: doctorEmail,
+      message: finalMessage
+    };
+
+    showToast("Przygotowywanie raportu...", "info");
+    
+    // Opóźnienie zapobiega jednoczesnemu zamykaniu modala i otwieraniu natywnego widoku poczty
+    setTimeout(() => {
+      generatePdfReport(eventComments, 'email', emailData);
+    }, 400);
+  };
+
   const handleGenerateReport = async () => {
     if (!aiReport) {
       showToast("Brak danych do analizy", "error");
@@ -356,34 +389,19 @@ const ReportScreen = ({
             Udostępnij wynik
           </Text>
           
-          <View style={[styles.emailForm, { 
-            marginBottom: 24, 
-            backgroundColor: '#18181b', 
-            borderWidth: 1, 
-            borderColor: '#3f3f46', 
-            borderRadius: 12, 
-            paddingVertical: 4,
-            paddingRight: 6
-          }]}>
-            <Mail size={20} color="#71717a" style={{ marginLeft: 16 }} />
-            <TextInput 
-              style={[styles.input, { color: '#e4e4e7', fontSize: 14 }]} 
-              placeholder="E-mail lekarza kardiologa" 
-              placeholderTextColor="#71717a" 
-              value={doctorEmail} 
-              onChangeText={setDoctorEmail} 
-              keyboardType="email-address" 
-            />
-            <TouchableOpacity 
-              onPress={() => { 
-                setDoctorEmail(''); 
-                showToast("Zaszyfrowany raport wysłany!"); 
-              }} 
-              style={[styles.btnSend, { borderRadius: 8 }]}
-            >
-              <Send size={18} color="#fff" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity 
+            onPress={openEmailModal}
+            style={{
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+              paddingVertical: 14, borderRadius: 12, gap: 8, borderWidth: 1,
+              backgroundColor: 'rgba(129, 140, 248, 0.1)', 
+              borderColor: 'rgba(129, 140, 248, 0.3)', 
+              marginBottom: 24
+            }}
+          >
+            <Mail size={20} color="#818cf8" />
+            <Text style={{ color: '#818cf8', fontSize: 14, fontWeight: '600' }}>Wyślij raport e-mailem</Text>
+          </TouchableOpacity>
 
           <Text style={{ color: '#71717a', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 12, marginLeft: 4, letterSpacing: 0.5 }}>
             Zapis i zarządzanie
@@ -517,6 +535,63 @@ const ReportScreen = ({
                 <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Zapisz</Text>
               </View>
               
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* MODAL DO WYSYŁANIA E-MAILA */}
+      <Modal
+        visible={isEmailModalVisible}
+        transparent={true}
+        animationType="slide"
+      >
+        <KeyboardAvoidingView 
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        >
+          <View style={{ backgroundColor: '#18181b', padding: 20, borderRadius: 16, width: '90%', borderWidth: 1, borderColor: '#3f3f46', maxHeight: '80%' }}>
+            <Text style={{ color: '#e4e4e7', fontSize: 16, fontWeight: 'bold', marginBottom: 16 }}>
+              Wyślij raport e-mailem
+            </Text>
+
+            <Text style={{ color: '#a1a1aa', fontSize: 12, marginBottom: 4 }}>Adres e-mail lekarza:</Text>
+            <TextInput
+              style={{ backgroundColor: '#27272a', color: '#fff', borderRadius: 8, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#3f3f46' }}
+              placeholder="np. lekarz@klinika.pl"
+              placeholderTextColor="#71717a"
+              value={doctorEmail}
+              onChangeText={setDoctorEmail}
+              keyboardType="email-address"
+            />
+
+            <Text style={{ color: '#a1a1aa', fontSize: 12, marginBottom: 4 }}>Twój e-mail (do informacji zwrotnej):</Text>
+            <TextInput
+              style={{ backgroundColor: '#27272a', color: '#fff', borderRadius: 8, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#3f3f46' }}
+              placeholder="np. pacjent@mail.com"
+              placeholderTextColor="#71717a"
+              value={patientEmail}
+              onChangeText={setPatientEmail}
+              keyboardType="email-address"
+            />
+
+            <Text style={{ color: '#a1a1aa', fontSize: 12, marginBottom: 4 }}>Treść wiadomości:</Text>
+            <TextInput
+              style={{ backgroundColor: '#27272a', color: '#fff', borderRadius: 8, padding: 12, marginBottom: 20, borderWidth: 1, borderColor: '#3f3f46', minHeight: 120, textAlignVertical: 'top' }}
+              multiline
+              value={emailMessage}
+              onChangeText={setEmailMessage}
+            />
+            
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
+              <TouchableOpacity onPress={() => setIsEmailModalVisible(false)} style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
+                <Text style={{ color: '#a1a1aa', fontSize: 14, fontWeight: '600' }}>Anuluj</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity onPress={handleSendEmail} style={{ backgroundColor: '#818cf8', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Send size={16} color="#fff" />
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Wyślij</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>

@@ -25,6 +25,8 @@ import * as Notifications from 'expo-notifications';
 
 import * as Print from 'expo-print';
 
+import * as MailComposer from 'expo-mail-composer';
+
 let Speech;
 try {
   Speech = require('expo-speech');
@@ -978,7 +980,7 @@ function MainApp() {
     showToast('Wczytano próbne dane i otwarto raport testowy.', 'success');
   };
 
-  const handleGeneratePdfReport = async (eventComments = {}) => {
+  const handleGeneratePdfReport = async (eventComments = {}, mode = 'share', emailData = null) => {
     if (!activeReportRecord) {
       showToast('Brak raportu do wygenerowania PDF.', 'error');
       return;
@@ -996,7 +998,7 @@ function MainApp() {
       eventComments: eventComments
     };
 
-    await generatePdfReport(reportData);
+    await generatePdfReport(reportData, mode, emailData);
   };
 
 const createMockReportRecord = () => {
@@ -1161,7 +1163,7 @@ function generateEcgStripSvg(data) {
   return `<svg width="100%" viewBox="0 0 ${W} ${H}"><rect x="0" y="0" width="${W}" height="${H}" fill="#f8f8f8" rx="4"/><path d="${pD}" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
 
-const generatePdfReport = async (reportData) => {
+const generatePdfReport = async (reportData, mode = 'share', emailData = null) => {
   await new Promise(resolve => setTimeout(resolve, 500));
   try {
     if (!reportData) {
@@ -1314,18 +1316,52 @@ const generatePdfReport = async (reportData) => {
     `;
 
     const { uri } = await Print.printToFileAsync({ html });
+    const safeUri = FileSystem.cacheDirectory + `Raport_EKG_${Date.now()}.pdf`;
+    await FileSystem.copyAsync({ from: uri, to: safeUri });
 
-    const isAvailable = await Sharing.isAvailableAsync();
-    if (!isAvailable) {
-      showToast('Udostępnianie niedostępne na tym urządzeniu.', 'error');
-      return;
+    if (mode === 'email') {
+      try {
+        const isAvailable = await MailComposer.isAvailableAsync();
+        if (!isAvailable) {
+          showToast('Brak klienta poczty. Otwieram menu udostępniania...', 'info');
+          await Sharing.shareAsync(safeUri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Udostępnij raport EKG',
+            UTI: 'com.adobe.pdf',
+          });
+        } else {
+          await MailComposer.composeAsync({
+            recipients: [emailData.doctorEmail],
+            subject: `Wynik badania EKG - ${reportData.date ? formatDate(reportData.date) : ''}`,
+            body: emailData.message,
+            attachments: [safeUri],
+          });
+          
+          // NOWOŚĆ: Przytrzymujemy proces na 4 sekundy, dając Outlookowi pełny czas 
+          // na odczytanie intencji i stabilne załadowanie pliku w tle systemu Android
+          await new Promise(resolve => setTimeout(resolve, 4000));
+        }
+      } catch (err) {
+        console.warn("Błąd poczty: ", err);
+        await Sharing.shareAsync(safeUri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Udostępnij raport EKG',
+            UTI: 'com.adobe.pdf',
+        });
+      }
+    } else {
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        showToast('Udostępnianie niedostępne na tym urządzeniu.', 'error');
+        return;
+      }
+
+      await Sharing.shareAsync(safeUri, {
+        mimeType: 'application/pdf',
+        dialogTitle: 'Zapisz raport EKG w formacie PDF',
+        UTI: 'com.adobe.pdf',
+      });
     }
-
-    await Sharing.shareAsync(uri, {
-      mimeType: 'application/pdf',
-      dialogTitle: 'Zapisz raport EKG w formacie PDF',
-      UTI: 'com.adobe.pdf',
-    });
 
     await FileSystem.deleteAsync(uri, { idempotent: true });
 
