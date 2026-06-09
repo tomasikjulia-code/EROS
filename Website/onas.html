@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rythmio - O nas</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo-container">
+                <img src="images/logo.png" alt="Rythmio Logo" class="nav-logo">
+                <span class="logo-text">Rythmio</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Pulpit</a></li>
+                <li><a href="hardware.html">Urządzenie</a></li>
+                <li><a href="software.html">Aplikacja</a></li>
+                <li><a href="opinie.html">Opinie</a></li>
+                <li><a href="onas.html" class="active">O nas</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="content-section" style="padding-top: 4rem; padding-bottom: 2rem;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <span class="badge">Twórcy Projektu</span>
+                <h1 style="font-size: 2.8rem; margin-top: 0.5rem; margin-bottom: 1rem;">Poznaj Zespół Rythmio</h1>
+                <p style="color: var(--text-secondary); max-width: 800px; margin: 0 auto; font-size: 1.1rem; line-height: 1.6;">
+                    Połączenie inżynierskiej pasji, technologii IoT oraz zaawansowanej analizy danych medycznych.
+                </p>
+            </div>
+
+            <div style="width: 100%; max-width: 960px; margin: 0 auto 4rem auto; position: relative;">
+                <img src="images/zespol-wspolne.jpg" alt="Zespół projektowy Rythmio" style="width: 100%; height: auto; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); display: block;" onerror="this.src='https://via.placeholder.com/960x450/1c1c1e/7b61ff?text=Wspólne+Zdjęcie+Zespołu+Rythmio'">
+            </div>
+        </div>
+    </section>
+
+    <section class="content-section" style="border-top: 1px solid var(--border-color); padding-top: 4rem; padding-bottom: 4rem; background: linear-gradient(180deg, transparent, rgba(123, 97, 255, 0.005));">
+        <div class="container grid-2" style="gap: 4rem; align-items: center;">
+            
+            <div class="text-block">
+                <span class="badge">Politechnika Wrocławska</span>
+                <h2 style="font-size: 2.2rem; margin-bottom: 1.5rem;">Studencka Innowacja z Wrocławia</h2>
+                <p>Jesteśmy grupą studentów <strong>6. semestru Automatyki i Robotyki</strong> na Wydziale Elektryczniki, Fotoniki i Mikrosystemów <strong>Politechniki Wrocławskiej</strong>. Projekt Rythmio narodził się w naszych głowach jako ambitna odpowiedź na wyzwania współczesnej telemedycyny.</p>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">Naszym celem od samego początku było stworzenie w pełni funkcjonalnego, miniaturowego urządzenia typu Holter EKG, zintegrowanego z autorską aplikacją mobilną wspieraną przez algorytmy sztucznej inteligencji. Całość przygotowaliśmy z myślą o uroczystej <strong>Konferencji Projektów Zespołowych</strong>, stanowiącej podsumowanie naszej dotychczasowej pracy naukowej i konstrukcyjnej.</p>
+            </div>
+
+            <div class="text-block" style="background: rgba(123, 97, 255, 0.02); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(123, 97, 255, 0.1);">
+                <span class="badge" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">Partner Biznesowy</span>
+                <h2 style="font-size: 2.2rem; margin-bottom: 1.5rem; color: #fff;">Współpraca z Comarch</h2>
+                <p>Urządzenie oraz oprogramowanie nie powstałyby w obecnej formie, gdyby nie ścisła kooperacja z firmą <strong>Comarch</strong>. Jako lider rynku IT oraz nowoczesnych rozwiązań z zakresu e-Health, firma objęła opieką mentorski profil naszego projektu.</p>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">Eksperci z firmy Comarch aktywnie wspierali nas na każdym etapie powstawania systemu — od konsultacji schematów elektronicznych modułu analogowego ADS1292, przez optymalizację przesyłania pakietów przez Bluetooth w ESP32, aż po cenne wskazówki dotyczące standaryzacji medycznej generowanych raportów klinicznych. Ta synergia wiedzy akademickiej z komercyjnym doświadczeniem pozwoliła nam stworzyć projekt najwyższej jakości.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="content-section" style="border-top: 1px solid var(--border-color); padding-top: 5rem; padding-bottom: 5rem;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3.5rem;">
+                <span class="badge">Backstage</span>
+                <h2 style="font-size: 2.3rem; margin-top: 0.5rem;">Galeria Projektowa</h2>
+                <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto; font-size: 0.95rem; margin-top: 0.5rem;">
+                    Zobacz, jak wyglądała nasza droga od czystej kartki papieru i prototypów na płytkach stykowych, aż po finalne lutowanie i testy gotowego Holtera.
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                
+                <div style="background: var(--card-bg); padding: 0.8rem; border-radius: 16px; border: 1px solid var(--border-color); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <img src="images/galeria-1.jpg" alt="Prototypowanie na płytkach stykowych" style="width: 100%; height: 220px; object-fit: cover; border-radius: 10px; display: block;" onerror="this.src='https://via.placeholder.com/300x220/1c1c1e/7b61ff?text=Etap+Prototypu+Breadboard'">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff;">Etap Prototypu</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Pierwsze uruchomienie toru analogowego i eliminowanie szumów sieciowych.</p>
+                </div>
+
+                <div style="background: var(--card-bg); padding: 0.8rem; border-radius: 16px; border: 1px solid var(--border-color); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <img src="images/galeria-2.jpg" alt="Kodowanie aplikacji mobilnej" style="width: 100%; height: 220px; object-fit: cover; border-radius: 10px; display: block;" onerror="this.src='https://via.placeholder.com/300x220/1c1c1e/7b61ff?text=Kodowanie+i+Implementacja+AI'">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff;">Prace programistyczne</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Implementacja komunikacji BLE oraz integracja skryptów parsujących wykresy.</p>
+                </div>
+
+                <div style="background: var(--card-bg); padding: 0.8rem; border-radius: 16px; border: 1px solid var(--border-color); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <img src="images/galeria-3.jpg" alt="Montaż komponentów SMD" style="width: 100%; height: 220px; object-fit: cover; border-radius: 10px; display: block;" onerror="this.src='https://via.placeholder.com/300x220/1c1c1e/7b61ff?text=Montaż+SMD+w+Laboratorium'">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff;">Montaż końcowy</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Precyzyjne lutowanie podzespołów w laboratorium i zamykanie obudowy.</p>
+                </div>
+
+                <div style="background: var(--card-bg); padding: 0.8rem; border-radius: 16px; border: 1px solid var(--border-color); transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <img src="images/galeria-4.jpg" alt="Konsultacje projektowe" style="width: 100%; height: 220px; object-fit: cover; border-radius: 10px; display: block;" onerror="this.src='https://via.placeholder.com/300x220/1c1c1e/7b61ff?text=Konsultacje+z+Mentorem+Comarch'">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff;">Konsultacje projektowe</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Kluczowe spotkania techniczne z inżynierami medycznymi firmy Comarch.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Projekt Rythmio.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

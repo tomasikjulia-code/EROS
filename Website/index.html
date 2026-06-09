@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rythmio - Holter EKG & Mobile Sync</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo-container">
+                <img src="images/logo.png" alt="Rythmio Logo" class="nav-logo">
+                <span class="logo-text">Rythmio</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Pulpit</a></li>
+                <li><a href="hardware.html">Urządzenie</a></li>
+                <li><a href="software.html">Aplikacja</a></li>
+                <li><a href="opinie.html">Opinie</a></li>
+                <li><a href="onas.html">O nas</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container hero-grid">
+            <div class="hero-text">
+                <span class="badge">Projekt Zespołowy</span>
+                <h1>Twój osobisty kardiolog w kieszeni.</h1>
+                <p>Rythmio to autorski, niskokosztowy system Holtera EKG, stworzony od podstaw – od projektu obwodu drukowanego (PCB) i ergonomicznej obudowy, po dedykowane oprogramowanie mobilne. Powstał, by przełamać bariery długiego czasu oczekiwania na diagnostykę kardiologiczną i umożliwić natychmiastową weryfikację pracy serca.</p>
+                
+                <ul class="hero-features-list">
+                    <li><strong>Transmisja Bluetooth:</strong> Bezprzewodowy podgląd sygnału EKG w czasie rzeczywistym.</li>
+                    <li><strong>Raporty dla lekarza:</strong> Generowanie gotowych podsumowań i bezpośrednia wysyłka na e-mail.</li>
+                    <li><strong>Asystent AI:</strong> Wstępna analiza wyników wspierana sztuczną inteligencją (jako moduł pomocniczy przed konsultacją lekarską).</li>
+                    <li><strong>Asystent głosowy:</strong> Intuicyjna nawigacja po funkcjach aplikacji oraz głosowe komunikaty o stanie badania.</li>
+                </ul>
+
+                <div class="hero-actions">
+                    <a href="#enclosure" class="btn">Poznaj konstrukcję</a>
+                    <a href="software.html" class="btn-secondary">Więcej funkcji aplikacji →</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="images/live.png" alt="Rythmio App Live Monitoring" class="img-fluid">
+            </div>
+        </div>
+    </header>
+
+    <section id="enclosure" class="enclosure-section">
+        <div class="container grid-enclosure">
+            <div class="image-block-large">
+                <img src="images/obudowa.png" alt="Obudowa urządzenia Rythmio" class="img-fluid-large">
+            </div>
+            <div class="text-block">
+                <span class="badge">Obudowa</span>
+                <h2>Kompaktowa obudowa o standardzie medycznym</h2>
+                <p>Urządzenie Rythmio zostało zaprojektowane z myślą o pełnej ergonomii i trudach codziennego użytkowania. Konstrukcja łączy miniaturyzację z zaawansowaną ochroną elektroniki.</p>
+                
+                <div class="enclosure-features">
+                    <div class="enclosure-item">
+                        <h5>• Wodoodporność i uszczelnienie TPU</h5>
+                        <p>Zintegrowane elastyczne uszczelki z TPU wokół ekranu, przycisków oraz portów gwarantują odporność na wilgoć i pot podczas ciągłego noszenia.</p>
+                    </div>
+                    
+                    <div class="enclosure-item">
+                        <h5>• Ultra-energooszczędny wyświetlacz E-Ink</h5>
+                        <p>Zastosowanie ekranu wykonanego w technologii elektronicznego papieru zapewnia nienaganną czytelność w pełnym słońcu przy minimalnym poborze prądu.</p>
+                    </div>
+
+                    <div class="enclosure-item">
+                        <h5>• Uniwersalny system mocowania</h5>
+                        <p>Dzięki ergonomicznej szlufce na tylnej ścianie, urządzenie można swobodnie konfigurować z różnymi paskami, dostosowując montaż do pasa, klatki piersiowej lub ramienia.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">Architektura Systemu</h2>
+            <div class="grid-3">
+                
+                <div class="card">
+                    <h3>Zaprojektowany Hardware</h3>
+                    <p>Autorski moduł pomiarowy z próbkowaniem sygnału z elektrod (RA, LA, RL) przy częstotliwości 250 Hz. Układ gwarantuje wysoki współczynnik tłumienia zakłóceń, stabilny odczyt oraz ponad 24 godziny ciągłej rejestracji na jednym ładowaniu ogniwa.</p>
+                    <a href="hardware.html" class="card-link">Zobacz specyfikację płytki →</a>
+                </div>
+
+                <div class="card">
+                    <h3>Oprogramowanie Mobilne</h3>
+                    <p>Aplikacja integrująca zaawansowane algorytmy przetwarzania sygnału EKG. Odpowiada za płynną, bezprzewodową transmisję danych przez bluetooth, detekcję anomalii rytmu w czasie rzeczywistym oraz przejrzystą wizualizację dobowych trendów BPM.</p>
+                    <a href="software.html" class="card-link">Funkcje aplikacji →</a>
+                </div>
+
+                <div class="card">
+                    <h3>Konsultacja i Walidacja</h3>
+                    <p>System został poddany profesjonalnej ocenie specjalistów z zakresu kardiologii. Pozyskana opinia lekarska potwierdza czytelność generowanych raportów PDF oraz przydatność przesiewową urządzenia w procesie wstępnej diagnostyki pacjenta.</p>
+                    <a href="opinie.html" class="card-link">Przeczytaj opinie lekarskie →</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Projekt Rythmio.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

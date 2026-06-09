@@ -1,0 +1,409 @@
+/* ==========================================================================
+   1. RESET STYLI I ZMIENNE GLOBALNE
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-main: #0d0d0d;        /* Tło główne (czarne) */
+    --bg-card: #1c1c1e;        /* Tło kafelków/kart */
+    --bg-card-hover: #252528;  /* Tło kart po najechaniu */
+    --text-primary: #ffffff;   /* Główny biały tekst */
+    --text-secondary: #8e8e93; /* Szary tekst poboczny */
+    --accent-purple: #7b61ff;  /* Fioletowy kolor przewodzący */
+    --accent-green: #30d158;   /* Zielony akcent */
+    --accent-red: #ff453a;     /* Czerwony akcent */
+    --border-color: #2c2c2e;   /* Ramki wokół kart i sekcji */
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+h1, h2, h3, h5 {
+    line-height: 1.2;
+}
+
+/* ==========================================================================
+   2. NAWIGACJA (NAVBAR)
+   ========================================================================== */
+.navbar {
+    background: rgba(13, 13, 13, 0.8);
+    backdrop-filter: blur(15px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+}
+
+.nav-logo {
+    height: 48px;
+    width: auto;         
+    display: block;
+    filter: invert(44%) sepia(91%) saturate(3025%) hue-rotate(231deg) brightness(101%) contrast(101%);
+}
+
+.logo-text {
+    color: var(--accent-purple);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    font-family: 'Inter', sans-serif;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem; /* Zmniejszone z 2rem, aby pomieścić 5 linków w rzędzie */
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover, .nav-links a.active {
+    color: var(--accent-purple);
+}
+
+/* ==========================================================================
+   3. SEKCJA GŁÓWNA (HERO)
+   ========================================================================== */
+.hero {
+    padding: 3rem 0 5rem 0; 
+    background: radial-gradient(circle at top center, rgba(123, 97, 255, 0.12), transparent 50%);
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr; /* Tekst dostaje 55% szerokości, zdjęcie aplikacji 45% */
+    gap: 4rem;
+    align-items: center;
+}
+
+.badge {
+    background: rgba(123, 97, 255, 0.2);
+    color: var(--accent-purple);
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(123, 97, 255, 0.3);
+}
+
+.hero-text h1 {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+.hero-text p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+/* Lista cech w sekcji Hero */
+.hero-features-list {
+    list-style: none;
+    margin-bottom: 2.5rem;
+    padding: 0;
+}
+
+.hero-features-list li {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.hero-features-list strong {
+    color: var(--text-primary);
+    white-space: nowrap;
+    display: inline-block;
+    width: 160px; /* Równe wyrównanie tekstów opisów */
+}
+
+/* Elementy interaktywne (Przyciski) */
+.hero-actions {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.btn {
+    display: inline-block;
+    background-color: var(--accent-purple);
+    color: white;
+    padding: 0.9rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s, transform 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #6a4ff0;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    color: var(--accent-purple);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: opacity 0.3s;
+}
+
+.btn-secondary:hover {
+    opacity: 0.8;
+}
+
+.img-fluid {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 24px;
+    display: block;
+    margin: 0 auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border: 1px solid var(--border-color);
+}
+
+/* ==========================================================================
+   4. SEKCJA: OBUDOWA (ENCLOSURE)
+   ========================================================================== */
+.enclosure-section {
+    padding: 6rem 0;
+    border-top: 1px solid var(--border-color);
+    background: linear-gradient(180deg, transparent, rgba(123, 97, 255, 0.02));
+}
+
+.grid-enclosure {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr; /* Zdjęcie 57%, tekst 43% */
+    gap: 4rem;
+    align-items: center;
+}
+
+.image-block-large {
+    width: 100%;
+    text-align: center;
+}
+
+.img-fluid-large {
+    width: 100%;
+    max-width: 750px;
+    height: auto;
+    border-radius: 24px;
+    display: block;
+    margin: 0 auto;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    border: 1px solid var(--border-color);
+}
+
+.text-block p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.enclosure-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.enclosure-item h5 {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+}
+
+.enclosure-item p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ==========================================================================
+   5. SEKCJA: KAFELKI / ARCHITEKTURA (FEATURES)
+   ========================================================================== */
+.features {
+    padding: 4rem 0;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 3rem;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.card {
+    background: var(--bg-card);
+    padding: 2.5rem 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s, background 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    background: var(--bg-card-hover);
+}
+
+.card h3 {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.card-link {
+    color: var(--accent-purple);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ==========================================================================
+   6. STOPKA (FOOTER)
+   ========================================================================== */
+.footer {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 4rem;
+}
+
+/* ==========================================================================
+   7. RESPONSYWNOŚĆ (MEDIA QUERIES)
+   ========================================================================== */
+@media (max-width: 850px) {
+    .hero-grid, .grid-enclosure {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+    .img-fluid-large {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+
+/* ==========================================================================
+   8. STRONY POMOCNICZE (Tabela specyfikacji z hardware.html)
+   ========================================================================== */
+.tech-spec-box {
+    margin-top: 2rem;
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.spec-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.spec-table td {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.95rem;
+}
+
+.spec-table tr:last-child td {
+    border-bottom: none;
+}
+
+.spec-table td:first-child {
+    font-weight: 600;
+    color: var(--text-primary);
+    width: 45%;
+}
+
+.spec-table td:last-child {
+    color: var(--text-secondary);
+}
+
+
+
+/* Dedykowany układ dla kafelków interfejsu */
+.grid-interfaces {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dwie równe kolumny sztywno obok siebie */
+    gap: 2rem;
+    align-items: stretch;
+}
+
+/* Przejście w tryb pionowy dopasowany tylko do małych smartfonów */
+@media (max-width: 680px) {
+    .grid-interfaces {
+        grid-template-columns: 1fr; /* Jeden pod drugim dopiero na ekranie telefonu */
+        gap: 1.5rem;
+    }
+}
