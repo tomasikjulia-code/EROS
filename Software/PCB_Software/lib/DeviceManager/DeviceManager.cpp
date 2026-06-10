@@ -1,6 +1,16 @@
 #include "DeviceManager.h"
 #include <esp_task_wdt.h>
 
+//Definicje zmiennych statycznych (obiektów)
+BluetoothSerial DeviceManager::SerialBT;
+CsvWriter DeviceManager::holter;
+MyAccelerometer DeviceManager::accel;
+
+//Definicje statycznych tablic
+Sample DeviceManager::bufferA[EKG_BUFFER_SIZE];
+Sample DeviceManager::bufferB[EKG_BUFFER_SIZE];
+
+
 DeviceManager::DeviceManager(){
 
     btEnabled = false; //na poczatek nikt nie klikal przycisku
@@ -232,17 +242,18 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             //przed wyslaniem danych robimy gigantyczny skok o wartosc podana przez aplikacje
             _fileToSend.seek(fileSizeReceived); // Ustawiamy wskaźnik na pozycję, od której zaczniemy wysyłać dane
 
-            //Wysyłanie w porcjach 
-            const size_t bufferSize = 512;
+            // Wysyłanie w porcjach 
+            const size_t bufferSize = 1024;
             uint8_t buffer[bufferSize];
-            
+
             while (_fileToSend.available() && SerialBT.hasClient()) {
-                while (esp_get_free_heap_size() < 8000) {
-                    //Serial.printf("[BT] Low heap (%lu), waiting...\n", esp_get_free_heap_size());
-                    xSemaphoreGive(sdMutex);
-                    vTaskDelay(pdMS_TO_TICKS(20));
+
+                while (esp_get_free_heap_size() < 20000) { 
+                    Serial.printf("[BT] Krytycznie mało RAMu (%lu), wstrzymuję odczyt z SD...\n", esp_get_free_heap_size());
+
+                     xSemaphoreGive(sdMutex);
+                     vTaskDelay(pdMS_TO_TICKS(50)); 
                     xSemaphoreTake(sdMutex, portMAX_DELAY);
-                    continue;
                 }
 
                 size_t bytesRead = _fileToSend.read(buffer, bufferSize);
@@ -257,10 +268,9 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
                 }
 
                 xSemaphoreGive(sdMutex);
-                vTaskDelay(pdMS_TO_TICKS(5)); 
+                vTaskDelay(pdMS_TO_TICKS(20)); 
                 xSemaphoreTake(sdMutex, portMAX_DELAY);
             }
-
             _fileToSend.close();
             xSemaphoreGive(sdMutex); // Oddajemy dostęp do karty SD
         }
@@ -297,6 +307,8 @@ void DeviceManager::BTSendingState()
     SerialBT.print('D');
     serializeJson(doc, SerialBT);
     SerialBT.println();
+
+    doc.clear(); // Zwolnienie pamięci zajmowanej przez dokument
 }
 
 uint8_t DeviceManager::getBatteryLevel(){
@@ -437,20 +449,31 @@ void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
     }
 }
 
-void DeviceManager::writeBufferToSD() {
+void DeviceManager::writeBufferToSD(SemaphoreHandle_t sdMutex) {
     // Sprawdź, czy czas badania się skończył
     if (isTimeEnded() && holter.isRecording()) {
-        holter.closeFile();
+        if (xSemaphoreTake(sdMutex, portMAX_DELAY) == pdTRUE) {
+            holter.closeFile();
+        xSemaphoreGive(sdMutex);
+        }
         Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
         displayEnabled = false;
         currentDisplayState = DISPLAY_END;
-        vTaskDelay(pdMS_TO_TICKS(200));
+        if (xSemaphoreTake(sdMutex, portMAX_DELAY) == pdTRUE) {
+            wakeUpDisplay();
+            displayEndScreen();
+        xSemaphoreGive(sdMutex);
+        }
+        while (true) {
+            checkButtons();
+            vTaskDelay(pdMS_TO_TICKS(500)); // Zatrzymaj dalsze operacje, ale pozwól innym zadaniom działać
+        }
         return; 
     }
 
     // Zapisz gotowy bufor na kartę SD
     if (readyToWriteBuffer != nullptr && holter.isRecording()) {
-        holter.writeBuffer(readyToWriteBuffer, EKG_BUFFER_SIZE);
+        holter.writeBuffer(readyToWriteBuffer, EKG_BUFFER_SIZE, sdMutex);
         readyToWriteBuffer = nullptr; //zeruje po zapisaniu zeby na pewno byl pusty
     }
 }
@@ -463,7 +486,8 @@ void DeviceManager::EKGReadingAndSending(){
                 holter.closeFile();
                 Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
                 displayEnabled=false;
-                clearDisplay();
+                wakeUpDisplay();
+                displayEndScreen();
                 currentDisplayState=DISPLAY_END;
             }
         }
@@ -536,10 +560,7 @@ void DeviceManager::updateDisplay(uint32_t timeInMs, SemaphoreHandle_t sdMutex){
             hasEndBeeped = true; // Oznaczamy, że już raz zapikaliśmy i wyciszamy na zawsze
         }
 
-        //czekam na semafor od karty sd zeby moc uzyc wyswietlacza
-        xSemaphoreTake(sdMutex, portMAX_DELAY);
-        displayEndScreen();
-        xSemaphoreGive(sdMutex);
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
     else if (displayEnabled && !isTimeEnded()){
         uint16_t refreshTime = 200; //jesli warunek spelniony to ustawiam sobie refresh time na wyswietlacz

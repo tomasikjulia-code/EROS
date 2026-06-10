@@ -95,6 +95,7 @@ bool processHeartRate() {
     if (integratedSignal < (PT_THRESHOLD * 0.4f)) {
         hbeat = false;
     }
+    //printf(">IntegratedSignal: %f \n", integratedSignal);
     return ret;
 }
 /**

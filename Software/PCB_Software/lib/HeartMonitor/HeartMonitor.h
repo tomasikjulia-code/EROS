@@ -33,7 +33,7 @@ static int readIndex = 0;
 static long totalBPM = 0;
 static int averageBPM = 0;
 static float integratedSignal = 0;   //Końcowy sygnał energii, na którym odbywa się detekcja pulsu.
-const float PT_THRESHOLD = 4000000; //Stały próg detekcji energii uderzenia
+const float PT_THRESHOLD = 380000; //Stały próg detekcji energii uderzenia
 const int PT_MAX_LIMIT = 20000000;
 
 void initHeartMonitor();
