@@ -7,6 +7,7 @@ TaskHandle_t btTaskHandle;
 TaskHandle_t displayTaskHandle;
 TaskHandle_t accelTaskHandle;
 TaskHandle_t sdWriteTaskHandle; 
+TaskHandle_t buttonTaskHandle; 
 
 //uchwyty na mutexy
 SemaphoreHandle_t displayMutex;
@@ -36,11 +37,8 @@ void sdWriteTask(void *parameter)
     while (true)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        if (xSemaphoreTake(sdMutex, portMAX_DELAY))
-        {
-            HolterDevice.writeBufferToSD();
-            xSemaphoreGive(sdMutex);
-        }
+        HolterDevice.writeBufferToSD(sdMutex);
+        //Serial.println(">>> Zapisano bufor na kartę SD <<<");
     }
 }
 void btTask(void *parameter)
@@ -65,6 +63,7 @@ void displayTask(void *parameter)
             HolterDevice.updateDisplay(2000, sdMutex);
             xSemaphoreGive(displayMutex);
         }
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
@@ -79,6 +78,15 @@ void accelTask(void *parameter) {
         }
     }
 }
+
+void buttonTask(void *parameter) {
+
+    while (true) {
+        HolterDevice.checkButtons();
+        vTaskDelay(pdMS_TO_TICKS(500)); 
+    }
+}
+
 void setup()
 {
     HolterDevice.init();
@@ -95,14 +103,14 @@ void setup()
 
 
     xTaskCreatePinnedToCore(measureTask, "Measure Task", 4096, NULL, 2, &measureTaskHandle, 1);
-    xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 10240, NULL, 2, &sdWriteTaskHandle, 0);
-    xTaskCreatePinnedToCore(btTask, "BT Task", 16384, NULL, 1, &btTaskHandle, 0);
-    xTaskCreatePinnedToCore(displayTask, "Display Task", 8192, NULL, 1, &displayTaskHandle, 0);
-    xTaskCreatePinnedToCore(accelTask, "Accel Task", 4096, NULL, 1, &accelTaskHandle, 0);
+    xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 4096, NULL, 2, &sdWriteTaskHandle, 0);
+    xTaskCreatePinnedToCore(btTask, "BT Task", 8192, NULL, 2, &btTaskHandle, 0);
+    xTaskCreatePinnedToCore(displayTask, "Display Task", 4096, NULL, 1, &displayTaskHandle, 0);
+    xTaskCreatePinnedToCore(accelTask, "Accel Task", 2048, NULL, 1, &accelTaskHandle, 0);
+    xTaskCreatePinnedToCore(buttonTask, "Button Task", 1024, NULL, 1, &buttonTaskHandle, 0);
 
 }
 void loop(){
-    HolterDevice.checkButtons(); 
-    vTaskDelay(pdMS_TO_TICKS(200));
+    vTaskDelay(pdMS_TO_TICKS(20000));
 
 }

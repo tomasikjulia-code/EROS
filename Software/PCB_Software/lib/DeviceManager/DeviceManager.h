@@ -16,7 +16,7 @@
 #define MS_PER_HOUR 3600000UL
 #define MS_PER_MINUTE 60000UL
 #define BATTERY_LEVEL_PIN 36
-#define EKG_BUFFER_SIZE 300 //rozmiar buforow do podwojnego buforowania
+#define EKG_BUFFER_SIZE 200 //rozmiar buforow do podwojnego buforowania
 
 #define SD_CS_PIN 32
 #define DISPLAY_CS_PIN 5
@@ -56,17 +56,17 @@ class DeviceManager{
 
         volatile int importantButton = 0;
 
-        BluetoothSerial SerialBT;
-        CsvWriter holter; //klasa zarzadzajaca holterem
+        static BluetoothSerial SerialBT;
+        static CsvWriter holter; //klasa zarzadzajaca holterem
         //Epd epd; //klasa zarzadzajaca wyswietlaczem
         DisplayState currentDisplayState; //zmienna okreslajaca aktualny wyswietlany ekran
         
-        MyAccelerometer accel;
+        static MyAccelerometer accel;
         unsigned long lastAccelCheck = 0; 
 
         // NOWE ZMIENNE DO PODWÓJNEGO BUFOROWANIA:
-        Sample bufferA[EKG_BUFFER_SIZE];
-        Sample bufferB[EKG_BUFFER_SIZE];
+        static Sample bufferA[EKG_BUFFER_SIZE];
+        static Sample bufferB[EKG_BUFFER_SIZE];
         Sample* currentBuffer;
         Sample* readyToWriteBuffer;
         volatile size_t bufferIndex;
@@ -97,7 +97,7 @@ class DeviceManager{
 
 
         void collectAndBufferSample(TaskHandle_t sdTaskHandle); 
-        void writeBufferToSD();
+        void writeBufferToSD(SemaphoreHandle_t sdMutex);
 
     private:
         volatile float lastActivityValue = -1.0f; // Przechowuje aktualną wartość do zapisu

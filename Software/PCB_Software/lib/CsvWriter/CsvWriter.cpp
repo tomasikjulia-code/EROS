@@ -1,8 +1,12 @@
 #include "CsvWriter.h"
 
+//ZMIENNE STATYCZNE
+char CsvWriter::_writeBuf[MAX_BUFFER_SIZE];
+
 CsvWriter::CsvWriter() {}
 
 bool CsvWriter::begin(const char* path) {
+
     if (SD.exists(path)) {
         SD.remove(path); 
     }
@@ -17,31 +21,78 @@ bool CsvWriter::begin(const char* path) {
     return true;
 }
 
-void CsvWriter::writeBuffer(const Sample* samples, size_t count) {
-    if (!_recording || samples == nullptr || count == 0) return;
+void CsvWriter::writeBuffer(const Sample* samples, size_t count, SemaphoreHandle_t sdMutex) {
+    // Zabezpieczenie przed błędem alokacji
+    if (!_recording || samples == nullptr || count == 0 || _writeBuf == nullptr) return;
 
+    size_t offset = 0;
+    
+    // Formatowanie wprost do stałego bufora (bardzo szybkie!)
     for (size_t i = 0; i < count; i++) {
-        _file.print(samples[i].timestamp);
-        _file.print(",");
-        _file.print(samples[i].rawValue);
-        _file.print(",");
-        _file.print(samples[i].bpm);
-        _file.print(",");
-        _file.print(samples[i].leadOff ? "1" : "0");
-        _file.print(",");
-        
+        char activityStr[16];
         if (samples[i].activity < 0) {
-            _file.print("B"); 
+            strcpy(activityStr, "B");
         } else {
-            _file.print(samples[i].activity, 2);
+            dtostrf(samples[i].activity, 0, 2, activityStr);
         }
-        
-        _file.print(",");
-        _file.println(samples[i].important);
+
+        int written = snprintf(_writeBuf + offset, MAX_BUFFER_SIZE - offset, 
+                               "%lu,%d,%d,%d,%s,%d\n",
+                               samples[i].timestamp,
+                               samples[i].rawValue,
+                               samples[i].bpm,
+                               samples[i].leadOff ? 1 : 0,
+                               activityStr,
+                               samples[i].important);
+
+        if (written > 0 && written < (MAX_BUFFER_SIZE - offset)) {
+            offset += written;
+        } else {
+            break; 
+        }
     }
-    _file.flush(); 
+
+    if (offset > 0) {
+        if (xSemaphoreTake(sdMutex, portMAX_DELAY) == pdTRUE) {
+            
+            _file.write((const uint8_t*)_writeBuf, offset);
+
+            _writeCounter++;
+            if (_writeCounter % 4 == 0) {
+                _file.flush();
+            }
+
+            xSemaphoreGive(sdMutex);
+        }
+    }
 }
 
+/*
+    void CsvWriter::writeBuffer(const Sample* samples, size_t count) {
+        if (!_recording || samples == nullptr || count == 0) return;
+
+        for (size_t i = 0; i < count; i++) {
+            _file.print(samples[i].timestamp);
+            _file.print(",");
+            _file.print(samples[i].rawValue);
+            _file.print(",");
+            _file.print(samples[i].bpm);
+            _file.print(",");
+            _file.print(samples[i].leadOff ? "1" : "0");
+            _file.print(",");
+            
+            if (samples[i].activity < 0) {
+                _file.print("B"); 
+            } else {
+                _file.print(samples[i].activity, 2);
+            }
+            
+            _file.print(",");
+            _file.println(samples[i].important);
+        }
+        _file.flush(); 
+    }
+*/
 void CsvWriter::writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool leadOff, float activity, int important) {
     if (!_recording) return;
 
