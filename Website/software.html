@@ -6,6 +6,92 @@
     <title>Rythmio - Aplikacja</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Układ paska dla przycisku motywu wyciągniętego z listy menu */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Na desktopie ukrywamy kontener akcji mobilnych */
+        .nav-actions .theme-toggle-btn {
+            display: none;
+        }
+
+        /* --- STYLIZACJA WYBORU JĘZYKA W MENU HAMBURGERA --- */
+        .lang-switcher-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.5rem 0;
+        }
+
+        .lang-flag-btn {
+            background: none;
+            border: 2px solid transparent;
+            font-size: 1.6rem;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 6px;
+            line-height: 1;
+            transition: all 0.2s ease;
+            display: inline-block;
+            opacity: 0.5; /* Domyślnie lekko przezroczyste (nieaktywne) */
+        }
+
+        .lang-flag-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .lang-flag-btn.active {
+            opacity: 1; /* Aktywny język jest w pełni wyraźny */
+            border-color: var(--accent-purple); /* Fioletowa obwódka dla zaznaczenia */
+            background-color: rgba(123, 97, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            /* Na telefonie ukrywamy elementy desktopowe wewnątrz listy <ul> */
+            .nav-links .theme-toggle-li {
+                display: none !important;
+            }
+            /* Pokazujemy przycisk motywu na pasku głównym obok hamburgera */
+            .nav-actions .theme-toggle-btn {
+                display: inline-flex;
+                margin: 0;
+                width: auto;
+                padding: 0.4rem 0.7rem;
+            }
+            
+            /* Dopasowanie kontenera flag w menu mobilnym */
+            .lang-switcher-container {
+                justify-content: center;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--border-color);
+                width: 100%;
+            }
+
+            /* --- SZTYWNE WYMUSZENIE KOLEJNOŚCI NA TELEFONIE --- */
+            /* Przełączamy kontenery na Flexbox w pionie */
+            .container.grid-2 {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+
+            /* Tekst w każdej sekcji ZAWSZE ląduje na górze (order: 1) */
+            .container.grid-2 .text-block {
+                order: 1 !important;
+            }
+
+            /* Wszystkie typy bloków ze zdjęciami ZAWSZE lądują na dole (order: 2) */
+            .container.grid-2 .image-block-centered,
+            .container.grid-2 .image-block-column {
+                order: 2 !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -16,18 +102,31 @@
                 <span class="logo-text">Rythmio</span>
             </a>
             
-            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </button>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button>
+                
+                <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
 
             <ul class="nav-links" id="nav-menu">
-                <li><a href="index.html">Pulpit</a></li>
-                <li><a href="hardware.html">Urządzenie</a></li>
-                <li><a href="software.html" class="active">Aplikacja</a></li>
-                <li><a href="opinie.html">Opinie</a></li>
-                <li><a href="onas.html">O nas</a></li>
+                <li><a href="index.html" data-i18n="nav-pulpit">Pulpit</a></li>
+                <li><a href="hardware.html" data-i18n="nav-hardware">Urządzenie</a></li>
+                <li><a href="software.html" class="active" data-i18n="nav-software">Aplikacja</a></li>
+                <li><a href="opinie.html" data-i18n="nav-opinions">Opinie</a></li>
+                <li><a href="onas.html" data-i18n="nav-about">O nas</a></li>
+                
+                <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button></li>
+                
+                <li>
+                    <div class="lang-switcher-container">
+                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">🇵🇱</button>
+                        <button class="lang-flag-btn" data-lang="en" title="English language">🇬🇧</button>
+                    </div>
+                </li>
             </ul>
         </div>
     </nav>
@@ -35,123 +134,120 @@
     <section class="content-section">
         <div class="container grid-2">
             <div class="text-block">
-                <span class="badge">Aplikacja mobilna</span>
-                <h1>Kardiologia Live w Twoim Telefonie</h1>
-                <p>Aplikacja mobilna Rythmio stanowi centrum dowodzenia Twoim sercem. Po naciśnięciu dedykowanej ikony <strong>Bluetooth</strong> i nawiązaniu stabilnego połączenia bezprzewodowego z urządzeniem, zyskujesz pełną kontrolę nad trwającym badaniem i natychmiastowy wgląd w kondycję swojego organizmu.</p>
+                <span class="badge" data-i18n="soft-badge">Aplikacja mobilna</span>
+                <h1 data-i18n="soft-title1">Kardiologia Live w Twoim Telefonie</h1>
+                <p data-i18n="soft-desc1">Aplikacja mobilna Rythmio stanowi centrum dowodzenia Twoim sercem. Po naciśnięciu dedykowanej ikony <strong>Bluetooth</strong> i nawiązaniu stabilnego połączenia bezprzewodowego z urządzeniem, zyskujesz pełną kontrolę nad trwającym badaniem i natychmiastowy wgląd w kondycję swojego organizmu.</p>
                 
-                <div class="card-group" style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem;">
+                <div class="card-group">
                     <div class="card">
-                        <h4 style="color: #7b61ff; margin-bottom: 0.5rem; font-size: 1.1rem;">Monitorowanie EKG na Żywo</h4>
-                        <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary);">Uruchomienie trybu <strong>Live</strong> pozwala na strumieniowanie sygnału EKG w czasie rzeczywistym bezpośrednio na ekran smartfona. Idealne rozwiązanie do natychmiastowej weryfikacji poprawności zapisu.</p>
+                        <h4 class="card-inline-title" data-i18n="soft-card1-title">Monitorowanie EKG na Żywo</h4>
+                        <p data-i18n="soft-card1-desc">Uruchomienie trybu <strong>Live</strong> pozwala na strumieniowanie sygnału EKG w czasie rzeczywistym bezpośrednio na ekran smartfona. Idealne rozwiązanie do natychmiastowej weryfikacji poprawności zapisu.</p>
                     </div>
                     
                     <div class="card">
-                        <h4 style="color: #7b61ff; margin-bottom: 0.5rem; font-size: 1.1rem;">Szybkie Odświeżenie Statusu</h4>
-                        <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary);">Po wyłączeniu podglądu na żywo, ikona <strong>odświeżania</strong> pozwala błyskawicznie pobrać z urządzenia status pakietów: poziom naładowania baterii, informację o prawidłowym podpięciu elektrod oraz potwierdzenie, czy pomiar jest stabilny.</p>
+                        <h4 class="card-inline-title" data-i18n="soft-card2-title">Szybkie Odświeżenie Statusu</h4>
+                        <p data-i18n="soft-card2-desc">Po wyłączeniu podglądu na żywo, ikona <strong>odświeżania</strong> pozwala błyskawicznie pobrać z urządzenia status pakietów: poziom naładowania baterii, informację o prawidłowym podpięciu elektrod oraz potwierdzenie, czy pomiar jest stabilny.</p>
                     </div>
                 </div>
 
-                <div class="info-note" style="margin-top: 2rem; padding: 1rem; background: rgba(123, 97, 255, 0.03); border-radius: 8px; border: 1px dashed rgba(123, 97, 255, 0.2); font-size: 0.95rem; color: var(--text-secondary);">
+                <div class="info-note" data-i18n="soft-note">
                     🔄 <strong>Pełna swoboda widoku:</strong> Zarówno wykres fali EKG w trybie <strong>Live</strong>, jak i dobowe wykresy tętna są w pełni <strong>skalowalne</strong>. Możesz swobodnie obracać telefon – interfejs automatycznie dopasuje się do widoku pionowego lub poziomego, ułatwiając precyzyjną analizę załamków.
                 </div>
             </div>
             
-            <div class="image-block">
-                <img src="images/694262992_2488082638318660_9103735274492992762_n.jpg" alt="Pulpit i Trend Aktywności Rythmio" class="img-fluid" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-width: 340px; width: 100%; height: auto; margin: 0 auto;" onerror="this.src='https://via.placeholder.com/340x680/1c1c1e/7b61ff?text=Trend+Aktywnosci+Aplikacji'">
+            <div class="image-block-centered">
+                <img src="images/live.png" alt="Pulpit i EKG na żywo Rythmio" class="phone-mockup phone-mockup-black-bg">
             </div>
         </div>
     </section>
 
-    <section class="content-section" style="border-top: 1px solid var(--border-color); background: linear-gradient(180deg, transparent, rgba(123, 97, 255, 0.01));">
+    <section class="content-section section-gradient-bg">
         <div class="container grid-2">
             
-            <div class="image-block">
-                <img src="images/695683353_996459172841414_1569255405900289876_n.jpg" alt="Raport Kliniczny Parametry" class="img-fluid" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-width: 340px; width: 100%; height: auto; margin: 0 auto;" onerror="this.src='https://via.placeholder.com/340x680/1c1c1e/7b61ff?text=Zestawienie+Zdarzen+BPM'">
+            <div class="image-block-centered">
+                <img src="images/Trendy.jpeg" alt="Raport Kliniczny Parametry i Trendy" class="phone-mockup">
             </div>
 
             <div class="text-block">
-                <h1>Pobieranie i Automatyczna Analiza</h1>
-                <p>Kliknięcie ikony synchronizacji uruchamia szybki transfer zapisanego materiału z karty microSD wprost do pamięci telefonu. Aplikacja natychmiast przelicza surowe dane, aktualizując kluczowe metryki diagnostyczne na pulpicie:</p>
+                <h1 data-i18n="soft-title2">Pobieranie i Automatyczna Analiza</h1>
+                <p data-i18n="soft-desc2">Kliknięcie ikony synchronizacji uruchamia szybki transfer zapisanego materiału z karty microSD wprost do pamięci telefonu. Aplikacja natychmiast przelicza surowe dane, aktualizując kluczowe metryki diagnostyczne na pulpicie:</p>
                 
-                <div class="tech-spec-box" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
-                    <h3>Wskaźniki aktualizowane po synchronizacji:</h3>
-                    <table class="spec-table" style="width: 100%;">
-                        <tr><td>Czas trwania zapisu</td><td>Precyzyjny licznik czasu zapisanego badania</td></tr>
-                        <tr><td>Trendy tętna</td><td>Automatyczne wyznaczenie średniego, najniższego oraz najwyższego BPM</td></tr>
-                        <tr><td>Licznik arytmii</td><td>Suma zarejestrowanych dobowych epizodów anomalii</td></tr>
-                        <tr><td>Wizualizacja graficzna</td><td>Generowanie wykresu dobowego tętna oraz wykresu średniej aktywności fizycznej</td></tr>
+                <div class="tech-spec-box tech-spec-box-software">
+                    <h3 data-i18n="soft-table-title">Wskaźniki aktualizowane po synchronizacji:</h3>
+                    <table class="spec-table spec-table-software">
+                        <tr><td data-i18n="soft-row1-c1">Czas trwania zapisu</td><td data-i18n="soft-row1-c2">Precyzyjny licznik czasu zapisanego badania</td></tr>
+                        <tr><td data-i18n="soft-row2-c1">Trendy tętna</td><td data-i18n="soft-row2-c2">Automatyczne wyznaczenie średniego, najniższego oraz najwyższego BPM</td></tr>
+                        <tr><td data-i18n="soft-row3-c1">Licznik arytmii</td><td data-i18n="soft-row3-c2">Suma zarejestrowanych dobowych epizodów anomalii</td></tr>
+                        <tr><td data-i18n="soft-row4-c1">Wizualizacja graficzna</td><td data-i18n="soft-row4-c2">Generowanie wykresu dobowego tętna oraz wykresu średniej aktywności fizycznej</td></tr>
                     </table>
                 </div>
-                <p style="color: var(--text-secondary); font-size: 0.95rem;">Dzięki korelacji tętna z akcelerometrem wbudowanym w urządzenie, od razu widzisz, czy wyższy puls wynikał z naturalnego wysiłku fizycznego, czy był niepokojącą anomalią w spoczynku.</p>
+                <p data-i18n="soft-desc3">Dzięki korelacji tętna z akcelerometrem wbudowanym w urządzenie, od razu widzisz, czy wyższy puls wynikał z naturalnego wysiłku fizycznego, czy był niepokojącą anomalią w spoczynku.</p>
             </div>
             
         </div>
     </section>
 
-    <section class="content-section" style="border-top: 1px solid var(--border-color); clear: both;">
-        <div class="container grid-2" style="align-items: flex-start;">
+    <section class="content-section section-divider-top">
+        <div class="container grid-2 align-start">
             
             <div class="text-block">
-                <span class="badge">Moduł Ekspercki</span>
-                <h1>Raport Kliniczny i Wsparcie AI</h1>
-                <p>Z poziomu aplikacji jednym kliknięciem wygenerujesz kompleksowy <strong>Raport Kliniczny</strong>. Zawiera on pełne zestawienie matematyczne sesji pomiarowej, w tym całkowitą liczbę wykrytych zespołów QRS, liczbę tachykardii, bradykardii oraz groźnych pauz trwających powyżej 2.0s.</p>
+                <span class="badge" data-i18n="soft-badge2">Moduł Ekspercki</span>
+                <h1 data-i18n="soft-title3">Raport Kliniczny i Wsparcie AI</h1>
+                <p data-i18n="soft-desc4">Z poziomu aplikacji jednym kliknięciem wygenerujesz kompleksowy <strong>Raport Kliniczny</strong>. Zawiera on pełne zestawienie matematyczne sesji pomiarowej, w tym całkowitą liczbę wykrytych zespołów QRS, liczbę tachykardii, bradykardii oraz groźnych pauz trwających powyżej 2.0s.</p>
                 
-                <div class="card" style="margin-top: 1.5rem; border-left: 4px solid #22c55e; background: rgba(34, 197, 94, 0.02); height: auto;">
-                    <h4 style="color: #22c55e; margin-bottom: 0.5rem;">✍️ Dziennik Zdarzeń i Notatki Pacjenta</h4>
-                    <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary);">Gdy podczas badania poczujesz się gorzej i wciśniesz <strong>dolny przycisk na obudowie urządzenia</strong>, system postawi znacznik w sygnale. Po zgraniu danych, aplikacja pozwoli Ci dodać własny komentarz do tego momentu (np. opisując duszność czy stres), dając lekarzowi pełny kontekst sytuacyjny.</p>
+                <div class="card card-highlight-green">
+                    <h4 data-i18n="soft-card3-title">✍️ Dziennik Zdarzeń i Notatki Pacjenta</h4>
+                    <p data-i18n="soft-card3-desc">Gdy podczas badania poczujesz się gorzej i wciśniesz <strong>dolny przycisk na obudowie urządzenia</strong>, system postawi znacznik w sygnale. Po zgraniu danych, aplikacja pozwoli Ci dodać własny komentarz do tego momentu (np. opisując duszność czy stres), dając lekarzowi pełny kontekst sytuacyjny.</p>
                 </div>
 
-                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Przegląd anomalii i wycinków</h3>
-                <p>Aplikacja automatycznie wycina z sygnału i archiwizuje dokładne momenty wystąpienia anomalii wraz z czasem ich trwania. Wszystkie wycinki raportu (tak jak podgląd na żywo) są w pełni <strong>interaktywne i skalowalne pionowo oraz poziomo</strong>.</p>
+                <h3 class="heading-margin-custom" data-i18n="soft-subheading">Przegląd anomalii i wycinków</h3>
+                <p data-i18n="soft-desc5">Aplikacja automatycznie wycina z sygnału i archiwizuje dokładne momenty wystąpienia anomalii wraz z czasem ich trwania. Wszystkie wycinki raportu (tak jak podgląd na żywo) są w pełni <strong>interaktywne i skalowalne pionowo oraz poziomo</strong>.</p>
 
-                <div class="card" style="margin-top: 1.5rem; border-left: 4px solid #7b61ff; background: rgba(123, 97, 255, 0.01); height: auto;">
-                    <h4 style="color: #7b61ff; margin-bottom: 0.5rem;">🤖 Zintegrowany Asystent AI</h4>
-                    <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary);">Wbudowany moduł sztucznej inteligencji przetwarza badanie i generuje <strong>Raport AI</strong> z podsumowaniem klinicznym. Klasyfikuje on epizody jako "łagodne" lub "krytyczne", ocenia ciągłość pracy serca i dostarcza wstępne zalecenia dotyczące stylu życia lub pilności konsultacji lekarskiej.</p>
+                <div class="card card-highlight-purple">
+                    <h4 data-i18n="soft-card4-title">🤖 Zintegrowany Asystent AI</h4>
+                    <p data-i18n="soft-card4-desc">Wbudowany moduł sztucznej inteligencji przetwarza badanie i generuje <strong>Raport AI</strong> z podsumowaniem klinicznym. Klasyfikuje on epizody jako "łagodne" lub "krytyczne", ocenia ciągłość pracy serca i dostarcza wstępne zalecenia dotyczące stylu życia lub pilności konsultacji lekarskiej.</p>
                 </div>
 
-                <p style="margin-top: 2rem;">Gotowe opracowanie możesz natychmiast zapisać w formacie <strong>PDF</strong>, uzupełnić adres e-mail i bezpośrednio z poziomu telefonu przesłać swojemu kardiologowi.</p>
+                <p class="paragraph-margin-top" data-i18n="soft-desc6">Gotowe opracowanie możesz natychmiast zapisać w formacie <strong>PDF</strong>, uzupełnić adres e-mail i bezpośrednio z poziomu telefonu przesłać swojemu kardiologowi.</p>
             </div>
             
-            <div class="image-block">
-                <div style="max-height: 650px; overflow-y: auto; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); scrollbar-width: thin; max-width: 340px; width: 100%; margin: 0 auto;">
-                    <img src="images/691053923_2794953764177663_2867582462266637719_n.jpg" alt="Pełny Raport Kliniczny EKG Rythmio" style="width: 100%; height: auto; display: block;" onerror="this.src='https://via.placeholder.com/340x1200/1c1c1e/22c55e?text=Pełny+Długi+Raport+Kliniczny+PDF'">
-                </div>
+            <div class="image-block-column">
+                <img src="images/wycinki.jpeg" alt="Wycinki EKG Rythmio" class="phone-mockup phone-mockup-full-view">
+                <img src="images/raportAI.png" alt="Wygenerowany Raport AI PDF" class="report-preview">
             </div>
 
         </div>
     </section>
 
-    <section class="features" style="border-top: 1px solid var(--border-color); background: rgba(123, 97, 255, 0.005); clear: both; position: relative; z-index: 1;">
+    <section class="features section-features-bg">
         <div class="container">
-            <h2 class="section-title" style="text-align: center; margin-bottom: 1rem;">Dodatkowe Możliwości Aplikacji</h2>
-            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+            <h2 class="section-title" data-i18n="soft-title4">Dodatkowe Możliwości Aplikacji</h2>
+            <p class="text-center-max" data-i18n="soft-desc7">
                 Rythmio to nie tylko bieżący pomiar, ale też wygodne zarządzanie historią zdrowia oraz funkcje ułatwiające codzienną dostępność.
             </p>
 
-            <div class="grid-3" style="display: grid; gap: 2rem;">
+            <div class="grid-3">
                 
-                <div class="card" style="height: auto;">
-                    <h3>Dedykowane Archiwum</h3>
-                    <p>Osobna zakładka historyczna gromadzi wszystkie wykonane do tej pory badania kardiologiczne. Masz do nich stały dostęp, a w celu optymalizacji pamięci telefonu lub zachowania porządku, stare i nieaktualne rekordy możesz w każdej chwili bezpowrotnie usunąć.</p>
+                <div class="card">
+                    <h3 data-i18n="soft-card5-title">Dedykowane Archiwum</h3>
+                    <p data-i18n="soft-card5-desc">Osobna zakładka historyczna gromadzi wszystkie wykonane do tej pory badania kardiologiczne. Masz do nich stały dostęp, a w celu optymalizacji pamięci telefonu lub zachowania porządku, stare i nieaktualne rekordy możesz w każdej chwili bezpowrotnie usunąć.</p>
                 </div>
 
-                <div class="card" style="height: auto;">
-                    <h3>Asystent Głosowy</h3>
-                    <p>W menu ustawień zaawansowanych możesz włączyć inteligentnego asystenta audio. System będzie regularnie odczytywał komunikaty głosowe o zaktualizowanych danych telemetrycznych i stanie pracy serca – idealne podczas treningu lub dla osób starszych.</p>
+                <div class="card">
+                    <h3 data-i18n="soft-card6-title">Asystent Głosowy</h3>
+                    <p data-i18n="soft-card6-desc">W menu ustawień zaawansowanych możesz włączyć inteligentnego asystenta audio. System będzie regularnie odczytywał komunikaty głosowe o zaktualizowanych danych telemetrycznych i stanie pracy serca – idealne podczas treningu lub dla osób starszych.</p>
                 </div>
 
-                <div class="card" style="height: auto;">
-                    <h3>Bezpieczeństwo Danych</h3>
-                    <p>Wszystkie badania zapisywane lokalnie w aplikacji podlegają restrykcyjnemu szyfrowaniu. Eksport do formatów PDF oraz CSV realizowany jest za pomocą bezpiecznych protokołów systemowych, dbając o pełną poufność dokumentacji medycznej.</p>
+                <div class="card">
+                    <h3 data-i18n="soft-card7-title">Bezpieczeństwo Danych</h3>
+                    <p data-i18n="soft-card7-desc">Wszystkie badania zapisywane lokalnie w aplikacji podlegają restrykcyjnemu szyfrowaniu. Eksport do formatów PDF oraz CSV realizowany jest za pomocą bezpiecznych protokołów systemowych, dbając o pełną poufność dokumentacji medycznej.</p>
                 </div>
 
             </div>
 
-            <div class="medical-alert" style="margin-top: 4rem; background: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.15); border-left: 4px solid #ef4444; padding: 1.5rem; border-radius: 12px; height: auto;">
-                <h4 style="color: #ef4444; margin-top: 0; margin-bottom: 0.5rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
-                    ⚠️ Ważna uwaga medyczna
-                </h4>
-                <p style="margin: 0; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+            <div class="medical-alert">
+                <h4 data-i18n="soft-alert-title">⚠️ Ważna uwaga medyczna</h4>
+                <p data-i18n="soft-alert-desc">
                     Wykrycie przez algorytmy aplikacji lub moduł AI znacznej liczby epizodów arytmicznych bądź anomalii wymaga weryfikacji lekarskiej. Wygenerowane automatycznie wycinki EKG oraz Raporty AI mają charakter wyłącznie informacyjny i nie zastępują profesjonalnej diagnozy medycznej ani badania przeprowadzonego przez lekarza kardiologa.
                 </p>
             </div>
@@ -161,17 +257,206 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2026 Projekt Rythmio.</p>
+            <p data-i18n="footer-text">&copy; 2026 Projekt Rythmio.</p>
         </div>
-    </footer >
+    </footer>
 
     <script>
+
+        // --- SŁOWNIK TŁUMACZEŃ ---
+        const translations = {
+            pl: {
+                "nav-pulpit": "Pulpit",
+                "nav-hardware": "Urządzenie",
+                "nav-software": "Aplikacja",
+                "nav-opinions": "Opinie",
+                "nav-about": "O nas",
+                "soft-badge": "Aplikacja mobilna",
+                "soft-title1": "Kardiologia Live w Twoim Telefonie",
+                "soft-desc1": "Aplikacja mobilna Rythmio stanowi centrum dowodzenia Twoim sercem. Po naciśnięciu dedykowanej ikony <strong>Bluetooth</strong> i nawiązaniu stabilnego połączenia bezprzewodowego z urządzeniem, zyskujesz pełną kontrolę nad trwającym badaniem i natychmiastowy wgląd w kondycję swojego organizmu.",
+                "soft-card1-title": "Monitorowanie EKG na Żywo",
+                "soft-card1-desc": "Uruchomienie trybu <strong>Live</strong> pozwala na strumieniowanie sygnału EKG w czasie rzeczywistym bezpośrednio na ekran smartfona. Idealne rozwiązanie do natychmiastowej weryfikacji poprawności zapisu.",
+                "soft-card2-title": "Szybkie Odświeżenie Statusu",
+                "soft-card2-desc": "Po wyłączeniu podglądu na żywo, ikona <strong>odświeżania</strong> pozwala błyskawicznie pobrać z urządzenia status pakietów: poziom naładowania baterii, informację o prawidłowym podpięciu elektrod oraz potwierdzenie, czy pomiar jest stabilny.",
+                "soft-note": "🔄 <strong>Pełna swoboda widoku:</strong> Zarówno wykres fali EKG w trybie <strong>Live</strong>, jak i dobowe wykresy tętna są w pełni <strong>skalowalne</strong>. Możesz swobodnie obracać telefon – interfejs automatycznie dopasuje się do widoku pionowego lub poziomego, ułatwiając precyzyjną analizę załamków.",
+                "soft-title2": "Pobieranie i Automatyczna Analiza",
+                "soft-desc2": "Kliknięcie ikony synchronizacji uruchamia szybki transfer zapisanego materiału z karty microSD wprost do pamięci telefonu. Aplikacja natychmiast przelicza surowe dane, aktualizując kluczowe metryki diagnostyczne na pulpicie:",
+                "soft-table-title": "Wskaźniki aktualizowane po synchronizacji:",
+                "soft-row1-c1": "Czas trwania zapisu",
+                "soft-row1-c2": "Precyzyjny licznik czasu zapisanego badania",
+                "soft-row2-c1": "Trendy tętna",
+                "soft-row2-c2": "Automatyczne wyznaczenie średniego, najniższego oraz najwyższego BPM",
+                "soft-row3-c1": "Licznik arytmii",
+                "soft-row3-c2": "Suma zarejestrowanych dobowych epizodów anomalii",
+                "soft-row4-c1": "Wizualizacja graficzna",
+                "soft-row4-c2": "Generowanie wykresu dobowego tętna oraz wykresu średniej aktywności fizycznej",
+                "soft-desc3": "Dzięki korelacji tętna z akcelerometrem wbudowanym w urządzenie, od razu widzisz, czy wyższy puls wynikał z naturalnego wysiłku fizycznego, czy był niepokojącą anomalią w spoczynku.",
+                "soft-badge2": "Moduł Ekspercki",
+                "soft-title3": "Raport Kliniczny i Wsparcie AI",
+                "soft-desc4": "Z poziomu aplikacji jednym kliknięciem wygenerujesz kompleksowy <strong>Raport Kliniczny</strong>. Zawiera on pełne zestawienie matematyczne sesji pomiarowej, w tym całkowitą liczbę wykrytych zespołów QRS, liczbę tachykardii, bradykardii oraz groźnych pauz trwających powyżej 2.0s.",
+                "soft-card3-title": "✍️ Dziennik Zdarzeń i Notatki Pacjenta",
+                "soft-card3-desc": "Gdy podczas badania poczujesz się gorzej i wciśniesz <strong>dolny przycisk na obudowie urządzenia</strong>, system postawi znacznik w sygnale. Po zgraniu danych, aplikacja pozwoli Ci dodać własny komentarz do tego momentu (np. opisując duszność czy stres), dając lekarzowi pełny kontekst sytuacyjny.",
+                "soft-subheading": "Przegląd anomalii i wycinków",
+                "soft-desc5": "Aplikacja automatycznie wycina z sygnału i archiwizuje dokładne momenty wystąpienia anomalii wraz z czasem ich trwania. Wszystkie wycinki raportu (tak jak podgląd na żywo) są w pełni <strong>interaktywne i skalowalne pionowo oraz poziomo</strong>.",
+                "soft-card4-title": "🤖 Zintegrowany Asystent AI",
+                "soft-card4-desc": "Wbudowany moduł sztucznej inteligencji przetwarza badanie i generuje <strong>Raport AI</strong> z podsumowaniem klinicznym. Klasyfikuje on epizody jako \"łagodne\" lub \"krytyczne\", ocenia ciągłość pracy serca i dostarcza wstępne zalecenia dotyczące stylu życia lub pilności konsultacji lekarskiej.",
+                "soft-desc6": "Gotowe opracowanie możesz natychmiast zapisać w formacie <strong>PDF</strong>, uzupełnić adres e-mail i bezpośrednio z poziomu telefonu przesłać swojemu kardiologowi.",
+                "soft-title4": "Dodatkowe Możliwości Aplikacji",
+                "soft-desc7": "Rythmio to nie tylko bieżący pomiar, ale też wygodne zarządzanie historią zdrowia oraz funkcje ułatwiające codzienną dostępność.",
+                "soft-card5-title": "Dedykowane Archiwum",
+                "soft-card5-desc": "Osobna zakładka historyczna gromadzi wszystkie wykonane do tej pory badania kardiologiczne. Masz do nich stały dostęp, a w celu optymalizacji pamięci telefonu lub zachowania porządku, stare i nieaktualne rekordy możesz w każdej chwili bezpowrotnie usunąć.",
+                "soft-card6-title": "Asystent Głosowy",
+                "soft-card6-desc": "W menu ustawień zaawansowanych możesz włączyć inteligentnego asystenta audio. System będzie regularnie odczytywał komunikaty głosowe o zaktualizowanych danych telemetrycznych i stanie pracy serca – idealne podczas treningu lub dla osób starszych.",
+                "soft-card7-title": "Bezpieczeństwo Danych",
+                "soft-card7-desc": "Wszystkie badania zapisywane lokalnie w aplikacji podlegają restrykcyjnemu szyfrowaniu. Eksport do formatów PDF oraz CSV realizowany jest za pomocą bezpiecznych protokołów systemowych, dbając o pełną poufność dokumentacji medycznej.",
+                "soft-alert-title": "⚠️ Ważna uwaga medyczna",
+                "soft-alert-desc": "Wykrycie przez algorytmy aplikacji lub moduł AI znacznej liczby epizodów arytmicznych bądź anomalii wymaga weryfikacji lekarskiej. Wygenerowane automatycznie wycinki EKG oraz Raporty AI mają charakter wyłącznie informacyjny i nie zastępują profesjonalnej diagnozy medycznej ani badania przeprowadzonego przez lekarza kardiologa.",
+                "footer-text": "&copy; 2026 Projekt Rythmio."
+            },
+            en: {
+                "nav-pulpit": "Dashboard",
+                "nav-hardware": "Hardware",
+                "nav-software": "Software",
+                "nav-opinions": "Reviews",
+                "nav-about": "About Us",
+                "soft-badge": "Mobile application",
+                "soft-title1": "Live Cardiology on Your Phone",
+                "soft-desc1": "The Rythmio mobile application is your heart's command center. After pressing the dedicated <strong>Bluetooth</strong> icon and establishing a stable wireless connection with the device, you gain full control over the ongoing examination and an immediate insight into your body's condition.",
+                "soft-card1-title": "Live ECG Monitoring",
+                "soft-card1-desc": "Launching the <strong>Live</strong> mode allows streaming the ECG signal in real time directly to the smartphone screen. An ideal solution for immediate verification of recording correctness.",
+                "soft-card2-title": "Quick Status Refresh",
+                "soft-card2-desc": "After turning off the live preview, the <strong>refresh</strong> icon allows you to quickly download the packet status from the device: battery level, information on correct electrode connection, and confirmation of whether the measurement is stable.",
+                "soft-note": "🔄 <strong>Full view freedom:</strong> Both the ECG wave graph in <strong>Live</strong> mode and the daily heart rate graphs are fully <strong>scalable</strong>. You can freely rotate the phone – the interface will automatically adjust to vertical or horizontal view, facilitating precise waveform analysis.",
+                "soft-title2": "Download and Automatic Analysis",
+                "soft-desc2": "Clicking the sync icon launches a quick transfer of the recorded material from the microSD card directly to the phone's memory. The application instantly recalculates raw data, updating key diagnostic metrics on the dashboard:",
+                "soft-table-title": "Metrics updated after synchronization:",
+                "soft-row1-c1": "Recording duration",
+                "soft-row1-c2": "Precise time counter of the recorded examination",
+                "soft-row2-c1": "Heart rate trends",
+                "soft-row2-c2": "Automatic determination of average, lowest, and highest BPM",
+                "soft-row3-c1": "Arrhythmia counter",
+                "soft-row3-c2": "Sum of recorded daily anomaly episodes",
+                "soft-row4-c1": "Graphical visualization",
+                "soft-row4-c2": "Generating a daily heart rate graph and an average physical activity graph",
+                "soft-desc3": "Thanks to the correlation of heart rate with the accelerometer built into the device, you can immediately see whether a higher pulse resulted from natural physical exertion or was a disturbing anomaly at rest.",
+                "soft-badge2": "Expert Module",
+                "soft-title3": "Clinical Report and AI Support",
+                "soft-desc4": "From the app level, you can generate a comprehensive <strong>Clinical Report</strong> with one click. It contains a full mathematical summary of the measurement session, including the total number of detected QRS complexes, number of tachycardias, bradycardias, and dangerous pauses lasting over 2.0s.",
+                "soft-card3-title": "✍️ Event Log and Patient Notes",
+                "soft-card3-desc": "If you feel worse during the examination and press the <strong>bottom button on the device's enclosure</strong>, the system will place a marker in the signal. After downloading the data, the application will allow you to add your own comment to this moment (e.g., describing shortness of breath or stress), giving the doctor full situational context.",
+                "soft-subheading": "Overview of anomalies and strips",
+                "soft-desc5": "The application automatically cuts from the signal and archives the exact moments of anomaly occurrence along with their duration. All report strips (just like live preview) are fully <strong>interactive and scalable vertically and horizontally</strong>.",
+                "soft-card4-title": "🤖 Integrated AI Assistant",
+                "soft-card4-desc": "The built-in artificial intelligence module processes the examination and generates an <strong>AI Report</strong> with a clinical summary. It classifies episodes as \"mild\" or \"critical\", assesses heart function continuity, and provides initial recommendations regarding lifestyle or the urgency of medical consultation.",
+                "soft-desc6": "You can instantly save the finished report in <strong>PDF</strong> format, fill in the email address, and send it directly from your phone to your cardiologist.",
+                "soft-title4": "Additional Application Features",
+                "soft-desc7": "Rythmio is not only about current measurement, but also convenient management of health history and features facilitating daily accessibility.",
+                "soft-card5-title": "Dedicated Archive",
+                "soft-card5-desc": "A separate historical tab collects all cardiological examinations performed so far. You have permanent access to them, and in order to optimize phone memory or maintain order, you can permanently delete old and outdated records at any time.",
+                "soft-card6-title": "Voice Assistant",
+                "soft-card6-desc": "In the advanced settings menu, you can turn on an intelligent audio assistant. The system will regularly read voice messages about updated telemetry data and heart function status – ideal during training or for the elderly.",
+                "soft-card7-title": "Data Security",
+                "soft-card7-desc": "All examinations stored locally in the application are subject to strict encryption. Export to PDF and CSV formats is carried out using secure system protocols, ensuring the full confidentiality of medical documentation.",
+                "soft-alert-title": "⚠️ Important medical note",
+                "soft-alert-desc": "Detection of a significant number of arrhythmic episodes or anomalies by the application's algorithms or the AI module requires medical verification. Automatically generated ECG strips and AI Reports are for informational purposes only and do not replace a professional medical diagnosis or an examination conducted by a cardiologist.",
+                "footer-text": "&copy; 2026 Rythmio Project."
+            }
+        };
+
+        // --- FUNKCJA PODMIENIAJĄCA TEKSTY ---
+        function updateTexts(lang) {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.innerHTML = translations[lang][key]; 
+                }
+            });
+            
+            // Aktualizacja atrybutu lang w tagu html
+            document.documentElement.lang = lang;
+        }
+
+        // --- OBSŁUGA MENU MOBILNEGO ---
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const navMenu = document.getElementById('nav-menu');
 
         mobileMenuBtn.addEventListener('click', () => {
             mobileMenuBtn.classList.toggle('active');
             navMenu.classList.toggle('active');
+        });
+
+        // --- OBSŁUGA TRYBU JASNEGO / CIEMNEGO ---
+        const themeToggleButtons = document.querySelectorAll('.theme-toggle-btn');
+        
+        function updateThemeIcon() {
+            const isLight = document.body.classList.contains('light-mode');
+            themeToggleButtons.forEach(btn => {
+                btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
+            });
+        }
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+        }
+        updateThemeIcon();
+
+        themeToggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+                
+                if (document.body.classList.contains('light-mode')) {
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    localStorage.setItem('theme', 'dark');
+                }
+                
+                updateThemeIcon();
+                
+                if (navMenu.classList.contains('active')) {
+                    mobileMenuBtn.classList.remove('active');
+                    navMenu.classList.remove('active');
+                }
+            });
+        });
+
+        // --- OBSŁUGA WYBORU JĘZYKA (FLAGI) ---
+        const langButtons = document.querySelectorAll('.lang-flag-btn');
+
+        // Sprawdzenie przy ładowaniu strony wybranego wcześniej języka
+        const savedLang = localStorage.getItem('selectedLanguage') || 'pl';
+        langButtons.forEach(btn => {
+            if (btn.getAttribute('data-lang') === savedLang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Wywołanie aktualizacji tekstów na starcie
+        updateTexts(savedLang);
+
+        // Logika zmiany języka po kliknięciu flagi
+        langButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetLang = button.getAttribute('data-lang');
+                
+                // Aktualizacja podświetlenia flag
+                langButtons.forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Zapis wyboru w przeglądarce
+                localStorage.setItem('selectedLanguage', targetLang);
+                
+                // Faktyczna podmiana tekstów
+                updateTexts(targetLang);
+                
+                // Automatyczne zamknięcie hamburgera po wyborze języka na smartfonie
+                if (navMenu.classList.contains('active')) {
+                    mobileMenuBtn.classList.remove('active');
+                    navMenu.classList.remove('active');
+                }
+            });
         });
     </script>
 

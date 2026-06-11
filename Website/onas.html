@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Styl dedykowany dla dynamicznego efektu kart w galerii (zamiast JS) */
+        /* Styl dedykowany dla dynamicznego efektu kart w galerii */
         .gallery-card {
             background: var(--card-bg); 
             padding: 0.8rem; 
@@ -18,6 +18,73 @@
         .gallery-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(123, 97, 255, 0.1);
+        }
+
+        /* Układ paska dla przycisku motywu wyciągniętego z listy menu */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Na desktopie ukrywamy kontener akcji mobilnych */
+        .nav-actions .theme-toggle-btn {
+            display: none;
+        }
+
+        /* --- STYLIZACJA WYBORU JĘZYKA W MENU HAMBURGERA --- */
+        .lang-switcher-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.5rem 0;
+        }
+
+        .lang-flag-btn {
+            background: none;
+            border: 2px solid transparent;
+            font-size: 1.6rem;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 6px;
+            line-height: 1;
+            transition: all 0.2s ease;
+            display: inline-block;
+            opacity: 0.5; /* Domyślnie lekko przezroczyste (nieaktywne) */
+        }
+
+        .lang-flag-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .lang-flag-btn.active {
+            opacity: 1; /* Aktywny język jest w pełni wyraźny */
+            border-color: var(--accent-purple); /* Fioletowa obwódka dla zaznaczenia */
+            background-color: rgba(123, 97, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            /* Na telefonie ukrywamy elementy desktopowe wewnątrz listy <ul> */
+            .nav-links .theme-toggle-li {
+                display: none !important;
+            }
+            /* Pokazujemy przycisk motywu na pasku głównym obok hamburgera */
+            .nav-actions .theme-toggle-btn {
+                display: inline-flex;
+                margin: 0;
+                width: auto;
+                padding: 0.4rem 0.7rem;
+            }
+            
+            /* Dopasowanie kontenera flag w menu mobilnym */
+            .lang-switcher-container {
+                justify-content: center;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--border-color);
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -30,18 +97,31 @@
                 <span class="logo-text">Rythmio</span>
             </a>
             
-            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </button>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button>
+                
+                <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
 
             <ul class="nav-links" id="nav-menu">
-                <li><a href="index.html">Pulpit</a></li>
-                <li><a href="hardware.html">Urządzenie</a></li>
-                <li><a href="software.html">Aplikacja</a></li>
-                <li><a href="opinie.html">Opinie</a></li>
-                <li><a href="onas.html" class="active">O nas</a></li>
+                <li><a href="index.html" data-i18n="nav-pulpit">Pulpit</a></li>
+                <li><a href="hardware.html" data-i18n="nav-hardware">Urządzenie</a></li>
+                <li><a href="software.html" data-i18n="nav-software">Aplikacja</a></li>
+                <li><a href="opinie.html" data-i18n="nav-opinions">Opinie</a></li>
+                <li><a href="onas.html" class="active" data-i18n="nav-about">O nas</a></li>
+                
+                <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button></li>
+                
+                <li>
+                    <div class="lang-switcher-container">
+                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">🇵🇱</button>
+                        <button class="lang-flag-btn" data-lang="en" title="English language">🇬🇧</button>
+                    </div>
+                </li>
             </ul>
         </div>
     </nav>
@@ -49,15 +129,19 @@
     <section class="content-section" style="padding-bottom: 2rem;">
         <div class="container">
             <div style="text-align: center; margin-bottom: 3rem;">
-                <span class="badge">Twórcy Projektu</span>
-                <h1 style="font-size: 2.8rem; margin-top: 0.5rem; margin-bottom: 1rem;">Poznaj Zespół Rythmio</h1>
-                <p style="color: var(--text-secondary); max-width: 800px; margin: 0 auto; font-size: 1.1rem; line-height: 1.6;">
+                <span class="badge" data-i18n="about-badge-creators">Twórcy Projektu</span>
+                <h1 class="page-title" style="font-size: 2.8rem; margin-top: 0.5rem; margin-bottom: 1rem;" data-i18n="about-title">Poznaj Zespół Rythmio</h1>
+                <p class="lead-text" style="color: var(--text-secondary); max-width: 800px; margin: 0 auto; font-size: 1.1rem; line-height: 1.6;" data-i18n="about-lead">
                     Połączenie inżynierskiej pasji, technologii IoT oraz zaawansowanej analizy danych medycznych.
                 </p>
             </div>
 
             <div style="width: 100%; max-width: 960px; margin: 0 auto; position: relative;">
-                <img src="images/zespol-wspolne.jpg" alt="Zespół projektowy Rythmio" class="img-fluid" style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); display: block; width: 100%; height: auto;" onerror="this.src='https://via.placeholder.com/960x450/1c1c1e/7b61ff?text=Wspólne+Zdjęcie+Zespołu+Rythmio'">
+                <img src="images/grupowe.jpg" 
+                     alt="Zespół projektowy Rythmio" 
+                     class="img-fluid" 
+                     style="border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); display: block; width: 100%; max-width: 100% !important; height: auto;" 
+                     onerror="this.src='https://via.placeholder.com/960x450/1c1c1e/7b61ff?text=Wspólne+Zdjęcie+Zespołu+Rythmio'">
             </div>
         </div>
     </section>
@@ -66,18 +150,18 @@
         <div class="container grid-2" style="align-items: stretch;">
             
             <div class="text-block" style="display: flex; flex-direction: column; justify-content: center;">
-                <span class="badge">Politechnika Wrocławska</span>
-                <h2 style="font-size: 2.2rem; margin-bottom: 1.5rem; margin-top: 0.5rem;">Studencka Innowacja z Wrocławia</h2>
-                <p>Jesteśmy grupą studentów <strong>6. semestru Automatyki i Robotyki</strong> na Wydziale Elektryczności, Fotoniki i Mikrosystemów <strong>Politechniki Wrocławskiej</strong>. Projekt Rythmio narodził się w naszych głowach jako ambitna odpowiedź na wyzwania współczesnej telemedycyny.</p>
-                <p style="color: var(--text-secondary); margin-top: 1rem;">Naszym celem od samego początku było stworzenie w pełni funkcjonalnego, miniaturowego urządzenia typu Holter EKG, zintegrowanego z autorską aplikacją mobilną wspieraną przez algorytmy sztucznej inteligencji. Całość przygotowaliśmy z myślą o uroczystej <strong>Konferencji Projektów Zespołowych</strong>, stanowiącej podsumowanie naszej dotychczasowej pracy naukowej i konstrukcyjnej.</p>
+                <span class="badge" data-i18n="about-badge-pwr">Politechnika Wrocławska</span>
+                <h2 class="section-heading" style="font-size: 2.2rem; margin-bottom: 1.5rem; margin-top: 0.5rem;" data-i18n="about-heading-pwr">Studencka Innowacja z Wrocławia</h2>
+                <p data-i18n="about-pwr-p1">Jesteśmy grupą studentów <strong>6. semestru Automatyki i Robotyki</strong> na Wydziale Elektryczności, Fotoniki i Mikrosystemów <strong>Politechniki Wrocławskiej</strong>. Projekt Rythmio narodził się w naszych głowach jako ambitna odpowiedź na wyzwania współczesnej telemedycyny.</p>
+                <p style="color: var(--text-secondary); margin-top: 1rem;" data-i18n="about-pwr-p2">Naszym celem od samego początku było stworzenie w pełni funkcjonalnego, miniaturowego urządzenia typu Holter EKG, zintegrowanego z autorską aplikacją mobilną wspieraną przez algorytmy sztucznej inteligencji. Całość przygotowaliśmy z myślą o uroczystej <strong>Konferencji Projektów Zespołowych</strong>, stanowiącej podsumowanie naszej dotychczasowej pracy naukowej i konstrukcyjnej.</p>
             </div>
 
             <div class="text-block" style="background: rgba(123, 97, 255, 0.02); padding: 2.5rem; border-radius: 20px; border: 1px solid rgba(123, 97, 255, 0.1); display: flex; flex-direction: column; justify-content: center;">
                 <div>
-                    <span class="badge" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">Partner Biznesowy</span>
-                    <h2 style="font-size: 2.2rem; margin-bottom: 1.5rem; margin-top: 0.5rem; color: #fff;">Współpraca z Comarch</h2>
-                    <p>Urządzenie oraz oprogramowanie nie powstałyby w obecnej formie, gdyby nie ścisła kooperacja z firmą <strong>Comarch</strong>. Jako lider rynku IT oraz nowoczesnych rozwiązań z zakresu e-Health, firma objęła opieką mentorski profil naszego projektu.</p>
-                    <p style="color: var(--text-secondary); margin-top: 1rem;">Eksperci z firmy Comarch aktywnie wspierali nas na każdym etapie powstawania systemu — od konsultacji schematów elektronicznych modułu analogowego ADS1292, przez optymalizację przesyłania pakietów przez Bluetooth w ESP32, aż po cenne wskazówki dotyczące standaryzacji medycznej generowanych raportów klinicznych. Ta synergia wiedzy akademickiej z komercyjnym doświadczeniem pozwoliła nam stworzyć projekt najwyższej jakości.</p>
+                    <span class="badge" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;" data-i18n="about-badge-comarch">Partner Biznesowy</span>
+                    <h2 class="section-heading" style="font-size: 2.2rem; margin-bottom: 1.5rem; margin-top: 0.5rem;" data-i18n="about-heading-comarch">Współpraca z Comarch</h2>
+                    <p data-i18n="about-comarch-p1">Urządzenie oraz oprogramowanie nie powstałyby w obecnej formie, gdyby nie ścisła kooperacja z firmą <strong>Comarch</strong>. Jako lider rynku IT oraz nowoczesnych rozwiązań z zakresu e-Health, firma objęła opieką mentorski profil naszego projektu.</p>
+                    <p style="color: var(--text-secondary); margin-top: 1rem;" data-i18n="about-comarch-p2">Eksperci z firmy Comarch aktywnie wspierali nas na każdym etapie powstawania systemu — od konsultacji schematów elektronicznych modułu analogowego ADS1292, przez optymalizację przesyłania pakietów przez Bluetooth w ESP32, aż po cenne wskazówki dotyczące standaryzacji medycznej generowanych raportów klinicznych. Ta synergia wiedzy akademickiej z komercyjnym doświadczeniem pozwoliła nam stworzyć projekt najwyższej jakości.</p>
                 </div>
             </div>
 
@@ -87,37 +171,55 @@
     <section class="content-section" style="border-top: 1px solid var(--border-color); padding-top: 5rem; padding-bottom: 5rem;">
         <div class="container">
             <div style="text-align: center; margin-bottom: 3.5rem;">
-                <span class="badge">Backstage</span>
-                <h2 style="font-size: 2.3rem; margin-top: 0.5rem;">Galeria Projektowa</h2>
-                <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto; font-size: 0.95rem; margin-top: 0.5rem;">
-                    Zobacz, jak wyglądała nasza droga od czystej kartki papieru i prototypów na płytkach stykowych, aż po finalne lutowanie i testy gotowego Holtera.
+                <span class="badge" data-i18n="about-badge-gallery">Backstage</span>
+                <h2 class="section-heading" style="font-size: 2.3rem; margin-top: 0.5rem;" data-i18n="about-heading-gallery">Galeria Projektowa</h2>
+                <p class="lead-text" style="color: var(--text-secondary); max-width: 600px; margin: 0 auto; font-size: 0.95rem; margin-top: 0.5rem;" data-i18n="about-desc-gallery">
+                    Zobacz, jak wyglądała nasza droga od czystej kartki papieru i prototypu w obudowie, aż po finalny montaż elementów SMD i nagrania promocyjne.
                 </p>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; width: 100%;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; width: 100%;">
                 
                 <div class="gallery-card">
-                    <img src="images/galeria-1.jpg" alt="Prototypowanie na płytkach stykowych" style="width: 100%; height: 220px; object-fit: cover; border-radius: 10px; display: block;" onerror="this.src='https://via.placeholder.com/300x220/1c1c1e/7b61ff?text=Etap+Prototypu+Breadboard'">
-                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;">Etap Prototypu</h4>
-                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">Pierwsze uruchomienie toru analogowego i eliminowanie szumów sieciowych.</p>
+                    <img src="images/prototyp.jpeg" alt="Wczesny prototyp urządzenia Rythmio" style="width: 100%; height: 240px; object-fit: cover; border-radius: 10px; display: block;">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;" data-i18n="gallery-card1-title">Wczesny Prototyp</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;" data-i18n="gallery-card1-desc">Pierwsze zintegrowane uruchomienie modułów w testowej obudowie 3D.</p>
                 </div>
 
                 <div class="gallery-card">
-                    <img src="images/galeria-2.jpg" alt="Kodowanie aplikacji mobilnej" style="width: 100%; height: 220px; object-fit: cover; border-radius: 10px; display: block;" onerror="this.src='https://via.placeholder.com/300x220/1c1c1e/7b61ff?text=Kodowanie+i+Implementacja+AI'">
-                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;">Prace programistyczne</h4>
-                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">Implementacja komunikacji BLE oraz integracja skryptów parsujących wykresy.</p>
+                    <img src="images/lutowanie1.jpeg" alt="Prace montażowe w laboratorium" style="width: 100%; height: 240px; object-fit: cover; border-radius: 10px; display: block;">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;" data-i18n="gallery-card2-title">Montaż Komponentów</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;" data-i18n="gallery-card2-desc">Weryfikacja rozmieszczenia elementów SMD ze schematem montażowym na ekranie.</p>
                 </div>
 
                 <div class="gallery-card">
-                    <img src="images/galeria-3.jpg" alt="Montaż komponentów SMD" style="width: 100%; height: 220px; object-fit: cover; border-radius: 10px; display: block;" onerror="this.src='https://via.placeholder.com/300x220/1c1c1e/7b61ff?text=Montaż+SMD+w+Laboratorium'">
-                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;">Montaż końcowy</h4>
-                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">Precyzyjne lutowanie podzespołów w laboratorium i zamykanie obudowy.</p>
+                    <img src="images/lutowanie2.jpg" alt="Lutowanie stacją lutowniczą" style="width: 100%; height: 240px; object-fit: cover; border-radius: 10px; display: block;">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;" data-i18n="gallery-card3-title">Prace Laboratoryjne</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;" data-i18n="gallery-card3-desc">Precyzyjne osadzanie i lutowanie mikroukładów peryferyjnych na płytce PCB.</p>
                 </div>
 
                 <div class="gallery-card">
-                    <img src="images/galeria-4.jpg" alt="Konsultacje projektowe" style="width: 100%; height: 220px; object-fit: cover; border-radius: 10px; display: block;" onerror="this.src='https://via.placeholder.com/300x220/1c1c1e/7b61ff?text=Konsultacje+z+Mentorem+Comarch'">
-                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;">Konsultacje projektowe</h4>
-                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">Kluczowe spotkania techniczne z inżynierami medycznymi firmy Comarch.</p>
+                    <img src="images/pcb1.jpeg" alt="Gotowy obwód drukowany Rythmio" style="width: 100%; height: 240px; object-fit: cover; border-radius: 10px; display: block;">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;" data-i18n="gallery-card4-title">Obwód PCB (Góra)</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;" data-i18n="gallery-card4-desc">Zlutowany moduł główny ESP32-WROOM-32E oraz gniazda interfejsów.</p>
+                </div>
+
+                <div class="gallery-card">
+                    <img src="images/pcb2.jpeg" alt="Inspekcja płytki PCB" style="width: 100%; height: 240px; object-fit: cover; border-radius: 10px; display: block;">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;" data-i18n="gallery-card5-title">Kontrola Jakości Toru</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;" data-i18n="gallery-card5-desc">Dokładna inspekcja połączeń wyprowadzeń przetwornika analogowego ADS1292.</p>
+                </div>
+
+                <div class="gallery-card">
+                    <img src="images/filmowiec.jpeg" alt="Nagrywanie materiałów wideo" style="width: 100%; height: 240px; object-fit: cover; border-radius: 10px; display: block;">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;" data-i18n="gallery-card6-title">Materiały Promocyjne</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;" data-i18n="gallery-card6-desc">Praca nad prezentacją wideo i dokumentacją działania Holtera na konferencję.</p>
+                </div>
+
+                <div class="gallery-card">
+                    <img src="images/dwieobudowy.jpg" alt="Porównanie dwóch wersji obudowy" style="width: 100%; height: 240px; object-fit: cover; border-radius: 10px; display: block;">
+                    <h4 style="margin: 1rem 0 5px 0; color: #fff; font-size: 1.1rem;" data-i18n="gallery-card7-title">Ewolucja Obudowy</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;" data-i18n="gallery-card7-desc">Porównanie wczesnego wydruku 3D z finalną, zoptymalizowaną wersją obudowy urządzenia.</p>
                 </div>
 
             </div>
@@ -126,17 +228,182 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2026 Projekt Rythmio.</p>
+            <p data-i18n="footer-text">&copy; 2026 Projekt Rythmio.</p>
         </div>
     </footer>
 
     <script>
+
+        // --- SŁOWNIK TŁUMACZEŃ ---
+        const translations = {
+            pl: {
+                "nav-pulpit": "Pulpit",
+                "nav-hardware": "Urządzenie",
+                "nav-software": "Aplikacja",
+                "nav-opinions": "Opinie",
+                "nav-about": "O nas",
+                "about-badge-creators": "Twórcy Projektu",
+                "about-title": "Poznaj Zespół Rythmio",
+                "about-lead": "Połączenie inżynierskiej pasji, technologii IoT oraz zaawansowanej analizy danych medycznych.",
+                "about-badge-pwr": "Politechnika Wrocławska",
+                "about-heading-pwr": "Studencka Innowacja z Wrocławia",
+                "about-pwr-p1": "Jesteśmy grupą studentów <strong>6. semestru Automatyki i Robotyki</strong> na Wydziale Elektryczności, Fotoniki i Mikrosystemów <strong>Politechniki Wrocławskiej</strong>. Projekt Rythmio narodził się w naszych głowach jako ambitna odpowiedź na wyzwania współczesnej telemedycyny.",
+                "about-pwr-p2": "Naszym celem od samego początku było stworzenie w pełni funkcjonalnego, miniaturowego urządzenia typu Holter EKG, zintegrowanego z autorską aplikacją mobilną wspieraną przez algorytmy sztucznej inteligencji. Całość przygotowaliśmy z myślą o uroczystej <strong>Konferencji Projektów Zespołowych</strong>, stanowiącej podsumowanie naszej dotychczasowej pracy naukowej i konstrukcyjnej.",
+                "about-badge-comarch": "Partner Biznesowy",
+                "about-heading-comarch": "Współpraca z Comarch",
+                "about-comarch-p1": "Urządzenie oraz oprogramowanie nie powstałyby w obecnej formie, gdyby nie ścisła kooperacja z firmą <strong>Comarch</strong>. Jako lider rynku IT oraz nowoczesnych rozwiązań z zakresu e-Health, firma objęła opieką mentorski profil naszego projektu.",
+                "about-comarch-p2": "Eksperci z firmy Comarch aktywnie wspierali nas na każdym etapie powstawania systemu — od konsultacji schematów elektronicznych modułu analogowego ADS1292, przez optymalizację przesyłania pakietów przez Bluetooth w ESP32, aż po cenne wskazówki dotyczące standaryzacji medycznej generowanych raportów klinicznych. Ta synergia wiedzy akademickiej z komercyjnym doświadczeniem pozwoliła nam stworzyć projekt najwyższej jakości.",
+                "about-badge-gallery": "Backstage",
+                "about-heading-gallery": "Galeria Projektowa",
+                "about-desc-gallery": "Zobacz, jak wyglądała nasza droga od czystej kartki papieru i prototypu w obudowie, aż po finalny montaż elementów SMD i nagrania promocyjne.",
+                "gallery-card1-title": "Wczesny Prototyp",
+                "gallery-card1-desc": "Pierwsze zintegrowane uruchomienie modułów w testowej obudowie 3D.",
+                "gallery-card2-title": "Montaż Komponentów",
+                "gallery-card2-desc": "Weryfikacja rozmieszczenia elementów SMD ze schematem montażowym na ekranie.",
+                "gallery-card3-title": "Prace Laboratoryjne",
+                "gallery-card3-desc": "Precyzyjne osadzanie i lutowanie mikroukładów peryferyjnych na płytce PCB.",
+                "gallery-card4-title": "Obwód PCB (Góra)",
+                "gallery-card4-desc": "Zlutowany moduł główny ESP32-WROOM-32E oraz gniazda interfejsów.",
+                "gallery-card5-title": "Kontrola Jakości Toru",
+                "gallery-card5-desc": "Dokładna inspekcja połączeń wyprowadzeń przetwornika analogowego ADS1292.",
+                "gallery-card6-title": "Materiały Promocyjne",
+                "gallery-card6-desc": "Praca nad prezentacją wideo i dokumentacją działania Holtera na konferencję.",
+                "gallery-card7-title": "Ewolucja Obudowy",
+                "gallery-card7-desc": "Porównanie wczesnego wydruku 3D z finalną, zoptymalizowaną wersją obudowy urządzenia.",
+                "footer-text": "&copy; 2026 Projekt Rythmio."
+            },
+            en: {
+                "nav-pulpit": "Dashboard",
+                "nav-hardware": "Hardware",
+                "nav-software": "Software",
+                "nav-opinions": "Reviews",
+                "nav-about": "About Us",
+                "about-badge-creators": "Project Creators",
+                "about-title": "Meet the Rythmio Team",
+                "about-lead": "A combination of engineering passion, IoT technology, and advanced medical data analysis.",
+                "about-badge-pwr": "Wrocław University of Science and Technology",
+                "about-heading-pwr": "Student Innovation from Wrocław",
+                "about-pwr-p1": "We are a group of <strong>6th-semester Automation and Robotics</strong> students at the Faculty of Electronics, Photonics and Microsystems of the <strong>Wrocław University of Science and Technology</strong>. The Rythmio project was born in our minds as an ambitious response to the challenges of modern telemedicine.",
+                "about-pwr-p2": "Our goal from the very beginning was to create a fully functional, miniature ECG Holter device integrated with a proprietary mobile application supported by artificial intelligence algorithms. We prepared the entire project for the formal <strong>Team Project Conference</strong>, which serves as a summary of our scientific and engineering work so far.",
+                "about-badge-comarch": "Business Partner",
+                "about-heading-comarch": "Cooperation with Comarch",
+                "about-comarch-p1": "The device and software would not have been created in their current form if it weren't for the close cooperation with <strong>Comarch</strong>. As a leader in the IT market and modern e-Health solutions, the company provided mentorship for our project profile.",
+                "about-comarch-p2": "Experts from Comarch actively supported us at every stage of system development — from consulting on the electronic schematics of the ADS1292 analog module, through optimizing packet transmission over Bluetooth in the ESP32, to valuable guidance on the medical standardization of the generated clinical reports. This synergy of academic knowledge and commercial experience allowed us to create a top-quality project.",
+                "about-badge-gallery": "Backstage",
+                "about-heading-gallery": "Project Gallery",
+                "about-desc-gallery": "See how our journey looked from a blank sheet of paper and a prototype in a case, up to the final SMD component assembly and promotional recordings.",
+                "gallery-card1-title": "Early Prototype",
+                "gallery-card1-desc": "First integrated launch of modules in a test 3D printed enclosure.",
+                "gallery-card2-title": "Component Assembly",
+                "gallery-card2-desc": "Verification of SMD component placement with the assembly schematic on the screen.",
+                "gallery-card3-title": "Laboratory Work",
+                "gallery-card3-desc": "Precise placement and soldering of peripheral microchips on the PCB board.",
+                "gallery-card4-title": "PCB Circuit (Top)",
+                "gallery-card4-desc": "Soldered main ESP32-WROOM-32E module and interface sockets.",
+                "gallery-card5-title": "Signal Path Quality Control",
+                "gallery-card5-desc": "Thorough inspection of the terminal connections for the ADS1292 analog converter.",
+                "gallery-card6-title": "Promotional Materials",
+                "gallery-card6-desc": "Work on the video presentation and documentation of the Holter functionality for the conference.",
+                "gallery-card7-title": "Enclosure Evolution",
+                "gallery-card7-desc": "Comparison of the early 3D print with the final, optimized version of the device enclosure.",
+                "footer-text": "&copy; 2026 Rythmio Project."
+            }
+        };
+
+        // --- FUNKCJA PODMIENIAJĄCA TEKSTY ---
+        function updateTexts(lang) {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.innerHTML = translations[lang][key]; 
+                }
+            });
+            
+            // Aktualizacja atrybutu lang w tagu html
+            document.documentElement.lang = lang;
+        }
+
+        // --- OBSŁUGA MENU MOBILNEGO ---
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const navMenu = document.getElementById('nav-menu');
 
         mobileMenuBtn.addEventListener('click', () => {
             mobileMenuBtn.classList.toggle('active');
             navMenu.classList.toggle('active');
+        });
+
+        // --- OBSŁUGA TRYBU JASNEGO / CIEMNEGO ---
+        const themeToggleButtons = document.querySelectorAll('.theme-toggle-btn');
+        
+        function updateThemeIcon() {
+            const isLight = document.body.classList.contains('light-mode');
+            themeToggleButtons.forEach(btn => {
+                btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
+            });
+        }
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+        }
+        updateThemeIcon();
+
+        themeToggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+                
+                if (document.body.classList.contains('light-mode')) {
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    localStorage.setItem('theme', 'dark');
+                }
+                
+                updateThemeIcon();
+                
+                if (navMenu.classList.contains('active')) {
+                    mobileMenuBtn.classList.remove('active');
+                    navMenu.classList.remove('active');
+                }
+            });
+        });
+
+        // --- OBSŁUGA WYBORU JĘZYKA (FLAGI) ---
+        const langButtons = document.querySelectorAll('.lang-flag-btn');
+
+        // Sprawdzenie przy ładowaniu strony wybranego wcześniej języka
+        const savedLang = localStorage.getItem('selectedLanguage') || 'pl';
+        langButtons.forEach(btn => {
+            if (btn.getAttribute('data-lang') === savedLang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Wywołanie aktualizacji tekstów na starcie
+        updateTexts(savedLang);
+
+        // Logika zmiany języka po kliknięciu flagi
+        langButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetLang = button.getAttribute('data-lang');
+                
+                // Aktualizacja podświetlenia flag
+                langButtons.forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Zapis wyboru w przeglądarce
+                localStorage.setItem('selectedLanguage', targetLang);
+                
+                // Faktyczna podmiana tekstów
+                updateTexts(targetLang);
+                
+                // Automatyczne zamknięcie hamburgera po wyborze języka na smartfonie
+                if (navMenu.classList.contains('active')) {
+                    mobileMenuBtn.classList.remove('active');
+                    navMenu.classList.remove('active');
+                }
+            });
         });
     </script>
 
