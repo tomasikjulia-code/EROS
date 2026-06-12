@@ -27,8 +27,13 @@ void measureTask(void *parameter)
 
     while (true)
     {
-        vTaskDelayUntil(&xLastWakeTime, xFrequency); 
-        HolterDevice.collectAndBufferSample(sdWriteTaskHandle);
+        if(!HolterDevice.isTimeEnded()) {
+            vTaskDelayUntil(&xLastWakeTime, xFrequency); 
+            HolterDevice.collectAndBufferSample(sdWriteTaskHandle);
+            //printf("Sample collected.");
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(1000)); 
+        }
     }
 }
 
@@ -37,6 +42,7 @@ void sdWriteTask(void *parameter)
     while (true)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        //Serial.println(">>> odebrano notyfikacje <<<");
         HolterDevice.writeBufferToSD(sdMutex);
         //Serial.println(">>> Zapisano bufor na kartę SD <<<");
     }
@@ -83,7 +89,7 @@ void buttonTask(void *parameter) {
 
     while (true) {
         HolterDevice.checkButtons();
-        vTaskDelay(pdMS_TO_TICKS(500)); 
+        vTaskDelay(pdMS_TO_TICKS(200)); 
     }
 }
 

@@ -26,7 +26,7 @@ public:
     bool isRecording() { return _recording; }
     void writeBuffer(const Sample* samples, size_t count, SemaphoreHandle_t sdMutex);
 
-    uint32_t getFileSize() const;
+    uint32_t getFileSize(const char* path) const;
 
     static char _writeBuf[MAX_BUFFER_SIZE]; // Stały bufor pamięci do zapisu na kartę SD
     uint32_t _writeCounter;//licznik zapiosow buforow do sprawdzania kiedy zrobic flush

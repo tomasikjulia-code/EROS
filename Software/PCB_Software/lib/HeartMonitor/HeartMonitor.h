@@ -9,7 +9,7 @@
 #define ADS1292_START_PIN 25
 #define ADS1292_PWDN_PIN 26
 
-const int NUM_READINGS = 10;   //Rozmiar bufora do obliczania średniego BPM
+const int NUM_READINGS = 30;   //Rozmiar bufora do obliczania średniego BPM
 const float ALPHA = 0.6;    //Współczynnik filtru dolnoprzepustowego. Im mniejszy, tym gładszy wykres, ale większe opóźnienie.
 const int THRESHOLD = 6000;   //Poziom sygnału, powyżej którego uznajemy, że wystąpiło uderzenie serca
 static float lastValue = 0;   //Poprzednia próbka; służy do wyliczania nachylenia (pochodnej) sygnału.

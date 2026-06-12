@@ -184,7 +184,7 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
     uint32_t fileSize = 0;
     // Handshake bez muteksu wysylamy rozmiar pliku razem z READY do wizualizacja paska ladowania w aplikacji mobilnej
     if (xSemaphoreTake(sdMutex, portMAX_DELAY)) {
-        fileSize = holter.getFileSize();
+        fileSize = holter.getFileSize("/test_ekg.csv");
         xSemaphoreGive(sdMutex);
     }
 
@@ -249,7 +249,7 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             while (_fileToSend.available() && SerialBT.hasClient()) {
 
                 while (esp_get_free_heap_size() < 20000) { 
-                    Serial.printf("[BT] Krytycznie mało RAMu (%lu), wstrzymuję odczyt z SD...\n", esp_get_free_heap_size());
+                    //Serial.printf("[BT] Krytycznie mało RAMu (%lu), wstrzymuję odczyt z SD...\n", esp_get_free_heap_size());
 
                      xSemaphoreGive(sdMutex);
                      vTaskDelay(pdMS_TO_TICKS(50)); 
@@ -452,21 +452,24 @@ void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
 void DeviceManager::writeBufferToSD(SemaphoreHandle_t sdMutex) {
     // Sprawdź, czy czas badania się skończył
     if (isTimeEnded() && holter.isRecording()) {
-        if (xSemaphoreTake(sdMutex, portMAX_DELAY) == pdTRUE) {
+
+        xSemaphoreTake(sdMutex, portMAX_DELAY);
             holter.closeFile();
         xSemaphoreGive(sdMutex);
-        }
+
         Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
         displayEnabled = false;
         currentDisplayState = DISPLAY_END;
-        if (xSemaphoreTake(sdMutex, portMAX_DELAY) == pdTRUE) {
+
+        xSemaphoreTake(sdMutex, portMAX_DELAY);
             wakeUpDisplay();
             displayEndScreen();
+            displayEndScreen();
+
         xSemaphoreGive(sdMutex);
-        }
+        
         while (true) {
-            checkButtons();
-            vTaskDelay(pdMS_TO_TICKS(500)); // Zatrzymaj dalsze operacje, ale pozwól innym zadaniom działać
+            vTaskDelay(pdMS_TO_TICKS(5000)); // Zatrzymaj dalsze operacje, ale pozwól innym zadaniom działać
         }
         return; 
     }
@@ -478,52 +481,12 @@ void DeviceManager::writeBufferToSD(SemaphoreHandle_t sdMutex) {
     }
 }
 
-
-//--------------------------UWAGA TO FUNKCJA DO ZAPISU LINIA PO LINII NA KARCIE SD------------------------------
-void DeviceManager::EKGReadingAndSending(){
-        if (isTimeEnded()) {
-            if (holter.isRecording()) {
-                holter.closeFile();
-                Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
-                displayEnabled=false;
-                wakeUpDisplay();
-                displayEndScreen();
-                currentDisplayState=DISPLAY_END;
-            }
-        }
-        processHeartRate();
-        if (holter.isRecording()) {
-            int16_t val = isLeadOff() ? 0 : (int16_t)getFilteredValue();
-            
-            float activityToSave = -1;
-            if (newActivityReady) {
-                activityToSave = lastActivityValue;
-                newActivityReady = false; 
-            }
-            
-            int buttonStatus = importantButton;
-            importantButton = 0;
-
-            holter.writeSample(millis()- startTime, val, getAverageBPM(), isLeadOff(), activityToSave, buttonStatus);
-
-            static unsigned long lastTick = 0;
-            if (millis() - lastTick > 1000) {
-                
-                
-                lastTick = millis();
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(4));
-}
-//------------------------KONIEC NIEUZYWANEJ FUNKCJI DO ZAPISU LINIA PO LINII NA KARCIE SD------------------------------
-
-
 uint8_t DeviceManager::calculateLeftHours()
 {
     uint32_t elapsedHours = (millis() - startTime) / MS_PER_HOUR;
     return (elapsedHours >= EKGTestTime)
            ? 0
-           : (EKGTestTime - elapsedHours);
+           : (EKGTestTime - (elapsedHours)-1); // +1 bo jak minela pierwsza godzina to ma pokazac jeszcze 1 a nie 
 }
 
 uint8_t DeviceManager::calculateLeftMinutes()

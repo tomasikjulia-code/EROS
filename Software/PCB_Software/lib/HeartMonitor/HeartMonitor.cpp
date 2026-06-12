@@ -40,7 +40,10 @@ bool processHeartRate() {
 
     ret = ADS1292R.getAds1292EcgAndRespirationSamples(ADS1292_DRDY_PIN, ADS1292_CS_PIN, &ecgRespirationValues);
     
-    if (!ret) return false;
+    if (!ret){
+        Serial.println("Błąd podczas odczytu próbek ECG i oddechu.");
+        return false;
+    }
 
     if (isLeadOff()) { 
         averageBPM = 0; 
@@ -55,8 +58,9 @@ bool processHeartRate() {
     float centered = (float)rawValue - slowAverage;
     filteredValue = (ALPHA * centered) + ((1.0f - ALPHA) * filteredValue);
 
-    //Serial.print(">FiltredValue:");
-    //Serial.println(getFilteredValue());
+    
+    Serial.print(">FiltredValue:");
+    Serial.println(getFilteredValue());
 
     float derivative = filteredValue - lastValue;
     lastValue = filteredValue;
