@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rythmio - Urządzenie</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -15,20 +16,20 @@
         }
 
         /* Styl przycisku zmiany motywu na urządzeniach mobilnych z tekstem */
-.mobile-theme-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: none;
-    border: 1px solid var(--border-color);
-    border-radius: 30px; /* Zmieniono z 6px na 30px, aby uzyskać identyczne zaokrąglenie jak na desktopie */
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    cursor: pointer;
-    padding: 0.35rem 0.6rem;
-    white-space: nowrap;
-}
+        .mobile-theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.35rem 0.6rem;
+            white-space: nowrap;
+        }
 
         /* Gwarancja widoczności elementów menu i flag na komputerze */
         @media (min-width: 992px) {
@@ -96,7 +97,7 @@
             .grid-interfaces .card .badge {
                 font-size: 0.75rem !important;
             }
-            .grid-interfaces ~ .section-title, 
+            .grid-interfaces ~ .section-title,
             .content-section:last-of-type .section-title {
                 font-size: 1.4rem !important;
             }
@@ -105,7 +106,7 @@
                 margin-bottom: 1.5rem !important;
             }
         }
-        
+
         /* Aktualizacja dla komputerów, aby zdjęcie rozciągało się na dwie komórki gridu po prawej stronie */
         @media (min-width: 992px) {
             .pcb-grid {
@@ -116,7 +117,7 @@
             }
             .pcb-image-wrap {
                 grid-column: 2;
-                grid-row: 1 / span 2; 
+                grid-row: 1 / span 2;
             }
             .pcb-image-wrap img {
                 width: 100% !important;
@@ -125,7 +126,7 @@
                 object-fit: contain;
             }
             .pcb-spec-box {
-                margin-top: 0 !important; 
+                margin-top: 0 !important;
             }
         }
 
@@ -146,13 +147,12 @@
 
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="logo-container">
+            <a href="/" class="logo-container">
                 <img src="images/logo.png" alt="Rythmio Logo" class="nav-logo">
                 <span class="logo-text">Rythmio</span>
             </a>
-            
+
             <div class="nav-actions">
-                <!-- Dwujęzyczny przycisk motywu widoczny na telefonie obok hamburgera -->
                 <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button>
                 <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
                     <span class="bar"></span>
@@ -162,15 +162,14 @@
             </div>
 
             <ul class="nav-links" id="nav-menu">
-                <li><a href="index.html" data-i18n="nav-pulpit">Pulpit</a></li>
-                <li><a href="hardware.html" class="active" data-i18n="nav-hardware">Urządzenie</a></li>
-                <li><a href="software.html" data-i18n="nav-software">Aplikacja</a></li>
-                <li><a href="opinie.html" data-i18n="nav-opinions">Opinie</a></li>
-                <li><a href="onas.html" data-i18n="nav-about">O nas</a></li>
-                
-                <!-- Przycisk motywu widoczny na komputerze wewnątrz menu nawigacji -->
+                <li><a href="/" data-i18n="nav-pulpit">Pulpit</a></li>
+                <li><a href="hardware" class="active" data-i18n="nav-hardware">Urządzenie</a></li>
+                <li><a href="software" data-i18n="nav-software">Aplikacja</a></li>
+                <li><a href="opinie" data-i18n="nav-opinions">Opinie</a></li>
+                <li><a href="onas" data-i18n="nav-about">O nas</a></li>
+
                 <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button></li>
-                
+
                 <li>
                     <div class="lang-switcher-container">
                         <button class="lang-flag-btn active" data-lang="pl" title="Język polski">
@@ -185,139 +184,141 @@
         </div>
     </nav>
 
-    <section class="content-section">
-        <div class="container pcb-grid">
-            <div class="text-block">
-                <span class="badge" data-i18n="hw-badge">Warstwa Sprzętowa</span>
-                <h1 style="margin-top: 0.5rem;" data-i18n="hw-title">Precyzja na płytce PCB</h1>
-                <p data-i18n="hw-desc">Urządzenie Rythmio zostało zaprojektowane z myślą o maksymalnej redukcji zakłóceń podczas codziennych aktywności. Zastosowany zaawansowany analogowy front-end precyzyjnie wzmacnia różnicę potencjałów z klatki piersiowej pacjenta, filtrując szumy i przesyłając czysty sygnał kardiologiczny.</p>
+    <main>
+        <section class="content-section">
+            <div class="container pcb-grid">
+                <div class="text-block">
+                    <span class="badge" data-i18n="hw-badge">Warstwa Sprzętowa</span>
+                    <h1 style="margin-top: 0.5rem;" data-i18n="hw-title">Precyzja na płytce PCB</h1>
+                    <p data-i18n="hw-desc">Urządzenie Rythmio zostało zaprojektowane z myślą o maksymalnej redukcji zakłóceń podczas codziennych aktywności. Zastosowany zaawansowany analogowy front-end precyzyjnie wzmacnia różnicę potencjałów z klatki piersiowej pacjenta, filtrując szumy i przesyłając czysty sygnał kardiologiczny.</p>
+                </div>
+
+                <div class="image-block pcb-image-wrap" style="display: flex; justify-content: center; align-items: center; width: 100%;">
+                    <img src="images/PCB.png" alt="Obwód drukowany PCB Rythmio" class="img-fluid" style="border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 100%; height: auto;" onerror="this.src='https://via.placeholder.com/650x500/1c1c1e/7b61ff?text=Zdjecie+Płytki+PCB'">
+                </div>
+
+                <div class="tech-spec-box pcb-spec-box" style="width: 100%;">
+                    <h3 data-i18n="hw-spec-title">Specyfikacja bazowa</h3>
+                    <table class="spec-table" style="width: 100%;">
+                        <tr><td data-i18n="hw-spec-p1">Główny procesor</td><td>ESP32-WROOM-32E (Dual-Core, WiFi/BLE)</td></tr>
+                        <tr><td data-i18n="hw-spec-p2">Przetwornik EKG</td><td>ADS1292 (24-bitowy analogowy front-end)</td></tr>
+                        <tr><td data-i18n="hw-spec-p3">Kanały pomiarowe</td><td data-i18n="hw-spec-v3">1 kanał, układ 3-elektrodowy (RA, LA, RL)</td></tr>
+                        <tr><td data-i18n="hw-spec-p4">Częstotliwość próbkowania</td><td data-i18n="hw-spec-v4">250 Hz (stabilna, sprzętowa)</td></tr>
+                        <tr><td data-i18n="hw-spec-p5">Zasilanie i port</td><td data-i18n="hw-spec-v5">Akumulator Li-Ion 3500 mAh / USB-C</td></tr>
+                    </table>
+                </div>
             </div>
-            
-            <div class="image-block pcb-image-wrap" style="display: flex; justify-content: center; align-items: center; width: 100%;">
-                <img src="images/PCB.png" alt="Obwód drukowany PCB Rythmio" class="img-fluid" style="border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 100%; height: auto;" onerror="this.src='https://via.placeholder.com/650x500/1c1c1e/7b61ff?text=Zdjecie+Płytki+PCB'">
+        </section>
+
+        <section class="features" style="border-top: 1px solid var(--border-color); background: linear-gradient(180deg, transparent, rgba(123, 97, 255, 0.01));">
+            <div class="container">
+                <h2 class="section-title" style="text-align: center;" data-i18n="hw-anatomy-title">Anatomia Urządzenia</h2>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem; max-width: 700px; margin-left: auto; margin-right: auto;" data-i18n="hw-anatomy-desc">
+                    Poniższe zestawienie opisuje kluczowe układy scalone oraz architekturę warstwy sprzętowej zaimplementowaną w urządzeniu Rythmio.
+                </p>
+
+                <div class="grid-3" style="display: grid; gap: 1.5rem;">
+
+                    <div class="card" style="height: auto;">
+                        <h3 data-i18n="hw-card1-title">Mikrokontroler</h3>
+                        <p data-i18n="hw-card1-desc"><strong>ESP32-WROOM-32E</strong> stanowi serce urządzenia. Ten wydajny, dwurdzeniowy mikrokontroler koordynuje zbieranie próbek w czasie rzeczywistym, przetwarza je wstępnie, zarządza pamięcią podręczną oraz obsługuje energooszczędny protokół Bluetooth Low Energy.</p>
+                    </div>
+
+                    <div class="card" style="height: auto;">
+                        <h3 data-i18n="hw-card2-title">Front-End Analogowy</h3>
+                        <p data-i18n="hw-card2-desc">Układ scalony <strong>ADS1292</strong> to medyczny, 24-bitowy przetwornik analogowo-cyfrowy. W celu uzyskania najwyższej czystości sygnału i eliminacji szumów, na etapie projektu PCB rygorystycznie odseparowano masę i zasilanie analogowe od części cyfrowej.</p>
+                    </div>
+
+                    <div class="card" style="height: auto;">
+                        <h3 data-i18n="hw-card3-title">Filtracja i Ochrona ESD</h3>
+                        <p data-i18n="hw-card3-desc">Zanim sygnał z klatki piersiowej trafi do przetwornika, przechodzi przez dedykowany stopień filtracji pasywnej EMI/RFI oraz diody zabezpieczające przed wyładowaniami elektrostatycznymi (ESD), chroniąc wrażliwą elektronikę oraz ciało pacjenta przed uszkodzeniem.</p>
+                    </div>
+
+                    <div class="card" style="height: auto;">
+                        <h3 data-i18n="hw-card4-title">Ekran Ultra-Low Power</h3>
+                        <p data-i18n="hw-card4-desc">Wyświetlacz wykonany w technologii <strong>E-Ink</strong> na bieżąco prezentuje kluczowe metryki badania. Pokazuje aktualne tętno (BPM), precyzyjny stan naładowania baterii oraz ikonę statusu bezprzewodowego połączenia Bluetooth.</p>
+                    </div>
+
+                    <div class="card" style="height: auto;">
+                        <h3 data-i18n="hw-card5-title">Pamięć Offline (Karta SD)</h3>
+                        <p data-i18n="hw-card5-desc">Zintegrowany slot na kartę microSD umożliwia nieprzerwany zapis pełnego, surowego przebiegu sygnału EKG z całego okresu badania. Gwarantuje to bezpieczeństwo danych pacjenta w przypadku utraty połączenia bezprzewodowego z telefonem.</p>
+                    </div>
+
+                    <div class="card" style="height: auto;">
+                        <h3 data-i18n="hw-card6-title">Zasilanie i Ładowanie</h3>
+                        <p data-i18n="hw-card6-desc">System wyposażono w pojemne ogniwo <strong>Li-Ion 3500 mAh</strong>, zapewniające wielodniową, stabilną pracę bez przerw. Układ ładowania zintegrowano z nowoczesnym, uniwersalnym portem <strong>USB-C</strong>, chroniąc baterię przed przeładowaniem.</p>
+                    </div>
+
+                    <div class="card" style="height: auto;">
+                        <h3 data-i18n="hw-card7-title">Korelacja Ruchu</h3>
+                        <p data-i18n="hw-card7-desc">Wbudowany <strong>akcelerometr</strong> konwertuje przyspieszenia na średnią aktywność fizyczną użytkownika. Pozwala to aplikacji mobilnej i lekarzowi odróżnić naturalnie podwyższone tętno (wynikające z wysiłku) od anomalii i artefaktów ruchowych.</p>
+                    </div>
+
+                    <div class="card" style="height: auto;">
+                        <h3 data-i18n="hw-card8-title">Buzzer</h3>
+                        <p data-i18n="hw-card8-desc">Zintegrowany przetwornik piezoelektryczny pełni funkcję asystenta bezpieczeństwa. Pika cyklicznie w przypadku wykrycia fizycznego odłączenia się elektrod od ciała, a także emituje potrójny sygnał dźwiękowy informujący o pomyślnym zakończeniu sesji pomiarowej.</p>
+                    </div>
+
+                    <div class="card" style="height: auto;">
+                        <h3 data-i18n="hw-card9-title">Zegar Czasu Rzeczywistego</h3>
+                        <p data-i18n="hw-card9-desc">Dedykowany układ RTC (Real-Time Clock) z niezależnym podtrzymaniem zasilania precyzyjnie synchronizuje czas urządzenia. Dzięki temu każdy plik pomiarowy zapisany na karcie SD posiada dokładny znacznik godziny i daty, kluczowy dla diagnozy lekarskiej.</p>
+                    </div>
+
+                </div>
             </div>
+        </section>
 
-            <div class="tech-spec-box pcb-spec-box" style="width: 100%;">
-                <h3 data-i18n="hw-spec-title">Specyfikacja bazowa</h3>
-                <table class="spec-table" style="width: 100%;">
-                    <tr><td data-i18n="hw-spec-p1">Główny procesor</td><td>ESP32-WROOM-32E (Dual-Core, WiFi/BLE)</td></tr>
-                    <tr><td data-i18n="hw-spec-p2">Przetwornik EKG</td><td>ADS1292 (24-bitowy analogowy front-end)</td></tr>
-                    <tr><td data-i18n="hw-spec-p3">Kanały pomiarowe</td><td data-i18n="hw-spec-v3">1 kanał, układ 3-elektrodowy (RA, LA, RL)</td></tr>
-                    <tr><td data-i18n="hw-spec-p4">Częstotliwość próbkowania</td><td data-i18n="hw-spec-v4">250 Hz (stabilna, sprzętowa)</td></tr>
-                    <tr><td data-i18n="hw-spec-p5">Zasilanie i port</td><td data-i18n="hw-spec-v5">Akumulator Li-Ion 3500 mAh / USB-C</td></tr>
-                </table>
+        <section class="content-section" style="border-top: 1px solid var(--border-color);">
+            <div class="container">
+                <h2 class="section-title" style="text-align: center;" data-i18n="hw-ui-title">Obsługa Fizycznego Interfejsu</h2>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;" data-i18n="hw-ui-desc">
+                    Urządzenie posiada dwa fizyczne przyciski funkcyjne zlokalizowane po prawej stronie obudowy. Ich działanie zależy od aktualnego stanu urządzenia:
+                </p>
+
+                <div class="grid-interfaces" style="display: grid; gap: 2rem;">
+
+                    <div class="card" style="height: auto;">
+                        <span class="badge" data-i18n="hw-ui-state1-badge">Stan 1: Menu Konfiguracyjne</span>
+                        <h3 style="margin: 1rem 0 1.5rem 0; font-size: 1.4rem;" data-i18n="hw-ui-state1-title">Wybór czasu trwania</h3>
+                        <ul style="list-style: none; padding: 0; color: var(--text-secondary);">
+                            <li style="margin-bottom: 1.2rem;">
+                                <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state1-item1-strong">Górny przycisk:</strong>
+                                <span data-i18n="hw-ui-state1-item1-text">Inkrementacja planowanego czasu trwania badania.</span>
+                            </li>
+                            <li style="margin-bottom: 1.2rem;">
+                                <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state1-item2-strong">Dolny przycisk:</strong>
+                                <span data-i18n="hw-ui-state1-item2-text">Dekrementacja planowanego czasu trwania badania.</span>
+                            </li>
+                            <li>
+                                <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state1-item3-strong">Oba wciśnięte jednocześnie:</strong>
+                                <span data-i18n="hw-ui-state1-item3-text">Zatwierdzenie parametrów i uruchomienie procedury rejestracji sygnału.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card" style="height: auto;">
+                        <span class="badge" data-i18n="hw-ui-state2-badge">Stan 2: Badanie</span>
+                        <h3 style="margin: 1rem 0 1.5rem 0; font-size: 1.4rem;" data-i18n="hw-ui-state2-title">Kontrola sesji i zdarzeń</h3>
+                        <ul style="list-style: none; padding: 0; color: var(--text-secondary);">
+                            <li style="margin-bottom: 1.2rem;">
+                                <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state2-item1-strong">Górny przycisk:</strong>
+                                <span data-i18n="hw-ui-state2-item1-text">Wybudzenie wyświetlacza E-Ink w celu weryfikacji bieżących parametrów.</span>
+                            </li>
+                            <li style="margin-bottom: 1.2rem;">
+                                <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state2-item2-strong">Dolny przycisk (Marker Zdarzeń):</strong>
+                                <span data-i18n="hw-ui-state2-item2-text">Oznaczenie ważnego momentu (tzw. zdarzenie pacjenta w przypadku złego samopoczucia) do późniejszej weryfikacji.</span>
+                            </li>
+                            <li>
+                                <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state2-item3-strong">Oba wciśnięte jednocześnie:</strong>
+                                <span data-i18n="hw-ui-state2-item3-text">Ręczne wzbudzenie modułu Bluetooth i inicjalizacja łączności bezprzewodowej z aplikacją.</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
             </div>
-        </div>
-    </section>
-
-    <section class="features" style="border-top: 1px solid var(--border-color); background: linear-gradient(180deg, transparent, rgba(123, 97, 255, 0.01));">
-        <div class="container">
-            <h2 class="section-title" style="text-align: center;" data-i18n="hw-anatomy-title">Anatomia Urządzenia</h2>
-            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem; max-width: 700px; margin-left: auto; margin-right: auto;" data-i18n="hw-anatomy-desc">
-                Poniższe zestawienie opisuje kluczowe układy scalone oraz architekturę warstwy sprzętowej zaimplementowaną w urządzeniu Rythmio.
-            </p>
-
-            <div class="grid-3" style="display: grid; gap: 1.5rem;">
-                
-                <div class="card" style="height: auto;">
-                    <h3 data-i18n="hw-card1-title">Mikrokontroler</h3>
-                    <p data-i18n="hw-card1-desc"><strong>ESP32-WROOM-32E</strong> stanowi serce urządzenia. Ten wydajny, dwurdzeniowy mikrokontroler koordynuje zbieranie próbek w czasie rzeczywistym, przetwarza je wstępnie, zarządza pamięcią podręczną oraz obsługuje energooszczędny protokół Bluetooth Low Energy.</p>
-                </div>
-
-                <div class="card" style="height: auto;">
-                    <h3 data-i18n="hw-card2-title">Front-End Analogowy</h3>
-                    <p data-i18n="hw-card2-desc">Układ scalony <strong>ADS1292</strong> to medyczny, 24-bitowy przetwornik analogowo-cyfrowy. W celu uzyskania najwyższej czystości sygnału i eliminacji szumów, na etapie projektu PCB rygorystycznie odseparowano masę i zasilanie analogowe od części cyfrowej.</p>
-                </div>
-
-                <div class="card" style="height: auto;">
-                    <h3 data-i18n="hw-card3-title">Filtracja i Ochrona ESD</h3>
-                    <p data-i18n="hw-card3-desc">Zanim sygnał z klatki piersiowej trafi do przetwornika, przechodzi przez dedykowany stopień filtracji pasywnej EMI/RFI oraz diody zabezpieczające przed wyładowaniami elektrostatycznymi (ESD), chroniąc wrażliwą elektronikę oraz ciało pacjenta przed uszkodzeniem.</p>
-                </div>
-
-                <div class="card" style="height: auto;">
-                    <h3 data-i18n="hw-card4-title">Ekran Ultra-Low Power</h3>
-                    <p data-i18n="hw-card4-desc">Wyświetlacz wykonany w technologii <strong>E-Ink</strong> na bieżąco prezentuje kluczowe metryki badania. Pokazuje aktualne tętno (BPM), precyzyjny stan naładowania baterii oraz ikonę statusu bezprzewodowego połączenia Bluetooth.</p>
-                </div>
-
-                <div class="card" style="height: auto;">
-                    <h3 data-i18n="hw-card5-title">Pamięć Offline (Karta SD)</h3>
-                    <p data-i18n="hw-card5-desc">Zintegrowany slot na kartę microSD umożliwia nieprzerwany zapis pełnego, surowego przebiegu sygnału EKG z całego okresu badania. Gwarantuje to bezpieczeństwo danych pacjenta w przypadku utraty połączenia bezprzewodowego z telefonem.</p>
-                </div>
-
-                <div class="card" style="height: auto;">
-                    <h3 data-i18n="hw-card6-title">Zasilanie i Ładowanie</h3>
-                    <p data-i18n="hw-card6-desc">System wyposażono w pojemne ogniwo <strong>Li-Ion 3500 mAh</strong>, zapewniające wielodniową, stabilną pracę bez przerw. Układ ładowania zintegrowano z nowoczesnym, uniwersalnym portem <strong>USB-C</strong>, chroniąc baterię przed przeładowaniem.</p>
-                </div>
-
-                <div class="card" style="height: auto;">
-                    <h3 data-i18n="hw-card7-title">Korelacja Ruchu</h3>
-                    <p data-i18n="hw-card7-desc">Wbudowany <strong>akcelerometr</strong> konwertuje przyspieszenia na średnią aktywność fizyczną użytkownika. Pozwala to aplikacji mobilnej i lekarzowi odróżnić naturalnie podwyższone tętno (wynikające z wysiłku) od anomalii i artefaktów ruchowych.</p>
-                </div>
-
-                <div class="card" style="height: auto;">
-                    <h3 data-i18n="hw-card8-title">Buzzer</h3>
-                    <p data-i18n="hw-card8-desc">Zintegrowany przetwornik piezoelektryczny pełni funkcję asystenta bezpieczeństwa. Pika cyklicznie w przypadku wykrycia fizycznego odłączenia się elektrod od ciała, a także emituje potrójny sygnał dźwiękowy informujący o pomyślnym zakończeniu sesji pomiarowej.</p>
-                </div>
-
-                <div class="card" style="height: auto;">
-                    <h3 data-i18n="hw-card9-title">Zegar Czasu Rzeczywistego</h3>
-                    <p data-i18n="hw-card9-desc">Dedykowany układ RTC (Real-Time Clock) z niezależnym podtrzymaniem zasilania precyzyjnie synchronizuje czas urządzenia. Dzięki temu każdy plik pomiarowy zapisany na karcie SD posiada dokładny znacznik godziny i daty, kluczowy dla diagnozy lekarskiej.</p>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <section class="content-section" style="border-top: 1px solid var(--border-color);">
-        <div class="container">
-            <h2 class="section-title" style="text-align: center;" data-i18n="hw-ui-title">Obsługa Fizycznego Interfejsu</h2>
-            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;" data-i18n="hw-ui-desc">
-                Urządzenie posiada dwa fizyczne przyciski funkcyjne zlokalizowane po prawej stronie obudowy. Ich działanie zależy od aktualnego stanu urządzenia:
-            </p>
-
-            <div class="grid-interfaces" style="display: grid; gap: 2rem;">
-                
-                <div class="card" style="height: auto;">
-                    <span class="badge" data-i18n="hw-ui-state1-badge">Stan 1: Menu Konfiguracyjne</span>
-                    <h3 style="margin: 1rem 0 1.5rem 0; font-size: 1.4rem;" data-i18n="hw-ui-state1-title">Wybór czasu trwania</h3>
-                    <ul style="list-style: none; padding: 0; color: var(--text-secondary);">
-                        <li style="margin-bottom: 1.2rem;">
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state1-item1-strong">Górny przycisk:</strong> 
-                            <span data-i18n="hw-ui-state1-item1-text">Inkrementacja planowanego czasu trwania badania.</span>
-                        </li>
-                        <li style="margin-bottom: 1.2rem;">
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state1-item2-strong">Dolny przycisk:</strong> 
-                            <span data-i18n="hw-ui-state1-item2-text">Dekrementacja planowanego czasu trwania badania.</span>
-                        </li>
-                        <li>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state1-item3-strong">Oba wciśnięte jednocześnie:</strong> 
-                            <span data-i18n="hw-ui-state1-item3-text">Zatwierdzenie parametrów i uruchomienie procedury rejestracji sygnału.</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="card" style="height: auto;">
-                    <span class="badge" data-i18n="hw-ui-state2-badge">Stan 2: Badanie</span>
-                    <h3 style="margin: 1rem 0 1.5rem 0; font-size: 1.4rem;" data-i18n="hw-ui-state2-title">Kontrola sesji i zdarzeń</h3>
-                    <ul style="list-style: none; padding: 0; color: var(--text-secondary);">
-                        <li style="margin-bottom: 1.2rem;">
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state2-item1-strong">Górny przycisk:</strong> 
-                            <span data-i18n="hw-ui-state2-item1-text">Wybudzenie wyświetlacza E-Ink w celu weryfikacji bieżących parametrów.</span>
-                        </li>
-                        <li style="margin-bottom: 1.2rem;">
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state2-item2-strong">Dolny przycisk (Marker Zdarzeń):</strong> 
-                            <span data-i18n="hw-ui-state2-item2-text">Oznaczenie ważnego momentu (tzw. zdarzenie pacjenta w przypadku złego samopoczucia) do późniejszej weryfikacji.</span>
-                        </li>
-                        <li>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="hw-ui-state2-item3-strong">Oba wciśnięte jednocześnie:</strong> 
-                            <span data-i18n="hw-ui-state2-item3-text">Ręczne wzbudzenie modułu Bluetooth i inicjalizacja łączności bezprzewodowej z aplikacją.</span>
-                        </li>
-                    </ul>
-                </div>
-
-            </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <footer class="footer">
         <div class="container">
@@ -335,11 +336,11 @@
                 "nav-opinions": "Opinie",
                 "nav-about": "O nas",
                 "footer-text": "&copy; 2026 Projekt Rythmio.",
-                
+
                 // Sekcja Główna PCB
                 "hw-badge": "Warstwa Sprzętowa",
                 "hw-title": "Precyzja na płytce PCB",
-                "hw-desc": "Urządzenie Rythmio zostało zaprojektowane z myślą o maksymalnej redukcji zakłóceń podczas codziennych aktywności. Zastosowany zaawansowany analogowy front-end precyzyjnie wzmacnia różnicę potencjałów z klatki piersiowej pacjenta, filtrując szumy i przesyłając czстый sygnał kardiologiczny.",
+                "hw-desc": "Urządzenie Rythmio zostało zaprojektowane z myślą o maksymalnej redukcji zakłóceń podczas codziennych aktywności. Zastosowany zaawansowany analogowy front-end precyzyjnie wzmacnia różnicę potencjałów z klatki piersiowej pacjenta, filtrując szumy i przesyłając czysty sygnał kardiologiczny.",
                 "hw-spec-title": "Specyfikacja bazowa",
                 "hw-spec-p1": "Główny procesor",
                 "hw-spec-p2": "Przetwornik EKG",
@@ -399,12 +400,12 @@
                 "nav-opinions": "Reviews",
                 "nav-about": "About Us",
                 "footer-text": "&copy; 2026 Rythmio Project.",
-                
+
                 // Sekcja Główna PCB
                 "hw-badge": "Hardware Layer",
-                "hw-title": "Precision on the PCB Board",
+                "hw-title": "Precision on the PCB",
                 "hw-desc": "The Rythmio device has been designed for maximum interference reduction during daily activities. The integrated advanced analog front-end precisely amplifies the potential difference from the patient's chest, filtering noise and transmitting a clean cardiac signal.",
-                "hw-spec-title": "Base Specification",
+                "hw-spec-title": "Core Specifications",
                 "hw-spec-p1": "Main Processor",
                 "hw-spec-p2": "ECG Converter",
                 "hw-spec-p3": "Measurement Channels",
@@ -416,7 +417,7 @@
 
                 // Sekcja Anatomia Urządzenia
                 "hw-anatomy-title": "Device Anatomy",
-                "hw-anatomy-desc": "The following list describes the key integrated circuits and the hardware layer architecture implemented within the Rythmio device.",
+                "hw-anatomy-desc": "The following section describes the key integrated circuits and the hardware layer architecture implemented within the Rythmio device.",
                 "hw-card1-title": "Microcontroller",
                 "hw-card1-desc": "<strong>ESP32-WROOM-32E</strong> represents the heart of the device. This efficient, dual-core microcontroller coordinates real-time sample collection, pre-processes them, manages cache memory, and supports the energy-efficient Bluetooth Low Energy protocol.",
                 "hw-card2-title": "Analog Front-End",
@@ -452,7 +453,7 @@
                 "hw-ui-state2-item1-strong": "Top Button:",
                 "hw-ui-state2-item1-text": "Wakes up the E-Ink display to verify current operating parameters.",
                 "hw-ui-state2-item2-strong": "Bottom Button (Event Marker):",
-                "hw-ui-state2-item2-text": "Marks a significant moment (a patient-triggered event when feeling unwell) for later clinical review.",
+                "hw-ui-state2-item2-text": "Marks a significant moment (e.g., patient event when feeling unwell) for later clinical review.",
                 "hw-ui-state2-item3-strong": "Both Pressed Together:",
                 "hw-ui-state2-item3-text": "Manually wakes the Bluetooth module and starts the wireless synchronization process with the application."
             }
@@ -460,11 +461,11 @@
 
         // --- 2. DEKLARACJE FUNKCJI ---
         const themeToggleButtons = document.querySelectorAll('.theme-toggle-btn');
-        
+
         function updateThemeIcon() {
             const isLight = document.body.classList.contains('light-mode');
             const currentLang = document.documentElement.lang || 'pl';
-            
+
             themeToggleButtons.forEach(btn => {
                 // Dynamiczna zmiana pełnego tekstu dla każdego przycisku motywu (mobilnego i desktopowego)
                 if (currentLang === 'pl') {
@@ -479,7 +480,7 @@
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
-                    element.innerHTML = translations[lang][key]; 
+                    element.innerHTML = translations[lang][key];
                 }
             });
             document.documentElement.lang = lang;
@@ -487,7 +488,7 @@
         }
 
         // --- 3. INICJALIZACJA STANÓW PRZY ŁADOWANIU (URUCHAMIA SIĘ RAZ) ---
-        
+
         // Zastosowanie zapisanego motywu
         if (localStorage.getItem('theme') === 'light') {
             document.body.classList.add('light-mode');
@@ -522,15 +523,15 @@
         themeToggleButtons.forEach(button => {
             button.addEventListener('click', () => {
                 document.body.classList.toggle('light-mode');
-                
+
                 if (document.body.classList.contains('light-mode')) {
                     localStorage.setItem('theme', 'light');
                 } else {
                     localStorage.setItem('theme', 'dark');
                 }
-                
+
                 updateThemeIcon();
-                
+
                 if (navMenu.classList.contains('active')) {
                     mobileMenuBtn.classList.remove('active');
                     navMenu.classList.remove('active');
@@ -542,13 +543,13 @@
         langButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const targetLang = button.getAttribute('data-lang');
-                
+
                 langButtons.forEach(b => b.classList.remove('active'));
                 button.classList.add('active');
-                
+
                 localStorage.setItem('selectedLanguage', targetLang);
                 updateTexts(targetLang);
-                
+
                 if (navMenu.classList.contains('active')) {
                     mobileMenuBtn.classList.remove('active');
                     navMenu.classList.remove('active');
