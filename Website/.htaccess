@@ -1,0 +1,12 @@
+Options +FollowSymLinks
+RewriteEngine On
+
+# 1. Opcjonalne przekierowanie z hardware.html na /hardware (zapobiega duplikacji treści)
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s([^.]+)\.html [NC]
+RewriteRule ^ %1 [R=301,L]
+
+# 2. Wewnętrzne mapowanie adresu bez rozszerzenia na plik .html
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^([^/]+)$ $1.html [L]

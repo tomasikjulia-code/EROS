@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rythmio - Holter EKG & Mobile Sync</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -83,7 +84,7 @@
                 width: auto;
                 padding: 0.4rem 0.7rem;
             }
-            
+
             /* Dopasowanie kontenera flag w menu mobilnym */
             .lang-switcher-container {
                 justify-content: center;
@@ -99,14 +100,14 @@
 
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="logo-container">
+            <a href="/" class="logo-container">
                 <img src="images/logo.png" alt="Rythmio Logo" class="nav-logo">
                 <span class="logo-text">Rythmio</span>
             </a>
-            
+
             <div class="nav-actions">
                 <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button>
-                
+
                 <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
                     <span class="bar"></span>
                     <span class="bar"></span>
@@ -115,16 +116,16 @@
             </div>
 
             <ul class="nav-links" id="nav-menu">
-                <li><a href="index.html" class="active" data-i18n="nav-pulpit">Pulpit</a></li>
-                <li><a href="hardware.html" data-i18n="nav-hardware">Urządzenie</a></li>
-                <li><a href="software.html" data-i18n="nav-software">Aplikacja</a></li>
-                <li><a href="opinie.html" data-i18n="nav-opinions">Opinie</a></li>
-                <li><a href="onas.html" data-i18n="nav-about">O nas</a></li>
-                
+                <li><a href="/" class="active" data-i18n="nav-pulpit">Pulpit</a></li>
+                <li><a href="hardware" data-i18n="nav-hardware">Urządzenie</a></li>
+                <li><a href="software" data-i18n="nav-software">Aplikacja</a></li>
+                <li><a href="opinie" data-i18n="nav-opinions">Opinie</a></li>
+                <li><a href="onas" data-i18n="nav-about">O nas</a></li>
+
                 <li class="theme-toggle-li">
                     <button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button>
                 </li>
-                
+
                 <li>
                     <div class="lang-switcher-container">
                         <button class="lang-flag-btn active" data-lang="pl" title="Język polski">
@@ -144,7 +145,7 @@
             <div class="hero-text">
                 <span class="badge" data-i18n="hero-badge">Projekt Zespołowy</span>
                 <h1 data-i18n="hero-title">Twój osobisty kardiolog w kieszeni.</h1>
-                
+
                 <div class="hero-lead-box">
                     <p data-i18n="hero-desc">Rythmio to autorski, niskokosztowy system Holtera EKG, stworzony od podstaw – od projektu obwodu drukowanego (PCB) i ergonomicznej obudowy, po dedykowane oprogramowanie mobilne. Powstał, by przełamać bariery długiego czasu oczekiwania na diagnostykę kardiologiczną i umożliwić natychmiastową weryfikację pracy serca.</p>
                 </div>
@@ -152,7 +153,7 @@
                 <div class="hero-image-mobile-only">
                     <img src="images/live.png" alt="Rythmio App Live Monitoring" class="img-fluid">
                 </div>
-                
+
                 <ul class="hero-features-list">
                     <li><strong data-i18n="feat1-strong">Transmisja Bluetooth:</strong><span data-i18n="feat1-text"> Bezprzewodowy podgląd sygnału EKG w czasie rzeczywistym.</span></li>
                     <li><strong data-i18n="feat2-strong">Raporty dla lekarza:</strong><span data-i18n="feat2-text"> Generowanie gotowych podsumowań i bezpośrednia wysyłka na e-mail.</span></li>
@@ -162,72 +163,74 @@
 
                 <div class="hero-actions">
                     <a href="#enclosure" class="btn" data-i18n="hero-btn-1">Poznaj konstrukcję</a>
-                    <a href="software.html" class="btn-secondary" data-i18n="hero-btn-2">Więcej funkcji aplikacji →</a>
+                    <a href="software" class="btn-secondary" data-i18n="hero-btn-2">Więcej funkcji aplikacji →</a>
                 </div>
             </div>
-            
+
             <div class="hero-image desktop-only-image">
                 <img src="images/live.png" alt="Rythmio App Live Monitoring" class="img-fluid">
             </div>
         </div>
     </header>
 
-    <section id="enclosure" class="enclosure-section">
-        <div class="container grid-enclosure">
-            <div class="image-block-large">
-                <img src="images/obudowa2.png" alt="Obudowa urządzenia Rythmio" class="img-fluid-large">
-            </div>
-            <div class="text-block">
-                <span class="badge" data-i18n="enc-badge">Obudowa</span>
-                <h2 data-i18n="enc-title">Kompaktowa obudowa o standardzie medycznym</h2>
-                <p data-i18n="enc-desc">Urządzenie Rythmio zostało zaprojektowane z myślą o pełnej ergonomii i trudach codziennego użytkowania. Konstrukcja łączy miniaturyzację z zaawansowaną ochroną elektroniki.</p>
-                
-                <div class="enclosure-features">
-                    <div class="enclosure-item">
-                        <h5 data-i18n="enc-item1-title">• Wodoodporność i uszczelnienie TPU</h5>
-                        <p data-i18n="enc-item1-desc">Zintegrowane elastyczne uszczelki z TPU wokół ekranu, przycisków oraz portów gwarantują odporność na wilgoć i pot podczas ciągłego noszenia.</p>
+    <main>
+        <section id="enclosure" class="enclosure-section">
+            <div class="container grid-enclosure">
+                <div class="image-block-large">
+                    <img src="images/obudowa2.png" alt="Obudowa urządzenia Rythmio" class="img-fluid-large">
+                </div>
+                <div class="text-block">
+                    <span class="badge" data-i18n="enc-badge">Obudowa</span>
+                    <h2 data-i18n="enc-title">Kompaktowa obudowa o standardzie medycznym</h2>
+                    <p data-i18n="enc-desc">Urządzenie Rythmio zostało zaprojektowane z myślą o pełnej ergonomii i trudach codziennego użytkowania. Konstrukcja łączy miniaturyzację z zaawansowaną ochroną elektroniki.</p>
+
+                    <div class="enclosure-features">
+                        <div class="enclosure-item">
+                            <h5 data-i18n="enc-item1-title">• Wodoodporność i uszczelnienie TPU</h5>
+                            <p data-i18n="enc-item1-desc">Zintegrowane elastyczne uszczelki z TPU wokół ekranu, przycisków oraz portów gwarantują odporność na wilgoć i pot podczas ciągłego noszenia.</p>
+                        </div>
+
+                        <div class="enclosure-item">
+                            <h5 data-i18n="enc-item2-title">• Ultra-energooszczędny wyświetlacz E-Ink</h5>
+                            <p data-i18n="enc-item2-desc">Zastosowanie ekranu wykonanego w technologii elektronicznego papieru zapewnia nienaganną czytelność w pełnym słońcu przy minimalnym poborze prądu.</p>
+                        </div>
+
+                        <div class="enclosure-item">
+                            <h5 data-i18n="enc-item3-title">• Uniwersalny system mocowania</h5>
+                            <p data-i18n="enc-item3-desc">Dzięki ergonomicznej szlufce na tylnej ścianie, urządzenie można swobodnie konfigurować z różnymi paskami, dostosowując montaż do pasa, klatki piersiowej lub ramienia.</p>
+                        </div>
                     </div>
-                    
-                    <div class="enclosure-item">
-                        <h5 data-i18n="enc-item2-title">• Ultra-energooszczędny wyświetlacz E-Ink</h5>
-                        <p data-i18n="enc-item2-desc">Zastosowanie ekranu wykonanego w technologii elektronicznego papieru zapewnia nienaganną czytelność w pełnym słońcu przy minimalnym poborze prądu.</p>
-                    </div>
-
-                    <div class="enclosure-item">
-                        <h5 data-i18n="enc-item3-title">• Uniwersalny system mocowania</h5>
-                        <p data-i18n="enc-item3-desc">Dzięki ergonomicznej szlufce na tylnej ścianie, urządzenie można swobodnie konfigurować z różnymi paskami, dostosowując montaż do pasa, klatki piersiowej lub ramienia.</p>
-                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="features" class="features">
-        <div class="container">
-            <h2 class="section-title" data-i18n="arch-title">Architektura Systemu</h2>
-            <div class="grid-3">
-                
-                <div class="card">
-                    <h3 data-i18n="arch-card1-title">Zaprojektowany Hardware</h3>
-                    <p data-i18n="arch-card1-desc">Autorski moduł pomiarowy z próbkowaniem sygnału z elektrod (RA, LA, RL) przy częstotliwości 250 Hz. Układ gwarantuje wysoki współczynnik tłumienia zakłóceń, stabilny odczyt oraz ponad 24 godziny ciągłej rejestracji na jednym ładowaniu ogniwa.</p>
-                    <a href="hardware.html" class="card-link" data-i18n="arch-card1-link">Zobacz specyfikację płytki →</a>
+        <section id="features" class="features">
+            <div class="container">
+                <h2 class="section-title" data-i18n="arch-title">Architektura Systemu</h2>
+                <div class="grid-3">
+
+                    <div class="card">
+                        <h3 data-i18n="arch-card1-title">Zaprojektowany Hardware</h3>
+                        <p data-i18n="arch-card1-desc">Autorski moduł pomiarowy z próbkowaniem sygnału z elektrod (RA, LA, RL) przy częstotliwości 250 Hz. Układ gwarantuje wysoki współczynnik tłumienia zakłóceń, stabilny odczyt oraz ponad 24 godziny ciągłej rejestracji na jednym ładowaniu ogniwa.</p>
+                        <a href="hardware" class="card-link" data-i18n="arch-card1-link">Zobacz specyfikację płytki →</a>
+                    </div>
+
+                    <div class="card">
+                        <h3 data-i18n="arch-card2-title">Oprogramowanie Mobilne</h3>
+                        <p data-i18n="arch-card2-desc">Aplikacja integrująca zaawansowane algorytmy przetwarzania sygnału EKG. Odpowiada za płynną, bezprzewodową transmisję danych przez Bluetooth, detekcję anomalii rytmu w czasie rzeczywistym oraz przejrzystą wizualizację dobowych trendów BPM.</p>
+                        <a href="software" class="card-link" data-i18n="arch-card2-link">Funkcje aplikacji →</a>
+                    </div>
+
+                    <div class="card">
+                        <h3 data-i18n="arch-card3-title">Konsultacja i Walidacja</h3>
+                        <p data-i18n="arch-card3-desc">System został poddany profesjonalnej ocenie specjalistów z zakresu kardiologii. Pozyskana opinia lekarska potwierdza czytelność generowanych raportów PDF oraz przydatność przesiewową urządzenia w procesie wstępnej diagnostyki pacjenta.</p>
+                        <a href="opinie" class="card-link" data-i18n="arch-card3-link">Przeczytaj opinie lekarskie →</a>
+                    </div>
+
                 </div>
-
-                <div class="card">
-                    <h3 data-i18n="arch-card2-title">Oprogramowanie Mobilne</h3>
-                    <p data-i18n="arch-card2-desc">Aplikacja integrująca zaawansowane algorytmy przetwarzania sygnału EKG. Odpowiada za płynną, bezprzewodową transmisję danych przez bluetooth, detekcję anomalii rytmu w czasie rzeczywistym oraz przejrzystą wizualizację dobowych trendów BPM.</p>
-                    <a href="software.html" class="card-link" data-i18n="arch-card2-link">Funkcje aplikacji →</a>
-                </div>
-
-                <div class="card">
-                    <h3 data-i18n="arch-card3-title">Konsultacja i Walidacja</h3>
-                    <p data-i18n="arch-card3-desc">System został poddany profesjonalnej ocenie specjalistów z zakresu kardiologii. Pozyskana opinia lekarska potwierdza czytelność generowanych raportów PDF oraz przydatność przesiewową urządzenia w procesie wstępnej diagnostyki pacjenta.</p>
-                    <a href="opinie.html" class="card-link" data-i18n="arch-card3-link">Przeczytaj opinie lekarskie →</a>
-                </div>
-
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <footer class="footer">
         <div class="container">
@@ -271,7 +274,7 @@
                 "arch-card1-desc": "Autorski moduł pomiarowy z próbkowaniem sygnału z elektrod (RA, LA, RL) przy częstotliwości 250 Hz. Układ gwarantuje wysoki współczynnik tłumienia zakłóceń, stabilny odczyt oraz ponad 24 godziny ciągłej rejestracji na jednym ładowaniu ogniwa.",
                 "arch-card1-link": "Zobacz specyfikację płytki →",
                 "arch-card2-title": "Oprogramowanie Mobilne",
-                "arch-card2-desc": "Aplikacja integrująca zaawansowane algorytmy przetwarzania sygnału EKG. Odpowiada za płynną, bezprzewodową transmisję danych przez bluetooth, detekcję anomalii rytmu w czasie rzeczywistym oraz przejrzystą wizualizację dobowych trendów BPM.",
+                "arch-card2-desc": "Aplikacja integrująca zaawansowane algorytmy przetwarzania sygnału EKG. Odpowiada za płynną, bezprzewodową transmisję danych przez Bluetooth, detekcję anomalii rytmu w czasie rzeczywistym oraz przejrzystą wizualizację dobowych trendów BPM.",
                 "arch-card2-link": "Funkcje aplikacji →",
                 "arch-card3-title": "Konsultacja i Walidacja",
                 "arch-card3-desc": "System został poddany profesjonalnej ocenie specjalistów z zakresu kardiologii. Pozyskana opinia lekarska potwierdza czytelność generowanych raportów PDF oraz przydatność przesiewową urządzenia w procesie wstępnej diagnostyki pacjenta.",
@@ -286,10 +289,10 @@
                 "nav-about": "About Us",
                 "hero-badge": "Team Project",
                 "hero-title": "Your personal cardiologist in your pocket.",
-                "hero-desc": "Rythmio is a proprietary, low-cost Holter ECG system, created from scratch – from the printed circuit board (PCB) design and ergonomic enclosure, to dedicated mobile software. It was created to break the barriers of long waiting times for cardiological diagnostics and enable immediate verification of heart function.",
+                "hero-desc": "Rythmio is a custom-designed, low-cost Holter ECG system, created from scratch – from the printed circuit board (PCB) design and ergonomic enclosure, to dedicated mobile software. It was created to break the barriers of long waiting times for cardiological diagnostics and enable immediate verification of heart function.",
                 "feat1-strong": "Bluetooth Transmission:",
                 "feat1-text": " Wireless real-time ECG signal preview.",
-                "feat2-strong": "Doctor Reports:",
+                "feat2-strong": "Medical Reports:",
                 "feat2-text": " Generating ready-made summaries and direct email dispatch.",
                 "feat3-strong": "AI Assistant:",
                 "feat3-text": " Preliminary analysis of results supported by artificial intelligence (as an auxiliary module before medical consultation).",
@@ -299,7 +302,7 @@
                 "hero-btn-2": "More app features →",
                 "enc-badge": "Enclosure",
                 "enc-title": "Compact medical-grade enclosure",
-                "enc-desc": "The Rythmio device was designed with full ergonomics and the rigors of daily use in mind. The design combines minimalism with advanced electronics protection.",
+                "enc-desc": "The Rythmio device was designed with full ergonomics and the rigors of daily use in mind. The design combines miniaturization with advanced electronics protection.",
                 "enc-item1-title": "• Waterproofing and TPU sealing",
                 "enc-item1-desc": "Integrated flexible TPU seals around the screen, buttons, and ports guarantee resistance to moisture and sweat during continuous wear.",
                 "enc-item2-title": "• Ultra-low power E-Ink display",
@@ -314,7 +317,7 @@
                 "arch-card2-desc": "An application integrating advanced ECG signal processing algorithms. It is responsible for smooth, wireless Bluetooth data transmission, real-time rhythm anomaly detection, and clear visualization of daily BPM trends.",
                 "arch-card2-link": "App features →",
                 "arch-card3-title": "Consultation and Validation",
-                "arch-card3-desc": "The system underwent professional evaluation by cardiology specialists. The obtained medical opinion confirms the readability of the generated PDF reports and the screening utility of the device in the initial patient diagnostic process.",
+                "arch-card3-desc": "The system underwent professional evaluation by cardiology specialists. The obtained medical opinion confirms the readability of the generated PDF reports and the screening capability of the device in the initial patient diagnostic process.",
                 "arch-card3-link": "Read medical reviews →",
                 "footer-text": "&copy; 2026 Rythmio Project."
             }
@@ -325,11 +328,11 @@
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
-                    element.innerHTML = translations[lang][key]; 
+                    element.innerHTML = translations[lang][key];
                 }
             });
             document.documentElement.lang = lang;
-            
+
             // Re-renderowanie etykiet motywu pod kątem nowego języka
             updateThemeIcon();
         }
@@ -345,11 +348,11 @@
 
         // --- 4. OBSŁUGA PRZYCISKÓW MOTYWU (DWUJĘZYCZNOŚĆ) ---
         const themeToggleButtons = document.querySelectorAll('.theme-toggle-btn');
-        
+
         function updateThemeIcon() {
             const isLight = document.body.classList.contains('light-mode');
             const currentLang = localStorage.getItem('selectedLanguage') || 'pl';
-            
+
             themeToggleButtons.forEach(btn => {
                 if (currentLang === 'pl') {
                     btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
@@ -369,15 +372,15 @@
         themeToggleButtons.forEach(button => {
             button.addEventListener('click', () => {
                 document.body.classList.toggle('light-mode');
-                
+
                 if (document.body.classList.contains('light-mode')) {
                     localStorage.setItem('theme', 'light');
                 } else {
                     localStorage.setItem('theme', 'dark');
                 }
-                
+
                 updateThemeIcon();
-                
+
                 // Automatyczne zamnięcie menu mobilnego
                 if (navMenu.classList.contains('active')) {
                     mobileMenuBtn.classList.remove('active');
@@ -389,7 +392,7 @@
         // --- 5. OBSŁUGA WYBORU JĘZYKÓW ---
         const savedLang = localStorage.getItem('selectedLanguage') || 'pl';
         const langButtons = document.querySelectorAll('.lang-flag-btn');
-        
+
         langButtons.forEach(btn => {
             if (btn.getAttribute('data-lang') === savedLang) {
                 btn.classList.add('active');
@@ -397,20 +400,20 @@
                 btn.classList.remove('active');
             }
         });
-        
+
         // Pierwsze uruchomienie tłumaczeń
         updateTexts(savedLang);
 
         langButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const targetLang = button.getAttribute('data-lang');
-                
+
                 langButtons.forEach(b => b.classList.remove('active'));
                 button.classList.add('active');
-                
+
                 localStorage.setItem('selectedLanguage', targetLang);
                 updateTexts(targetLang);
-                
+
                 // Zamknięcie menu po wyborze języka na telefonie
                 if (navMenu.classList.contains('active')) {
                     mobileMenuBtn.classList.remove('active');
