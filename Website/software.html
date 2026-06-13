@@ -7,6 +7,19 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* --- SKUTECZNA POPRAWKA DLA ROZCIĄGANEGO TEKSTU I INTERPUNKCJI --- */
+        .card-highlight-purple {
+            display: block !important; /* Neutralizuje wpływ Flexboxa na tekst bezpośredni */
+        }
+        
+        .card-highlight-purple p {
+            margin: 0;
+            text-align: justify;
+            text-justify: inter-word; /* Ładne rozkładanie spacji między wyrazami */
+            word-break: normal;
+            hyphens: auto; /* Automatyczne dzielenie słów w razie potrzeby na mobile */
+        }
+
         /* Układ paska dla przycisku motywu wyciągniętego z listy menu */
         .nav-actions {
             display: flex;
@@ -30,7 +43,6 @@
         .lang-flag-btn {
             background: none;
             border: 2px solid transparent;
-            font-size: 1.6rem;
             cursor: pointer;
             padding: 2px;
             border-radius: 6px;
@@ -38,6 +50,12 @@
             transition: all 0.2s ease;
             display: inline-block;
             opacity: 0.5; /* Domyślnie lekko przezroczyste (nieaktywne) */
+        }
+
+        /* Wyrównanie pionowe obrazków flag w przyciskach */
+        .lang-flag-btn img {
+            display: block;
+            vertical-align: middle;
         }
 
         .lang-flag-btn:hover {
@@ -49,6 +67,21 @@
             opacity: 1; /* Aktywny język jest w pełni wyraźny */
             border-color: var(--accent-purple); /* Fioletowa obwódka dla zaznaczenia */
             background-color: rgba(123, 97, 255, 0.1);
+        }
+
+        /* Gwarancja widoczności elementów menu i flag na komputerze */
+        @media (min-width: 992px) {
+            .theme-toggle-li {
+                display: block !important;
+            }
+            .lang-switcher-container {
+                display: flex !important;
+                gap: 0.5rem;
+                align-items: center;
+            }
+            .lang-flag-btn {
+                display: inline-block !important;
+            }
         }
 
         @media (max-width: 768px) {
@@ -103,7 +136,7 @@
             </a>
             
             <div class="nav-actions">
-                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button>
+                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button>
                 
                 <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
                     <span class="bar"></span>
@@ -119,12 +152,16 @@
                 <li><a href="opinie.html" data-i18n="nav-opinions">Opinie</a></li>
                 <li><a href="onas.html" data-i18n="nav-about">O nas</a></li>
                 
-                <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button></li>
+                <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button></li>
                 
                 <li>
                     <div class="lang-switcher-container">
-                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">🇵🇱</button>
-                        <button class="lang-flag-btn" data-lang="en" title="English language">🇬🇧</button>
+                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">
+                            <img src="https://flagcdn.com/w40/pl.png" alt="PL" width="24">
+                        </button>
+                        <button class="lang-flag-btn" data-lang="en" title="English language">
+                            <img src="https://flagcdn.com/w40/gb.png" alt="EN" width="24">
+                        </button>
                     </div>
                 </li>
             </ul>
@@ -150,8 +187,10 @@
                     </div>
                 </div>
 
-                <div class="info-note" data-i18n="soft-note">
-                    🔄 <strong>Pełna swoboda widoku:</strong> Zarówno wykres fali EKG w trybie <strong>Live</strong>, jak i dobowe wykresy tętna są w pełni <strong>skalowalne</strong>. Możesz swobodnie obracać telefon – interfejs automatycznie dopasuje się do widoku pionowego lub poziomego, ułatwiając precyzyjną analizę załamków.
+                <div class="card card-highlight-purple" style="margin-top: 1.5rem;">
+                    <p data-i18n="soft-note">
+                        <strong>Pełna swoboda widoku:</strong> Zarówno wykres fali EKG w trybie <strong>Live</strong>, jak i dobowe wykresy tętna są w pełni <strong>skalowalne</strong>. Możesz swobodnie obracać telefon – interfejs automatycznie dopasuje się do widoku pionowego lub poziomego, ułatwiając precyzyjną analizę załamków.
+                    </p>
                 </div>
             </div>
             
@@ -200,12 +239,12 @@
                     <p data-i18n="soft-card3-desc">Gdy podczas badania poczujesz się gorzej i wciśniesz <strong>dolny przycisk na obudowie urządzenia</strong>, system postawi znacznik w sygnale. Po zgraniu danych, aplikacja pozwoli Ci dodać własny komentarz do tego momentu (np. opisując duszność czy stres), dając lekarzowi pełny kontekst sytuacyjny.</p>
                 </div>
 
-                <h3 class="heading-margin-custom" data-i18n="soft-subheading">Przegląd anomalii i wycinków</h3>
+                <h3 class="heading-margin-custom" style="margin-top: 2.5rem !important;" data-i18n="soft-subheading">Przegląd anomalii i wycinków</h3>
                 <p data-i18n="soft-desc5">Aplikacja automatycznie wycina z sygnału i archiwizuje dokładne momenty wystąpienia anomalii wraz z czasem ich trwania. Wszystkie wycinki raportu (tak jak podgląd na żywo) są w pełni <strong>interaktywne i skalowalne pionowo oraz poziomo</strong>.</p>
 
                 <div class="card card-highlight-purple">
                     <h4 data-i18n="soft-card4-title">🤖 Zintegrowany Asystent AI</h4>
-                    <p data-i18n="soft-card4-desc">Wbudowany moduł sztucznej inteligencji przetwarza badanie i generuje <strong>Raport AI</strong> z podsumowaniem klinicznym. Klasyfikuje on epizody jako "łagodne" lub "krytyczne", ocenia ciągłość pracy serca i dostarcza wstępne zalecenia dotyczące stylu życia lub pilności konsultacji lekarskiej.</p>
+                    <p data-i18n="soft-card4-desc">Wbudowany moduł sztucznej inteligencji przetwarza badanie i generuje <strong>Raport AI</strong> z podsumowaniem klinicznym. Klasyfikuje on epizody jako "łagodne" lub "krytyczne", ocenia ciągność pracy serca i dostarcza wstępne zalecenia dotyczące stylu życia lub pilności konsultacji lekarskiej.</p>
                 </div>
 
                 <p class="paragraph-margin-top" data-i18n="soft-desc6">Gotowe opracowanie możesz natychmiast zapisać w formacie <strong>PDF</strong>, uzupełnić adres e-mail i bezpośrednio z poziomu telefonu przesłać swojemu kardiologowi.</p>
@@ -222,7 +261,7 @@
     <section class="features section-features-bg">
         <div class="container">
             <h2 class="section-title" data-i18n="soft-title4">Dodatkowe Możliwości Aplikacji</h2>
-            <p class="text-center-max" data-i18n="soft-desc7">
+            <p class="text-center-max" style="margin-bottom: 3rem !important;" data-i18n="soft-desc7">
                 Rythmio to nie tylko bieżący pomiar, ale też wygodne zarządzanie historią zdrowia oraz funkcje ułatwiające codzienną dostępność.
             </p>
 
@@ -299,7 +338,7 @@
                 "soft-subheading": "Przegląd anomalii i wycinków",
                 "soft-desc5": "Aplikacja automatycznie wycina z sygnału i archiwizuje dokładne momenty wystąpienia anomalii wraz z czasem ich trwania. Wszystkie wycinki raportu (tak jak podgląd na żywo) są w pełni <strong>interaktywne i skalowalne pionowo oraz poziomo</strong>.",
                 "soft-card4-title": "🤖 Zintegrowany Asystent AI",
-                "soft-card4-desc": "Wbudowany moduł sztucznej inteligencji przetwarza badanie i generuje <strong>Raport AI</strong> z podsumowaniem klinicznym. Klasyfikuje on epizody jako \"łagodne\" lub \"krytyczne\", ocenia ciągłość pracy serca i dostarcza wstępne zalecenia dotyczące stylu życia lub pilności konsultacji lekarskiej.",
+                "soft-card4-desc": "Wbudowany moduł sztucznej inteligencji przetwarza badanie i generuje <strong>Raport AI</strong> z podsumowaniem klinicznym. Klasyfikuje on epizody jako \"łagodne\" lub \"krytyczne\", ocenia ciągność pracy serca i dostarcza wstępne zalecenia dotyczące stylu życia lub pilności konsultacji lekarskiej.",
                 "soft-desc6": "Gotowe opracowanie możesz natychmiast zapisać w formacie <strong>PDF</strong>, uzupełnić adres e-mail i bezpośrednio z poziomu telefonu przesłać swojemu kardiologowi.",
                 "soft-title4": "Dodatkowe Możliwości Aplikacji",
                 "soft-desc7": "Rythmio to nie tylko bieżący pomiar, ale też wygodne zarządzanie historią zdrowia oraz funkcje ułatwiające codzienną dostępność.",
@@ -374,6 +413,9 @@
             
             // Aktualizacja atrybutu lang w tagu html
             document.documentElement.lang = lang;
+
+            // Aktualizacja etykiet przycisków motywu pod kątem nowego języka
+            updateThemeIcon();
         }
 
         // --- OBSŁUGA MENU MOBILNEGO ---
@@ -390,8 +432,14 @@
         
         function updateThemeIcon() {
             const isLight = document.body.classList.contains('light-mode');
+            const currentLang = localStorage.getItem('selectedLanguage') || 'pl';
+            
             themeToggleButtons.forEach(btn => {
-                btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
+                if (currentLang === 'pl') {
+                    btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
+                } else {
+                    btn.innerHTML = isLight ? '☀️ Light' : '🌙 Dark';
+                }
             });
         }
 
@@ -448,7 +496,7 @@
                 // Zapis wyboru w przeglądarce
                 localStorage.setItem('selectedLanguage', targetLang);
                 
-                // Faktyczna podmiana tekstów
+                // Faktyczna podmiana tekstów (wywołuje wewnątrz updateThemeIcon)
                 updateTexts(targetLang);
                 
                 // Automatyczne zamknięcie hamburgera po wyborze języka na smartfonie

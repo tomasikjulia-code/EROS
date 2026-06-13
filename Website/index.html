@@ -6,6 +6,94 @@
     <title>Rythmio - Holter EKG & Mobile Sync</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Układ paska dla przycisku motywu wyciągniętego z listy menu */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Na desktopie ukrywamy kontener akcji mobilnych */
+        .nav-actions .theme-toggle-btn {
+            display: none;
+        }
+
+        /* --- STYLIZACJA WYBORU JĘZYKA W MENU HAMBURGERA --- */
+        .lang-switcher-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.5rem 0;
+        }
+
+        .lang-flag-btn {
+            background: none;
+            border: 2px solid transparent;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 6px;
+            line-height: 1;
+            transition: all 0.2s ease;
+            display: inline-block;
+            opacity: 0.5; /* Domyślnie lekko przezroczyste (nieaktywne) */
+        }
+
+        /* Wyrównanie pionowe obrazków flag w przyciskach */
+        .lang-flag-btn img {
+            display: block;
+            vertical-align: middle;
+        }
+
+        .lang-flag-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .lang-flag-btn.active {
+            opacity: 1; /* Aktywny język jest w pełni wyraźny */
+            border-color: var(--accent-purple); /* Fioletowa obwódka dla zaznaczenia */
+            background-color: rgba(123, 97, 255, 0.1);
+        }
+
+        /* Gwarancja widoczności elementów menu i flag na komputerze */
+        @media (min-width: 992px) {
+            .theme-toggle-li {
+                display: block !important;
+            }
+            .lang-switcher-container {
+                display: flex !important;
+                gap: 0.5rem;
+                align-items: center;
+            }
+            .lang-flag-btn {
+                display: inline-block !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            /* Na telefonie ukrywamy elementy desktopowe wewnątrz listy <ul> */
+            .nav-links .theme-toggle-li {
+                display: none !important;
+            }
+            /* Pokazujemy przycisk motywu na pasku głównym obok hamburgera */
+            .nav-actions .theme-toggle-btn {
+                display: inline-flex;
+                margin: 0;
+                width: auto;
+                padding: 0.4rem 0.7rem;
+            }
+            
+            /* Dopasowanie kontenera flag w menu mobilnym */
+            .lang-switcher-container {
+                justify-content: center;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--border-color);
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -17,7 +105,7 @@
             </a>
             
             <div class="nav-actions">
-                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button>
+                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button>
                 
                 <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
                     <span class="bar"></span>
@@ -33,12 +121,18 @@
                 <li><a href="opinie.html" data-i18n="nav-opinions">Opinie</a></li>
                 <li><a href="onas.html" data-i18n="nav-about">O nas</a></li>
                 
-                <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button></li>
+                <li class="theme-toggle-li">
+                    <button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button>
+                </li>
                 
                 <li>
                     <div class="lang-switcher-container">
-                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">🇵🇱</button>
-                        <button class="lang-flag-btn" data-lang="en" title="English language">🇬🇧</button>
+                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">
+                            <img src="https://flagcdn.com/w40/pl.png" alt="PL" width="24">
+                        </button>
+                        <button class="lang-flag-btn" data-lang="en" title="English language">
+                            <img src="https://flagcdn.com/w40/gb.png" alt="EN" width="24">
+                        </button>
                     </div>
                 </li>
             </ul>
@@ -81,7 +175,7 @@
     <section id="enclosure" class="enclosure-section">
         <div class="container grid-enclosure">
             <div class="image-block-large">
-                <img src="images/obudowa.png" alt="Obudowa urządzenia Rythmio" class="img-fluid-large">
+                <img src="images/obudowa2.png" alt="Obudowa urządzenia Rythmio" class="img-fluid-large">
             </div>
             <div class="text-block">
                 <span class="badge" data-i18n="enc-badge">Obudowa</span>
@@ -205,7 +299,7 @@
                 "hero-btn-2": "More app features →",
                 "enc-badge": "Enclosure",
                 "enc-title": "Compact medical-grade enclosure",
-                "enc-desc": "The Rythmio device was designed with full ergonomics and the rigors of daily use in mind. The design combines miniaturization with advanced electronics protection.",
+                "enc-desc": "The Rythmio device was designed with full ergonomics and the rigors of daily use in mind. The design combines minimalism with advanced electronics protection.",
                 "enc-item1-title": "• Waterproofing and TPU sealing",
                 "enc-item1-desc": "Integrated flexible TPU seals around the screen, buttons, and ports guarantee resistance to moisture and sweat during continuous wear.",
                 "enc-item2-title": "• Ultra-low power E-Ink display",
@@ -226,7 +320,7 @@
             }
         };
 
-        // --- 2. DEKLARACJE FUNKCJI ---
+        // --- 2. FUNKCJA AKTUALIZACJI TEKSTÓW JĘZYKOWYCH ---
         function updateTexts(lang) {
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
@@ -235,41 +329,12 @@
                 }
             });
             document.documentElement.lang = lang;
+            
+            // Re-renderowanie etykiet motywu pod kątem nowego języka
+            updateThemeIcon();
         }
 
-        const themeToggleButtons = document.querySelectorAll('.theme-toggle-btn');
-        function updateThemeIcon() {
-            const isLight = document.body.classList.contains('light-mode');
-            themeToggleButtons.forEach(btn => {
-                btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
-            });
-        }
-
-        // --- 3. INICJALIZACJA STANÓW PRZY ŁADOWANIU (URUCHAMIA SIĘ RAZ) ---
-        
-        // Zastosowanie zapisanego motywu
-        if (localStorage.getItem('theme') === 'light') {
-            document.body.classList.add('light-mode');
-        }
-        updateThemeIcon();
-
-        // Zastosowanie zapisanego języka
-        const currentLang = localStorage.getItem('selectedLanguage') || 'pl';
-        updateTexts(currentLang);
-
-        // Zaznaczenie odpowiedniej flagi na start
-        const langButtons = document.querySelectorAll('.lang-flag-btn');
-        langButtons.forEach(btn => {
-            if (btn.getAttribute('data-lang') === currentLang) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-
-        // --- 4. OBSŁUGA ZDARZEŃ KLIKNIĘCIA ---
-
-        // Menu mobilne (Hamburger)
+        // --- 3. OBSŁUGA MENU MOBILNEGO ---
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const navMenu = document.getElementById('nav-menu');
 
@@ -278,7 +343,29 @@
             navMenu.classList.toggle('active');
         });
 
-        // Kliknięcie w zmianę motywu
+        // --- 4. OBSŁUGA PRZYCISKÓW MOTYWU (DWUJĘZYCZNOŚĆ) ---
+        const themeToggleButtons = document.querySelectorAll('.theme-toggle-btn');
+        
+        function updateThemeIcon() {
+            const isLight = document.body.classList.contains('light-mode');
+            const currentLang = localStorage.getItem('selectedLanguage') || 'pl';
+            
+            themeToggleButtons.forEach(btn => {
+                if (currentLang === 'pl') {
+                    btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
+                } else {
+                    btn.innerHTML = isLight ? '☀️ Light' : '🌙 Dark';
+                }
+            });
+        }
+
+        // Ładowanie zapisanego motywu
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+        }
+        updateThemeIcon();
+
+        // Kliknięcie w przełączniki motywu
         themeToggleButtons.forEach(button => {
             button.addEventListener('click', () => {
                 document.body.classList.toggle('light-mode');
@@ -291,6 +378,7 @@
                 
                 updateThemeIcon();
                 
+                // Automatyczne zamnięcie menu mobilnego
                 if (navMenu.classList.contains('active')) {
                     mobileMenuBtn.classList.remove('active');
                     navMenu.classList.remove('active');
@@ -298,7 +386,21 @@
             });
         });
 
-        // Kliknięcie we flagę języka
+        // --- 5. OBSŁUGA WYBORU JĘZYKÓW ---
+        const savedLang = localStorage.getItem('selectedLanguage') || 'pl';
+        const langButtons = document.querySelectorAll('.lang-flag-btn');
+        
+        langButtons.forEach(btn => {
+            if (btn.getAttribute('data-lang') === savedLang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Pierwsze uruchomienie tłumaczeń
+        updateTexts(savedLang);
+
         langButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const targetLang = button.getAttribute('data-lang');
@@ -309,6 +411,7 @@
                 localStorage.setItem('selectedLanguage', targetLang);
                 updateTexts(targetLang);
                 
+                // Zamknięcie menu po wyborze języka na telefonie
                 if (navMenu.classList.contains('active')) {
                     mobileMenuBtn.classList.remove('active');
                     navMenu.classList.remove('active');

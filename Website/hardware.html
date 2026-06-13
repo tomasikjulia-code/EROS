@@ -7,6 +7,59 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Styl kontenera akcji w nawigacji */
+        .nav-actions {
+            display: flex !important;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Styl przycisku zmiany motywu na urządzeniach mobilnych z tekstem */
+.mobile-theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 30px; /* Zmieniono z 6px na 30px, aby uzyskać identyczne zaokrąglenie jak na desktopie */
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 0.35rem 0.6rem;
+    white-space: nowrap;
+}
+
+        /* Gwarancja widoczności elementów menu i flag na komputerze */
+        @media (min-width: 992px) {
+            .mobile-theme-toggle {
+                display: none !important;
+            }
+            .theme-toggle-li {
+                display: block !important;
+            }
+            .lang-switcher-container {
+                display: flex !important;
+                gap: 0.5rem;
+                align-items: center;
+            }
+            .lang-flag-btn {
+                display: inline-block !important;
+            }
+        }
+
+        @media (max-width: 991px) {
+            .theme-toggle-li {
+                display: none !important;
+            }
+        }
+
+        /* Wyrównanie pionowe obrazków flag w przyciskach */
+        .lang-flag-btn img {
+            display: block;
+            vertical-align: middle;
+        }
+
         /* Dedykowany styl naprawiający proporcje sekcji PCB na komputerach */
         @media (min-width: 992px) {
             .pcb-grid {
@@ -99,8 +152,8 @@
             </a>
             
             <div class="nav-actions">
-                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button>
-                
+                <!-- Dwujęzyczny przycisk motywu widoczny na telefonie obok hamburgera -->
+                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button>
                 <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
                     <span class="bar"></span>
                     <span class="bar"></span>
@@ -115,12 +168,17 @@
                 <li><a href="opinie.html" data-i18n="nav-opinions">Opinie</a></li>
                 <li><a href="onas.html" data-i18n="nav-about">O nas</a></li>
                 
-                <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button></li>
+                <!-- Przycisk motywu widoczny na komputerze wewnątrz menu nawigacji -->
+                <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button></li>
                 
                 <li>
                     <div class="lang-switcher-container">
-                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">🇵🇱</button>
-                        <button class="lang-flag-btn" data-lang="en" title="English language">🇬🇧</button>
+                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">
+                            <img src="https://flagcdn.com/w40/pl.png" alt="PL" width="24">
+                        </button>
+                        <button class="lang-flag-btn" data-lang="en" title="English language">
+                            <img src="https://flagcdn.com/w40/gb.png" alt="EN" width="24">
+                        </button>
                     </div>
                 </li>
             </ul>
@@ -281,7 +339,7 @@
                 // Sekcja Główna PCB
                 "hw-badge": "Warstwa Sprzętowa",
                 "hw-title": "Precyzja na płytce PCB",
-                "hw-desc": "Urządzenie Rythmio zostało zaprojektowane z myślą o maksymalnej redukcji zakłóceń podczas codziennych aktywności. Zastosowany zaawansowany analogowy front-end precyzyjnie wzmacnia różnicę potencjałów z klatki piersiowej pacjenta, filtrując szumy i przesyłając czysty sygnał kardiologiczny.",
+                "hw-desc": "Urządzenie Rythmio zostało zaprojektowane z myślą o maksymalnej redukcji zakłóceń podczas codziennych aktywności. Zastosowany zaawansowany analogowy front-end precyzyjnie wzmacnia różnicę potencjałów z klatki piersiowej pacjenta, filtrując szumy i przesyłając czстый sygnał kardiologiczny.",
                 "hw-spec-title": "Specyfikacja bazowa",
                 "hw-spec-p1": "Główny procesor",
                 "hw-spec-p2": "Przetwornik EKG",
@@ -401,6 +459,22 @@
         };
 
         // --- 2. DEKLARACJE FUNKCJI ---
+        const themeToggleButtons = document.querySelectorAll('.theme-toggle-btn');
+        
+        function updateThemeIcon() {
+            const isLight = document.body.classList.contains('light-mode');
+            const currentLang = document.documentElement.lang || 'pl';
+            
+            themeToggleButtons.forEach(btn => {
+                // Dynamiczna zmiana pełnego tekstu dla każdego przycisku motywu (mobilnego i desktopowego)
+                if (currentLang === 'pl') {
+                    btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
+                } else {
+                    btn.innerHTML = isLight ? '☀️ Light' : '🌙 Dark';
+                }
+            });
+        }
+
         function updateTexts(lang) {
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
@@ -409,14 +483,7 @@
                 }
             });
             document.documentElement.lang = lang;
-        }
-
-        const themeToggleButtons = document.querySelectorAll('.theme-toggle-btn');
-        function updateThemeIcon() {
-            const isLight = document.body.classList.contains('light-mode');
-            themeToggleButtons.forEach(btn => {
-                btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
-            });
+            updateThemeIcon(); // Aktualizacja przycisku motywu po zmianie języka
         }
 
         // --- 3. INICJALIZACJA STANÓW PRZY ŁADOWANIU (URUCHAMIA SIĘ RAZ) ---
@@ -425,7 +492,6 @@
         if (localStorage.getItem('theme') === 'light') {
             document.body.classList.add('light-mode');
         }
-        updateThemeIcon();
 
         // Zastosowanie zapisanego języka
         const currentLang = localStorage.getItem('selectedLanguage') || 'pl';
@@ -452,7 +518,7 @@
             navMenu.classList.toggle('active');
         });
 
-        // Kliknięcie w zmianę motywu
+        // Kliknięcie w zmianę motywu (Obsługuje jednocześnie wersję mobilną i komputerową)
         themeToggleButtons.forEach(button => {
             button.addEventListener('click', () => {
                 document.body.classList.toggle('light-mode');

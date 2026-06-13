@@ -43,7 +43,6 @@
         .lang-flag-btn {
             background: none;
             border: 2px solid transparent;
-            font-size: 1.6rem;
             cursor: pointer;
             padding: 2px;
             border-radius: 6px;
@@ -51,6 +50,12 @@
             transition: all 0.2s ease;
             display: inline-block;
             opacity: 0.5; /* Domyślnie lekko przezroczyste (nieaktywne) */
+        }
+
+        /* Wyrównanie pionowe obrazków flag w przyciskach */
+        .lang-flag-btn img {
+            display: block;
+            vertical-align: middle;
         }
 
         .lang-flag-btn:hover {
@@ -62,6 +67,21 @@
             opacity: 1; /* Aktywny język jest w pełni wyraźny */
             border-color: var(--accent-purple); /* Fioletowa obwódka dla zaznaczenia */
             background-color: rgba(123, 97, 255, 0.1);
+        }
+
+        /* Gwarancja widoczności elementów menu i flag na komputerze */
+        @media (min-width: 992px) {
+            .theme-toggle-li {
+                display: block !important;
+            }
+            .lang-switcher-container {
+                display: flex !important;
+                gap: 0.5rem;
+                align-items: center;
+            }
+            .lang-flag-btn {
+                display: inline-block !important;
+            }
         }
 
         @media (max-width: 768px) {
@@ -98,7 +118,7 @@
             </a>
             
             <div class="nav-actions">
-                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button>
+                <button class="theme-toggle-btn mobile-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button>
                 
                 <button class="menu-toggle" id="mobile-menu-btn" aria-label="Otwórz menu">
                     <span class="bar"></span>
@@ -114,12 +134,16 @@
                 <li><a href="opinie.html" data-i18n="nav-opinions">Opinie</a></li>
                 <li><a href="onas.html" class="active" data-i18n="nav-about">O nas</a></li>
                 
-                <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Tryb</button></li>
+                <li class="theme-toggle-li"><button class="theme-toggle-btn desktop-theme-toggle" aria-label="Zmień motyw">🌙 Ciemny</button></li>
                 
                 <li>
                     <div class="lang-switcher-container">
-                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">🇵🇱</button>
-                        <button class="lang-flag-btn" data-lang="en" title="English language">🇬🇧</button>
+                        <button class="lang-flag-btn active" data-lang="pl" title="Język polski">
+                            <img src="https://flagcdn.com/w40/pl.png" alt="PL" width="24">
+                        </button>
+                        <button class="lang-flag-btn" data-lang="en" title="English language">
+                            <img src="https://flagcdn.com/w40/gb.png" alt="EN" width="24">
+                        </button>
                     </div>
                 </li>
             </ul>
@@ -321,6 +345,9 @@
             
             // Aktualizacja atrybutu lang w tagu html
             document.documentElement.lang = lang;
+
+            // Aktualizacja etykiet przycisków motywu pod kątem nowego języka
+            updateThemeIcon();
         }
 
         // --- OBSŁUGA MENU MOBILNEGO ---
@@ -337,8 +364,14 @@
         
         function updateThemeIcon() {
             const isLight = document.body.classList.contains('light-mode');
+            const currentLang = localStorage.getItem('selectedLanguage') || 'pl';
+            
             themeToggleButtons.forEach(btn => {
-                btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
+                if (currentLang === 'pl') {
+                    btn.innerHTML = isLight ? '☀️ Jasny' : '🌙 Ciemny';
+                } else {
+                    btn.innerHTML = isLight ? '☀️ Light' : '🌙 Dark';
+                }
             });
         }
 
@@ -395,7 +428,7 @@
                 // Zapis wyboru w przeglądarce
                 localStorage.setItem('selectedLanguage', targetLang);
                 
-                // Faktyczna podmiana tekstów
+                // Faktyczna podmiana tekstów (oraz odświeżenie napisów motywu)
                 updateTexts(targetLang);
                 
                 // Automatyczne zamknięcie hamburgera po wyborze języka na smartfonie
