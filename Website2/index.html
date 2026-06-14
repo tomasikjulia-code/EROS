@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/rythmio.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rythmio</title>
+    <script>
+      (function () {
+        var t = localStorage.getItem('rythmio-theme');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+    <style>
+      :root[data-theme="dark"],:root[data-theme="dark"] body{background:#000;color-scheme:dark}
+      :root[data-theme="light"],:root[data-theme="light"] body{background:#fff;color-scheme:light}
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ukryj scrollbary podczas animacji przejść */
+[data-animating] *::-webkit-scrollbar-thumb {
+  background-color: transparent !important;
+}
+[data-animating] *::-webkit-scrollbar-track {
+  background-color: transparent !important;
+}
