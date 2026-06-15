@@ -276,7 +276,7 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
             <EkgBackground isDark={isDark} />
             <h1 className={`relative z-10 text-5xl sm:text-5xl md:text-7xl lg:text-[6rem] [@media(max-height:768px)]:text-4xl font-semibold tracking-tighter transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>Rythmio</h1>
           </div>
-          <h2 className={`text-lg sm:text-2xl md:text-3xl lg:text-4xl [@media(max-height:768px)]:text-base font-normal tracking-tight mb-4 sm:mb-8 [@media(max-height:768px)]:mb-3 transition-colors duration-500 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Twój osobisty kardiolog w kieszeni.</h2>
+          <h2 className={`relative z-10 text-lg sm:text-2xl md:text-3xl lg:text-4xl [@media(max-height:768px)]:text-base font-normal tracking-tight mb-4 sm:mb-8 [@media(max-height:768px)]:mb-3 transition-colors duration-500 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Twój osobisty kardiolog w kieszeni.</h2>
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mb-2 sm:mb-12 [@media(max-height:768px)]:mb-4 pointer-events-auto">
             <button onClick={scrollNext} className="w-auto px-8 sm:px-8 py-3 sm:py-3.5 bg-purple-600 text-white rounded-full text-base font-medium hover:bg-purple-500 transition-all shadow-[0_0_20px_rgba(147,51,234,0.2)] hover:shadow-[0_0_30px_rgba(147,51,234,0.4)]">Poznaj Rythmio</button>
             <button onClick={() => changeView('video')} className={`w-auto px-8 sm:px-8 py-3 sm:py-3.5 rounded-full text-base font-medium transition-colors flex items-center justify-center gap-2 ${isDark ? 'text-white bg-white/5 hover:bg-white/10' : 'text-slate-900 bg-gray-100 hover:bg-gray-200'}`}>
