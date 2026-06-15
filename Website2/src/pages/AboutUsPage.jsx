@@ -30,7 +30,7 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
       className={`h-screen overflow-y-auto scroll-smooth font-sans selection:bg-purple-500/30 transition-colors duration-500 ${isDark ? 'bg-black text-white' : 'bg-[#fdfdfd] text-slate-900'} ${scrollbarStyles}`}>
 
       {/* 1. O projekcie i Comarch */}
-      <section className={`min-h-screen flex flex-col justify-center py-6 md:py-10 [@media(max-height:768px)]:py-4 snap-start transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`}>
+      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-6 md:py-10 snap-start transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Studencka Innowacja z Wrocławia

@@ -75,13 +75,13 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
 
 
       {/* Hero */}
-      <section className="relative min-h-screen flex flex-col items-center pt-14 sm:pt-20 [@media(max-height:768px)]:pt-10 overflow-hidden snap-start">
+      <section className="relative min-h-screen flex flex-col items-center pt-14 sm:pt-20 overflow-hidden snap-start">
         <div className="relative z-10 flex flex-col items-center text-center px-6 w-full flex-1">
-          <h1 className={`text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] [@media(max-height:768px)]:text-6xl font-semibold tracking-tighter mb-3 [@media(max-height:768px)]:mb-2 mt-6 [@media(max-height:768px)]:mt-4 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h1 className={`text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] font-semibold tracking-tighter mb-3 mt-6 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Co w naszym holterze piszczy?
           </h1>
-          <div className="mb-8 [@media(max-height:768px)]:mb-4 sm:mb-12 flex flex-col items-center">
-            <p className={`text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] [@media(max-height:768px)]:text-6xl font-semibold tracking-tighter mb-6 [@media(max-height:768px)]:mb-3 sm:mb-10 transition-colors duration-500 ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+          <div className="mb-8 sm:mb-12 flex flex-col items-center">
+            <p className={`text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] font-semibold tracking-tighter mb-6 sm:mb-10 transition-colors duration-500 ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
               Buzzer.
             </p>
             <p className={`text-base sm:text-lg font-normal transition-colors duration-500 ${isDark ? 'text-gray-500' : 'text-slate-400'}`}>

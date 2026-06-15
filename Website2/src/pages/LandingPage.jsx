@@ -104,7 +104,9 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
     if (!el) return;
     const sections = Array.from(el.querySelectorAll('section'));
     if (sections[1]) {
-      el.scrollTo({ top: sections[1].offsetTop, behavior: 'smooth' });
+      const nav = document.querySelector('nav');
+      const navH = nav ? nav.offsetHeight : 0;
+      el.scrollTo({ top: sections[1].offsetTop - navH, behavior: 'smooth' });
       heroScrolled.current = true;
       lockSnap();
     }

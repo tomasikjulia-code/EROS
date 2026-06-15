@@ -11,13 +11,13 @@ const AppPage = ({ isDark, scrollbarStyles, onBack }) => {
     <div ref={containerRef} onScroll={handleScroll} className={`h-screen overflow-y-auto scroll-smooth scroll-pt-16 font-sans selection:bg-purple-500/30 transition-colors duration-500 ${isDark ? 'bg-black text-white' : 'bg-[#fdfdfd] text-slate-900'} ${scrollbarStyles}`}>
 
       {/* Sekcja 1: Hero */}
-      <section className="relative min-h-screen flex flex-col justify-center pt-16 pb-10 [@media(max-height:768px)]:pt-12 [@media(max-height:768px)]:pb-6 snap-start overflow-hidden">
+      <section className="relative min-h-screen flex flex-col justify-center pt-16 pb-10 [@media(max-height:768px)]:pt-24 [@media(max-height:768px)]:pb-6 snap-start overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 w-full flex flex-col lg:flex-row items-center gap-10 sm:gap-16 relative z-10">
           <div className="flex-1 text-center lg:text-left">
             <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Kardiologia Live w Twoim Telefonie.</h1>
             <p className={`text-base sm:text-lg leading-relaxed max-w-lg ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Rythmio stanowi centrum dowodzenia Twoim sercem. Po nawiązaniu połączenia Bluetooth z urządzeniem masz pełną kontrolę nad badaniem i natychmiastowy wgląd w kondycję organizmu.</p>
           </div>
-          <div className="flex-1 w-full flex justify-center relative mt-10 lg:mt-0">
+          <div className="flex-1 w-full flex justify-center relative mt-4 lg:mt-0">
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0 h-0 pointer-events-none transition-opacity duration-500 ${isDark ? 'opacity-100' : 'opacity-0'}`}
               style={{ boxShadow: '0 0 40px 20px rgba(147,51,234,0.4), 0 0 100px 50px rgba(147,51,234,0.15)' }} />
             <div className={`relative z-10 p-[4px] sm:p-[6px] rounded-[2.5rem] sm:rounded-[3.2rem] shadow-2xl w-full max-w-[240px] sm:max-w-[300px] ${isDark ? 'bg-gray-800' : 'bg-gray-300'}`}>
