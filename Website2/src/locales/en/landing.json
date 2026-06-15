@@ -1,0 +1,49 @@
+{
+  "hero": {
+    "tagline": "Your personal cardiologist in your pocket.",
+    "cta_primary": "Discover Rythmio",
+    "cta_video": "Watch video"
+  },
+  "device": {
+    "title": "Engineering in its purest form.",
+    "desc": "Rythmio was built from scratch – from the PCB design to custom embedded software. Every component chosen to deliver measurement precision on par with clinical devices.",
+    "features": [
+      "Custom printed circuit board (PCB)",
+      "Multi-layer signal filtering",
+      "Power consumption optimization",
+      "Galvanic patient isolation"
+    ],
+    "cta": "Learn more about our device",
+    "img_alt": "Rythmio Device"
+  },
+  "app": {
+    "title": "Full control in a dedicated app.",
+    "desc": "We designed the interface to be as readable as possible. Check battery status, electrode signal quality and monitor the live ECG chart.",
+    "features": [
+      "Live device diagnostics",
+      "Precise chart preview (up to 350 px/s)",
+      "Study history and data export"
+    ],
+    "cta": "See the app",
+    "img_alt": "Rythmio Mobile App"
+  },
+  "mission": {
+    "title": "Our mission.",
+    "desc": "We believe advanced cardiac diagnostics should be accessible to everyone. We are building Rythmio to remove technological and financial barriers in heart health monitoring.",
+    "cta": "Meet the team",
+    "img_alt": "Rythmio Team"
+  },
+  "opinions": {
+    "title": "What people say about us.",
+    "desc1": "While developing Rythmio, we consulted with doctors, physiotherapists, and medical students. We wanted the device to meet the real needs of the industry – not only technically, but clinically.",
+    "desc2": "Read reviews from people in the medical field – doctors, physiotherapists and students – who tested Rythmio in practice.",
+    "cta": "Read reviews"
+  },
+  "contact": {
+    "title1": "Reading this at a conference?",
+    "vote": "Vote for us!",
+    "title2": "Want to work with us?",
+    "desc": "Write to us –",
+    "copyright": "© {{year}} Rythmio. All rights reserved."
+  }
+}

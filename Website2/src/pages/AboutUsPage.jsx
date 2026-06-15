@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { usePageScroll } from '../hooks/usePageScroll';
 
 const Section = ({ isDark, children, alt = false }) => (
@@ -23,6 +24,9 @@ const Placeholder = ({ isDark, h = '10rem' }) => (
 );
 
 const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
+  const { t } = useTranslation('about');
+  const { t: tc } = useTranslation('common');
+  const members = t('members', { returnObjects: true });
   const { containerRef, handleScroll } = usePageScroll(50, 0, true);
 
   return (
@@ -33,22 +37,22 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
       <section className={`min-h-screen flex flex-col justify-center pt-20 pb-6 md:py-10 snap-start transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Studencka Innowacja z Wrocławia
+            {t('intro.title')}
           </h1>
           <p className={`text-sm sm:text-base leading-relaxed mb-6 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-            Jesteśmy studentami Automatyki i Robotyki na Politechnice Wrocławskiej. Tworzymy Rythmio – innowacyjną odpowiedź na wyzwania współczesnej telemedycyny. Zaprojektowaliśmy w pełni funkcjonalny, miniaturowy Holter EKG, zintegrowany z autorską aplikacją mobilną opartą na algorytmach sztucznej inteligencji. Projekt powstał w ramach Konferencji Projektów Zespołowych.
+            {t('intro.desc')}
           </p>
 
           <h2 className={`text-xl sm:text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Współpraca z Comarch
+            {t('intro.comarch_title')}
           </h2>
           <p className={`text-sm sm:text-base leading-relaxed mb-4 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-            Partnerem technologicznym i mentorem projektu Rythmio jest firma Comarch. Eksperci lidera branży IT wspierali nas na każdym etapie prac: od konsultacji schematów elektronicznych modułu analogowego (ADS1292), przez optymalizację transmisji Bluetooth (ESP32), aż po standaryzację medyczną raportów klinicznych. Dzięki tej współpracy połączyliśmy wiedzę akademicką z komercyjnym know-how.
+            {t('intro.comarch_desc')}
           </p>
           <div className="flex justify-center w-full mb-6">
             <img
               src="/logo_comarch_black_w480.svg"
-              alt="Comarch"
+              alt={t('intro.comarch_alt')}
               className={`h-7 sm:h-9 w-auto ${isDark ? 'invert' : ''}`}
             />
           </div>
@@ -59,85 +63,28 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
         </div>
       </section>
 
-      {/* 2. Julia Tomasik */}
-      <Section isDark={isDark} alt={true}>
-        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
-          <div className="flex-1 min-w-0">
-            <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Julia Tomasik</h2>
-            <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-              Placeholder
-            </p>
+      {members.map((member, idx) => (
+        <Section key={idx} isDark={isDark} alt={idx % 2 === 0}>
+          <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
+            <div className="flex-1 min-w-0">
+              <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>{member.name}</h2>
+              <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                {member.desc}
+              </p>
+            </div>
+            <div className="w-full lg:w-60 xl:w-72 flex-shrink-0">
+              <Placeholder isDark={isDark} h="14rem" />
+            </div>
           </div>
-          <div className="w-full lg:w-60 xl:w-72 flex-shrink-0">
-            <Placeholder isDark={isDark} h="14rem" />
-          </div>
-        </div>
-      </Section>
-
-      {/* 3. Szymon Czech */}
-      <Section isDark={isDark} alt={false}>
-        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
-          <div className="flex-1 min-w-0">
-            <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Szymon Czech</h2>
-            <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-              Placeholder
-            </p>
-          </div>
-          <div className="w-full lg:w-60 xl:w-72 flex-shrink-0">
-            <Placeholder isDark={isDark} h="14rem" />
-          </div>
-        </div>
-      </Section>
-
-      {/* 4. Paweł Czarzasty */}
-      <Section isDark={isDark} alt={true}>
-        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
-          <div className="flex-1 min-w-0">
-            <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Paweł Czarzasty</h2>
-            <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-              Placeholder
-            </p>
-          </div>
-          <div className="w-full lg:w-60 xl:w-72 flex-shrink-0">
-            <Placeholder isDark={isDark} h="14rem" />
-          </div>
-        </div>
-      </Section>
-
-      {/* 5. Kacper Bizoń */}
-      <Section isDark={isDark} alt={false}>
-        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
-          <div className="flex-1 min-w-0">
-            <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Kacper Bizoń</h2>
-            <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-              Placeholder
-            </p>
-          </div>
-          <div className="w-full lg:w-60 xl:w-72 flex-shrink-0">
-            <Placeholder isDark={isDark} h="14rem" />
-          </div>
-        </div>
-      </Section>
-
-      {/* 6. Karolina Sonka */}
-      <Section isDark={isDark} alt={true}>
-        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
-          <div className="flex-1 min-w-0">
-            <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Karolina Sonka</h2>
-            <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-              Placeholder
-            </p>
-          </div>
-          <div className="w-full lg:w-60 xl:w-72 flex-shrink-0">
-            <Placeholder isDark={isDark} h="14rem" />
-          </div>
-        </div>
-        <div className={`mt-10 pt-8 border-t text-center ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-          <button onClick={onBack} className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-gray-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
-            ← Wróć do strony głównej
-          </button>
-        </div>
-      </Section>
+          {idx === members.length - 1 && (
+            <div className={`mt-10 pt-8 border-t text-center ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+              <button onClick={onBack} className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-gray-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
+                {tc('nav.back')}
+              </button>
+            </div>
+          )}
+        </Section>
+      ))}
 
     </div>
   );

@@ -1,0 +1,24 @@
+{
+  "nav": {
+    "device": "Device",
+    "app": "App",
+    "us": "Us",
+    "opinions": "Reviews",
+    "contact": "Contact",
+    "back": "Back to home",
+    "video": "Video",
+    "about": "About",
+    "test": "[TEST]"
+  },
+  "theme": {
+    "light": "Light mode",
+    "dark": "Dark mode",
+    "toggle": "Toggle theme"
+  },
+  "lang": {
+    "toggle": "EN"
+  },
+  "video": {
+    "title": "See Rythmio in action."
+  }
+}

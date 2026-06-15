@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { usePageScroll } from '../hooks/usePageScroll';
 
 const VideoPage = ({ isDark, scrollbarStyles, onBack }) => {
+  const { t } = useTranslation('common');
   const { containerRef, handleScroll } = usePageScroll(50, 0, true);
 
   return (
@@ -11,7 +13,7 @@ const VideoPage = ({ isDark, scrollbarStyles, onBack }) => {
         {/* Tytuł – wąski */}
         <div className="relative z-10 text-center mb-6 sm:mb-8 w-full max-w-2xl">
           <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tighter transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Zobacz Rythmio w akcji.
+            {t('video.title')}
           </h1>
         </div>
 
@@ -36,7 +38,7 @@ const VideoPage = ({ isDark, scrollbarStyles, onBack }) => {
         </div>
         <div className={`mt-8 pt-6 border-t text-center ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
           <button onClick={onBack} className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-gray-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
-            ← Wróć do strony głównej
+            {t('nav.back')}
           </button>
         </div>
       </section>

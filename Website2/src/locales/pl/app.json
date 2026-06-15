@@ -1,0 +1,52 @@
+{
+  "hero": {
+    "title": "Kardiologia Live w Twoim Telefonie.",
+    "desc": "Rythmio stanowi centrum dowodzenia Twoim sercem. Po nawiązaniu połączenia Bluetooth z urządzeniem masz pełną kontrolę nad badaniem i natychmiastowy wgląd w kondycję organizmu.",
+    "img_alt": "Aplikacja Rythmio"
+  },
+  "live": {
+    "title": "Podgląd w czasie rzeczywistym.",
+    "subtitle": "Wszystko, czego potrzebujesz — jednym tapnięciem.",
+    "cards": [
+      { "title": "EKG na żywo",     "desc": "Tryb Live strumieniuje sygnał EKG w czasie rzeczywistym na ekran smartfona. Idealne do natychmiastowej weryfikacji poprawności zapisu." },
+      { "title": "Szybki status",   "desc": "Ikona odświeżania pobiera ze sprzętu aktualny poziom baterii, status elektrod i potwierdzenie stabilności pomiaru." },
+      { "title": "Skalowalny widok","desc": "Wykresy EKG i tętna są w pełni skalowalne poziomo i pionowo. Interfejs dopasowuje się do orientacji telefonu." }
+    ]
+  },
+  "analysis": {
+    "title": "Pobieranie i Automatyczna Analiza",
+    "desc": "Kliknięcie ikony synchronizacji uruchamia szybki transfer zapisanego materiału z karty microSD wprost do pamięci telefonu.",
+    "metrics_title": "Wskaźniki aktualizowane po synchronizacji:",
+    "metrics": [
+      { "title": "Czas trwania zapisu",   "desc": "Precyzyjny licznik czasu zapisanego badania" },
+      { "title": "Trendy tętna",          "desc": "Automatyczne wyznaczenie średniego, najniższego oraz najwyższego BPM" },
+      { "title": "Licznik arytmii",       "desc": "Suma zarejestrowanych dobowych epizodów anomalii" },
+      { "title": "Wizualizacja graficzna","desc": "Generowanie wykresu dobowego tętna oraz wykresu średniej aktywności fizycznej" }
+    ],
+    "accel_note": "Dzięki korelacji tętna z akcelerometrem wbudowanym w urządzenie, od razu widzisz, czy wyższy puls wynikał z wysiłku, czy był niepokojącą anomalią.",
+    "img_alt": "Pulpit Aplikacji"
+  },
+  "report": {
+    "title": "Raport Kliniczny i Wsparcie AI",
+    "desc": "Z poziomu aplikacji jednym kliknięciem wygenerujesz kompleksowy <strong>Raport Kliniczny</strong>.",
+    "journal_title": "Dziennik Zdarzeń i Notatki Pacjenta",
+    "journal_desc": "Gdy podczas badania poczujesz się gorzej i wciśniesz <strong>dolny przycisk na obudowie urządzenia</strong>, system postawi znacznik w sygnale.",
+    "ai_title": "Zintegrowany Asystent AI",
+    "ai_desc": "Wbudowany moduł AI klasyfikuje epizody jako \u201błagodne\u201d lub \u201ckrytyczne\u201d i dostarcza wstępne zalecenia.",
+    "anomaly_title": "Przegląd anomalii i wycinków",
+    "anomaly_desc": "Aplikacja automatycznie wycina momenty anomalii. Wszystkie wycinki są w pełni <strong>interaktywne i skalowalne</strong>.",
+    "pdf": "Gotowe opracowanie możesz natychmiast zapisać w formacie PDF i przesłać kardiologowi.",
+    "img_alt": "Raport AI"
+  },
+  "extras": {
+    "title": "Dodatkowe Możliwości Aplikacji",
+    "subtitle": "Rythmio to nie tylko bieżący pomiar, ale też wygodne zarządzanie historią zdrowia.",
+    "cards": [
+      { "title": "Dedykowane Archiwum", "desc": "Osobna zakładka historyczna gromadzi wszystkie wykonane do tej pory badania kardiologiczne." },
+      { "title": "Asystent Głosowy",   "desc": "System regularnie odczytuje komunikaty głosowe o zaktualizowanych danych telemetrycznych." },
+      { "title": "Bezpieczeństwo Danych","desc": "Wszystkie badania zapisywane lokalnie podlegają restrykcyjnemu szyfrowaniu. Eksport PDF/CSV." }
+    ],
+    "warning_title": "Ważna uwaga medyczna",
+    "warning_desc": "Wykrycie przez algorytmy aplikacji lub moduł AI znacznej liczby epizodów arytmicznych wymaga weryfikacji lekarskiej. Wygenerowane raporty mają charakter wyłącznie informacyjny i <strong>nie zastępują profesjonalnej diagnozy medycznej</strong>."
+  }
+}

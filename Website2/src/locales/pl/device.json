@@ -1,0 +1,72 @@
+{
+  "hero": {
+    "title": "Co w naszym holterze piszczy?",
+    "highlight": "Buzzer.",
+    "subtitle": "Zobacz, jak zbudowaliśmy precyzję.",
+    "img_alt": "Konstrukcja Rythmio"
+  },
+  "spec": {
+    "title": "Autorski obwód drukowany.",
+    "desc": "Zaprojektowaliśmy własną płytkę PCB, aby zoptymalizować zużycie energii i zminimalizować zakłócenia sygnału EKG. Zastosowany zaawansowany analogowy front-end precyzyjnie wzmacnia różnicę potencjałów z klatki piersiowej pacjenta, filtrując szumy i przesyłając czysty sygnał kardiologiczny.",
+    "table_header": "Specyfikacja bazowa",
+    "img_alt": "Płytka PCB",
+    "rows": [
+      ["Główny procesor",          "ESP32-WROOM-32E (Dual-Core, WiFi/BLE)"],
+      ["Przetwornik EKG",           "ADS1292 (24-bitowy analogowy front-end)"],
+      ["Kanały pomiarowe",          "1 kanał, układ 3-elektrodowy (RA, LA, RL)"],
+      ["Częstotliwość próbkowania", "250 Hz (stabilna, sprzętowa)"],
+      ["Zasilanie i port",           "Akumulator Li-Ion 3500 mAh / USB-C"]
+    ]
+  },
+  "anatomy": {
+    "title": "Anatomia urządzenia.",
+    "subtitle": "Kluczowe układy scalone i moduły zaimplementowane w Rythmio.",
+    "items": [
+      { "title": "Mikrokontroler",           "desc": "ESP32-WROOM-32E stanowi serce urządzenia. Ten dwurdzeniowy układ koordynuje zbieranie próbek, zarządza pamięcią i obsługuje Bluetooth Low Energy." },
+      { "title": "Front-End Analogowy",      "desc": "Medyczny, 24-bitowy przetwornik ADS1292. Rygorystycznie odseparowano masę i zasilanie analogowe od cyfrowego w celu eliminacji szumów." },
+      { "title": "Zegar Czasu Rzeczywistego","desc": "Układ RTC z niezależnym podtrzymaniem precyzyjnie synchronizuje czas, dzięki czemu każdy plik na karcie SD posiada dokładny znacznik." },
+      { "title": "Ekran Ultra-Low Power",    "desc": "Wyświetlacz E-Ink na bieżąco prezentuje tętno (BPM), stan naładowania baterii oraz ikonę połączenia bezprzewodowego." },
+      { "title": "Pamięć Offline (Karta SD)","desc": "Zintegrowany slot microSD umożliwia nieprzerwany zapis surowego sygnału EKG, gwarantując bezpieczeństwo danych pacjenta." },
+      { "title": "Buzzer Piezoelektryczny",  "desc": "Pełni funkcję asystenta bezpieczeństwa. Pika przy wykryciu odłączenia elektrod oraz emituje sygnał po pomyślnym zakończeniu sesji." },
+      { "title": "Zasilanie i ładowanie",    "desc": "Pojemne ogniwo Li-Ion 3500 mAh zapewnia wielodniową pracę. Układ zintegrowano z portem USB-C, chroniąc baterię przed przeładowaniem." },
+      { "title": "Filtracja i Ochrona ESD",  "desc": "Pasywna filtracja EMI/RFI oraz dedykowane diody chronią wrażliwą elektronikę i ciało pacjenta przed wyładowaniami elektrostatycznymi." },
+      { "title": "Korelacja Ruchu",          "desc": "Wbudowany akcelerometr konwertuje przyspieszenia na aktywność fizyczną, pozwalając odróżnić tętno wysiłkowe od anomalii ruchowych." }
+    ]
+  },
+  "interface": {
+    "title": "Obsługa fizycznego interfejsu.",
+    "subtitle": "Urządzenie posiada dwa fizyczne przyciski funkcyjne zlokalizowane po prawej stronie obudowy. Ich działanie zależy od aktualnego stanu urządzenia.",
+    "state1": {
+      "badge": "Stan 1: Menu Konfiguracyjne",
+      "title": "Wybór czasu trwania",
+      "items": [
+        { "label": "Górny przycisk",    "text": "Inkrementacja planowanego czasu trwania badania." },
+        { "label": "Dolny przycisk",    "text": "Dekrementacja planowanego czasu trwania badania." },
+        { "label": "Oba jednocześnie",  "text": "Zatwierdzenie parametrów i uruchomienie procedury rejestracji sygnału." }
+      ]
+    },
+    "state2": {
+      "badge": "Stan 2: Badanie",
+      "title": "Kontrola sesji i zdarzeń",
+      "items": [
+        { "label": "Górny przycisk",                        "text": "Wybudzenie wyświetlacza E-Ink w celu weryfikacji bieżących parametrów." },
+        { "label": "Dolny przycisk (Marker Zdarzeń)",       "text": "Oznaczenie ważnego momentu (zdarzenie pacjenta w przypadku złego samopoczucia) do późniejszej weryfikacji." },
+        { "label": "Oba jednocześnie",                      "text": "Ręczne wzbudzenie modułu Bluetooth i inicjalizacja łączności bezprzewodowej z aplikacją." }
+      ]
+    }
+  },
+  "gallery": {
+    "title": "Proces twórczy.",
+    "subtitle": "Od pierwszych szkiców i modeli 3D, po montaż komponentów. Złap i przeciągnij, aby zobaczyć więcej.",
+    "zoom": "Powiększ zdjęcie",
+    "images": [
+      "Pierwsze zintegrowane uruchomienie modułów w testowej obudowie 3D.",
+      "Weryfikacja rozmieszczenia elementów SMD ze schematem montażowym na ekranie.",
+      "Precyzyjne osadzanie i lutowanie mikroukładów peryferyjnych na płytce PCB.",
+      "Zlutowany moduł główny ESP32-WROOM-32E oraz gniazda interfejsów.",
+      "Dokładna inspekcja połączeń wyprowadzeń przetwornika analogowego ADS1292.",
+      "Praca nad prezentacją wideo i dokumentacją działania Holtera na konferencję.",
+      "Porównanie wczesnego wydruku 3D z finalną, zoptymalizowaną wersją obudowy urządzenia."
+    ]
+  }
+}

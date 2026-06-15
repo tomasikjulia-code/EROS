@@ -1,0 +1,16 @@
+{
+  "intro": {
+    "title": "Studencka Innowacja z Wrocławia",
+    "desc": "Jesteśmy studentami Automatyki i Robotyki na Politechnice Wrocławskiej. Tworzymy Rythmio – innowacyjną odpowiedź na wyzwania współczesnej telemedycyny. Zaprojektowaliśmy w pełni funkcjonalny, miniaturowy Holter EKG, zintegrowany z autorską aplikacją mobilną opartą na algorytmach sztucznej inteligencji. Projekt powstał w ramach Konferencji Projektów Zespołowych.",
+    "comarch_title": "Współpraca z Comarch",
+    "comarch_desc": "Partnerem technologicznym i mentorem projektu Rythmio jest firma Comarch. Eksperci lidera branży IT wspierali nas na każdym etapie prac: od konsultacji schematów elektronicznych modułu analogowego (ADS1292), przez optymalizację transmisji Bluetooth (ESP32), aż po standaryzację medyczną raportów klinicznych. Dzięki tej współpracy połączyliśmy wiedzę akademicką z komercyjnym know-how.",
+    "comarch_alt": "Comarch"
+  },
+  "members": [
+    { "name": "Julia Tomasik",   "desc": "Placeholder" },
+    { "name": "Szymon Czech",    "desc": "Placeholder" },
+    { "name": "Paweł Czarzasty","desc": "Placeholder" },
+    { "name": "Kacper Bizoń",   "desc": "Placeholder" },
+    { "name": "Karolina Sonka",  "desc": "Placeholder" }
+  ]
+}

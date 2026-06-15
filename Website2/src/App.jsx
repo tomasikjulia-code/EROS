@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Layers, Smartphone, Video, Users, MessageSquare } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import i18n from './i18n';
 import LandingPage from './pages/LandingPage';
 import DevicePage from './pages/DevicePage';
 import DevPage from './pages/DevPage';
@@ -10,16 +12,23 @@ import OpinionsPage from './pages/OpinionsPage';
 
 const VIEW_ORDER = ['landing', 'device', 'app', 'video', 'about-us', 'opinions', 'test'];
 
-const PAGE_INFO = {
-  device:     { label: 'Urządzenie', Icon: Layers,        transparent: false },
-  app:        { label: 'Aplikacja',  Icon: Smartphone,    transparent: false },
-  video:      { label: 'Wideo',      Icon: Video,         transparent: true  },
-  'about-us': { label: 'O nas',      Icon: Users,         transparent: false },
-  opinions:   { label: 'Opinie',     Icon: MessageSquare, transparent: false },
-  test:       { label: '[TEST]',     Icon: Layers,        transparent: false },
-};
-
 function App() {
+  const { t } = useTranslation('common');
+
+  const PAGE_INFO = {
+    device:     { label: t('nav.device'),   Icon: Layers,        transparent: false },
+    app:        { label: t('nav.app'),      Icon: Smartphone,    transparent: false },
+    video:      { label: t('nav.video'),    Icon: Video,         transparent: true  },
+    'about-us': { label: t('nav.about'),    Icon: Users,         transparent: false },
+    opinions:   { label: t('nav.opinions'), Icon: MessageSquare, transparent: false },
+    test:       { label: t('nav.test'),     Icon: Layers,        transparent: false },
+  };
+
+  const toggleLang = () => {
+    const next = i18n.language.startsWith('en') ? 'pl' : 'en';
+    i18n.changeLanguage(next);
+  };
+
   const [viewData, setViewData] = useState(() => {
     const path = window.location.pathname.slice(1); // usuń '/'
     const view = VIEW_ORDER.includes(path) ? path : 'landing';
@@ -74,7 +83,7 @@ function App() {
       : '[&::-webkit-scrollbar-thumb]:bg-purple-600/40 [&::-webkit-scrollbar-thumb:hover]:bg-purple-600/70'
   }`;
 
-  const sharedProps = { isDark, onBack: () => changeView('landing', 'left'), scrollbarStyles };
+  const sharedProps = { isDark, onBack: () => changeView('landing', 'left'), scrollbarStyles, toggleLang };
 
   const animClass =
     viewData.dir === 'right' ? 'animate-slide-in-right' :
@@ -91,6 +100,7 @@ function App() {
       <LandingPage
         isDark={isDark}
         toggleTheme={toggleTheme}
+        toggleLang={toggleLang}
         changeView={changeView}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
@@ -108,11 +118,13 @@ function App() {
         <nav className={`fixed w-full z-[60] top-0 border-b transition-colors duration-500 ${pageInfo.transparent ? 'bg-transparent border-transparent backdrop-blur-none' : `backdrop-blur-md ${isDark ? 'bg-[#1d1d1f]/80 border-white/10' : 'bg-white/80 border-gray-200'}`} ${isDark ? 'text-white' : 'text-slate-900'}`}>
           <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <button onClick={() => changeView('landing', 'left')} className={`flex items-center gap-2 text-sm sm:text-base font-medium transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
-              <ArrowLeft size={20} /><span>Wróć do strony głównej</span>
+              <ArrowLeft size={20} /><span>{t('nav.back')}</span>
             </button>
-            <div className="flex items-center gap-2 opacity-50">
-              <pageInfo.Icon size={20} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
-              <span className="hidden sm:inline text-sm font-semibold tracking-wide uppercase">{pageInfo.label}</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 opacity-50">
+                <pageInfo.Icon size={20} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
+                <span className="hidden sm:inline text-sm font-semibold tracking-wide uppercase">{pageInfo.label}</span>
+              </div>
             </div>
           </div>
         </nav>

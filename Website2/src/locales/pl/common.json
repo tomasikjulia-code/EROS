@@ -1,0 +1,24 @@
+{
+  "nav": {
+    "device": "Urządzenie",
+    "app": "Aplikacja",
+    "us": "My",
+    "opinions": "Opinie",
+    "contact": "Kontakt",
+    "back": "Wróć do strony głównej",
+    "video": "Wideo",
+    "about": "O nas",
+    "test": "[TEST]"
+  },
+  "theme": {
+    "light": "Tryb jasny",
+    "dark": "Tryb ciemny",
+    "toggle": "Przełącz motyw"
+  },
+  "lang": {
+    "toggle": "PL"
+  },
+  "video": {
+    "title": "Zobacz Rythmio w akcji."
+  }
+}

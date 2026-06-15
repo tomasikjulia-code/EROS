@@ -1,0 +1,49 @@
+{
+  "hero": {
+    "tagline": "Twój osobisty kardiolog w kieszeni.",
+    "cta_primary": "Poznaj Rythmio",
+    "cta_video": "Zobacz wideo"
+  },
+  "device": {
+    "title": "Inżynieria w najczystszej postaci.",
+    "desc": "Rythmio powstało od zera – od projektu płytki PCB po autorskie oprogramowanie wbudowane. Każdy element dobrany tak, aby zapewnić precyzję pomiarów na poziomie urządzeń klinicznych.",
+    "features": [
+      "Autorski obwód drukowany (PCB)",
+      "Wielowarstwowe filtrowanie sygnału",
+      "Optymalizacja zużycia energii",
+      "Izolacja galwaniczna pacjenta"
+    ],
+    "cta": "Poznaj lepiej Nasze urządzenie",
+    "img_alt": "Urządzenie Rythmio"
+  },
+  "app": {
+    "title": "Pełna kontrola w dedykowanej aplikacji.",
+    "desc": "Zaprojektowaliśmy interfejs tak, aby był maksymalnie czytelny. Sprawdzaj stan baterii, jakość sygnału elektrod i monitoruj wykres EKG na żywo.",
+    "features": [
+      "Diagnostyka urządzenia na żywo",
+      "Precyzyjny podgląd wykresu (do 350 px/s)",
+      "Historia badań i pobieranie danych"
+    ],
+    "cta": "Zobacz aplikację",
+    "img_alt": "Aplikacja Mobilna Rythmio"
+  },
+  "mission": {
+    "title": "Nasza misja.",
+    "desc": "Wierzymy, że zaawansowana diagnostyka kardiologiczna powinna być dostępna dla każdego. Tworzymy Rythmio, aby znieść bariery technologiczne i finansowe w monitorowaniu zdrowia serca.",
+    "cta": "Poznaj nas",
+    "img_alt": "Zespół Rythmio"
+  },
+  "opinions": {
+    "title": "Co mówią o nas.",
+    "desc1": "W trakcie pracy nad Rythmio konsultowaliśmy nasze rozwiązania z lekarzami, fizjoterapeutami i studentami medycyny. Zależało nam na tym, by urządzenie spełniało realne potrzeby branży - nie tylko od strony technicznej, ale i klinicznej.",
+    "desc2": "Przeczytaj opinie osób związanych z branżą medyczną - lekarzy, fizjoterapeutów i studentów - którzy przetestowali Rythmio w praktyce.",
+    "cta": "Czytaj opinie"
+  },
+  "contact": {
+    "title1": "Czytasz to na konferencji?",
+    "vote": "Zagłosuj na nas!",
+    "title2": "Chcesz z nami współpracować?",
+    "desc": "Napisz do nas -",
+    "copyright": "© {{year}} Rythmio. Wszelkie prawa zastrzeżone."
+  }
+}

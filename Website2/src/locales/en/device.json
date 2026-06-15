@@ -1,0 +1,72 @@
+{
+  "hero": {
+    "title": "What's buzzing in our Holter?",
+    "highlight": "The Buzzer.",
+    "subtitle": "See how we built the precision.",
+    "img_alt": "Rythmio Hardware"
+  },
+  "spec": {
+    "title": "Custom printed circuit board.",
+    "desc": "We designed our own PCB to optimise power consumption and minimise ECG signal interference. The advanced analogue front-end precisely amplifies the patient's chest potential difference, filtering noise and delivering a clean cardiac signal.",
+    "table_header": "Base specification",
+    "img_alt": "PCB Board",
+    "rows": [
+      ["Main processor",       "ESP32-WROOM-32E (Dual-Core, WiFi/BLE)"],
+      ["ECG converter",        "ADS1292 (24-bit analogue front-end)"],
+      ["Measurement channels", "1 channel, 3-electrode setup (RA, LA, RL)"],
+      ["Sampling rate",        "250 Hz (stable, hardware-driven)"],
+      ["Power & port",         "Li-Ion 3500 mAh battery / USB-C"]
+    ]
+  },
+  "anatomy": {
+    "title": "Device anatomy.",
+    "subtitle": "Key integrated circuits and modules implemented in Rythmio.",
+    "items": [
+      { "title": "Microcontroller",          "desc": "ESP32-WROOM-32E is the heart of the device. This dual-core chip coordinates sample collection, manages memory and handles Bluetooth Low Energy." },
+      { "title": "Analogue Front-End",       "desc": "Medical-grade, 24-bit ADS1292 converter. Analogue ground and power supply are rigorously separated from digital to eliminate noise." },
+      { "title": "Real-Time Clock",          "desc": "RTC with independent backup precisely synchronises time, so every file on the SD card carries an accurate timestamp." },
+      { "title": "Ultra-Low Power Display",  "desc": "E-Ink display continuously shows heart rate (BPM), battery level and a wireless connection icon." },
+      { "title": "Offline Storage (SD Card)","desc": "Integrated microSD slot enables continuous recording of raw ECG signal, ensuring patient data safety." },
+      { "title": "Piezoelectric Buzzer",     "desc": "Acts as a safety assistant. Beeps on electrode disconnection detection and emits a signal after a successful session." },
+      { "title": "Power & Charging",         "desc": "A large 3500 mAh Li-Ion cell provides multi-day operation. The circuit integrates a USB-C port with overcharge protection." },
+      { "title": "EMI Filtering & ESD",      "desc": "Passive EMI/RFI filtering and dedicated diodes protect sensitive electronics and the patient from electrostatic discharges." },
+      { "title": "Motion Correlation",       "desc": "Built-in accelerometer converts acceleration into physical activity, allowing differentiation of exertion heart rate from motion anomalies." }
+    ]
+  },
+  "interface": {
+    "title": "Physical interface operation.",
+    "subtitle": "The device has two physical function buttons located on the right side of the enclosure. Their behaviour depends on the current device state.",
+    "state1": {
+      "badge": "State 1: Configuration Menu",
+      "title": "Duration selection",
+      "items": [
+        { "label": "Top button",      "text": "Increment the planned study duration." },
+        { "label": "Bottom button",   "text": "Decrement the planned study duration." },
+        { "label": "Both together",   "text": "Confirm parameters and start the signal recording procedure." }
+      ]
+    },
+    "state2": {
+      "badge": "State 2: Study",
+      "title": "Session and event control",
+      "items": [
+        { "label": "Top button",                   "text": "Wake the E-Ink display to verify current parameters." },
+        { "label": "Bottom button (Event Marker)", "text": "Mark an important moment (patient event in case of discomfort) for later review." },
+        { "label": "Both together",                "text": "Manually wake the Bluetooth module and initialise wireless connection with the app." }
+      ]
+    }
+  },
+  "gallery": {
+    "title": "Creative process.",
+    "subtitle": "From first sketches and 3D models to component assembly. Grab and drag to see more.",
+    "zoom": "Zoom image",
+    "images": [
+      "First integrated module run in a test 3D enclosure.",
+      "Verifying SMD component placement against the assembly schematic on screen.",
+      "Precisely placing and soldering peripheral microchips on the PCB.",
+      "Soldered ESP32-WROOM-32E main module and interface sockets.",
+      "Detailed inspection of analogue converter ADS1292 lead connections.",
+      "Working on the video presentation and Holter operation documentation for the conference.",
+      "Comparing an early 3D print with the final, optimised device enclosure."
+    ]
+  }
+}
