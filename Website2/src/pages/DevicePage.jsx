@@ -86,8 +86,7 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
             </p>
           </div>
           <div className="w-full max-w-4xl mx-auto flex-1 relative flex justify-center items-center mt-auto pb-6 sm:pb-12 [@media(max-height:768px)]:pb-3 [@media(min-height:769px)_and_(max-height:900px)]:pb-4">
-            <div className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${isDark ? 'opacity-100' : 'opacity-0'}`} style={{ background: 'radial-gradient(ellipse 80% 80% at 50% 50%, rgba(147,51,234,0.2) 0%, transparent 70%)' }} />
-            <div className={`relative z-10 mx-auto w-fit rounded-xl sm:rounded-2xl border-[6px] sm:border-[8px] overflow-hidden drop-shadow-2xl ${isDark ? 'border-gray-900' : 'border-gray-100'}`}>
+            <div className={`relative z-10 mx-auto w-fit rounded-xl sm:rounded-2xl border-[6px] sm:border-[8px] overflow-hidden shadow-2xl ${isDark ? 'border-gray-900' : 'border-gray-100'}`}>
               <img src="/images/dev-pcb.jpg" alt={t('hero.img_alt')} className="block max-h-[45vh] sm:max-h-[55vh] [@media(max-height:768px)]:max-h-[52vh] [@media(min-height:769px)_and_(max-height:900px)]:max-h-[42vh] w-auto" />
             </div>
           </div>
@@ -118,7 +117,7 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
               </div>
             </div>
             <div className="relative">
-              <div className={`absolute inset-0 bg-gradient-to-tr blur-3xl rounded-full ${isDark ? 'from-purple-600/20 to-indigo-600/20' : 'from-purple-400/20 to-indigo-400/20'}`} />
+              <div className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${isDark ? 'opacity-100' : 'opacity-0'}`} style={{ background: 'radial-gradient(ellipse 80% 80% at 50% 50%, rgba(147,51,234,0.25) 0%, rgba(99,102,241,0.15) 50%, transparent 70%)' }} />
               <img src="/images/pcb-opis.jpg" alt={t('spec.img_alt')} className={`relative z-10 w-full rounded-3xl border-[6px] sm:border-[8px] shadow-2xl ${isDark ? 'border-gray-900' : 'border-gray-100'}`} />
             </div>
           </div>
