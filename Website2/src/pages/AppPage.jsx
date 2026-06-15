@@ -11,13 +11,13 @@ const AppPage = ({ isDark, scrollbarStyles, onBack }) => {
     <div ref={containerRef} onScroll={handleScroll} className={`h-screen overflow-y-auto scroll-smooth scroll-pt-16 font-sans selection:bg-purple-500/30 transition-colors duration-500 ${isDark ? 'bg-black text-white' : 'bg-[#fdfdfd] text-slate-900'} ${scrollbarStyles}`}>
 
       {/* Sekcja 1: Hero */}
-      <section className="relative min-h-screen flex flex-col justify-center pt-16 pb-10 [@media(max-height:768px)]:pt-24 [@media(max-height:768px)]:pb-6 snap-start overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 w-full flex flex-col lg:flex-row items-center gap-10 sm:gap-16 relative z-10">
-          <div className="flex-1 text-center lg:text-left">
-            <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Kardiologia Live w Twoim Telefonie.</h1>
+      <section className="relative min-h-screen flex flex-col justify-center pt-16 pb-10 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-4 snap-start overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 w-full flex flex-col md:flex-row items-center gap-10 sm:gap-16 [@media(max-height:768px)]:gap-6 relative z-10">
+          <div className="flex-1 text-center md:text-left">
+            <h1 className={`text-4xl sm:text-5xl lg:text-6xl [@media(max-height:768px)]:text-4xl font-bold mb-4 sm:mb-6 [@media(max-height:768px)]:mb-3 tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Kardiologia Live w Twoim Telefonie.</h1>
             <p className={`text-base sm:text-lg leading-relaxed max-w-lg ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Rythmio stanowi centrum dowodzenia Twoim sercem. Po nawiązaniu połączenia Bluetooth z urządzeniem masz pełną kontrolę nad badaniem i natychmiastowy wgląd w kondycję organizmu.</p>
           </div>
-          <div className="flex-1 w-full flex justify-center relative mt-4 lg:mt-0">
+          <div className="flex-1 w-full flex justify-center relative mt-4 md:mt-0">
             <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0 h-0 pointer-events-none transition-opacity duration-500 ${isDark ? 'opacity-100' : 'opacity-0'}`}
               style={{ boxShadow: '0 0 40px 20px rgba(147,51,234,0.4), 0 0 100px 50px rgba(147,51,234,0.15)' }} />
             <div className={`relative z-10 p-[4px] sm:p-[6px] rounded-[2.5rem] sm:rounded-[3.2rem] shadow-2xl w-full max-w-[240px] sm:max-w-[300px] ${isDark ? 'bg-gray-800' : 'bg-gray-300'}`}>
@@ -53,33 +53,33 @@ const AppPage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Ekran 2: Pobieranie i Analiza */}
-      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-8 md:pt-24 md:pb-14 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-6 snap-start border-y transition-colors duration-500 ${isDark ? 'bg-black border-white/5' : 'bg-[#fdfdfd] border-gray-200'}`}>
-        <div className="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-8 lg:gap-12 [@media(max-height:768px)]:gap-6 items-center">
-          <div className="order-2 lg:order-2">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl [@media(max-height:768px)]:text-3xl font-bold mb-4 sm:mb-6 [@media(max-height:768px)]:mb-3 text-center lg:text-left">Pobieranie i Automatyczna Analiza</h2>
-            <p className={`text-base sm:text-lg [@media(max-height:768px)]:text-sm mb-6 sm:mb-8 [@media(max-height:768px)]:mb-4 leading-relaxed text-center lg:text-left ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Kliknięcie ikony synchronizacji uruchamia szybki transfer zapisanego materiału z karty microSD wprost do pamięci telefonu.</p>
-            <div className={`p-5 sm:p-8 [@media(max-height:768px)]:p-4 rounded-2xl sm:rounded-3xl mb-6 sm:mb-8 [@media(max-height:768px)]:mb-4 ${isDark ? 'bg-white/5' : 'bg-white shadow-sm border border-gray-100'}`}>
-              <h3 className="font-bold mb-4 sm:mb-6 [@media(max-height:768px)]:mb-3 text-base sm:text-lg [@media(max-height:768px)]:text-base">Wskaźniki aktualizowane po synchronizacji:</h3>
-              <div className="space-y-3 sm:space-y-4 [@media(max-height:768px)]:space-y-1">
+      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-8 md:pt-24 md:pb-14 [@media(max-height:900px)]:pt-14 [@media(max-height:900px)]:pb-6 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-6 snap-start border-y transition-colors duration-500 ${isDark ? 'bg-black border-white/5' : 'bg-[#fdfdfd] border-gray-200'}`}>
+        <div className="max-w-7xl mx-auto px-6 w-full grid md:grid-cols-2 gap-8 md:gap-12 [@media(max-height:900px)]:gap-6 [@media(max-height:768px)]:gap-6 items-center">
+          <div className="order-2 md:order-2">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl [@media(max-height:900px)]:text-3xl [@media(max-height:768px)]:text-3xl font-bold mb-4 sm:mb-6 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-3 text-center md:text-left">Pobieranie i Automatyczna Analiza</h2>
+            <p className={`text-base sm:text-lg [@media(max-height:900px)]:text-sm [@media(max-height:768px)]:text-sm mb-6 sm:mb-8 [@media(max-height:900px)]:mb-4 [@media(max-height:768px)]:mb-4 leading-relaxed text-center md:text-left ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Kliknięcie ikony synchronizacji uruchamia szybki transfer zapisanego materiału z karty microSD wprost do pamięci telefonu.</p>
+            <div className={`p-5 sm:p-8 [@media(max-height:900px)]:p-4 [@media(max-height:768px)]:p-4 rounded-2xl sm:rounded-3xl mb-6 sm:mb-8 [@media(max-height:900px)]:mb-4 [@media(max-height:768px)]:mb-4 ${isDark ? 'bg-white/5' : 'bg-white shadow-sm border border-gray-100'}`}>
+              <h3 className="font-bold mb-4 sm:mb-6 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-3 text-base sm:text-lg [@media(max-height:900px)]:text-base [@media(max-height:768px)]:text-base">Wskaźniki aktualizowane po synchronizacji:</h3>
+              <div className="space-y-3 sm:space-y-4 [@media(max-height:900px)]:space-y-2 [@media(max-height:768px)]:space-y-1">
                 {[
                   { title: 'Czas trwania zapisu', desc: 'Precyzyjny licznik czasu zapisanego badania' },
                   { title: 'Trendy tętna', desc: 'Automatyczne wyznaczenie średniego, najniższego oraz najwyższego BPM' },
                   { title: 'Licznik arytmii', desc: 'Suma zarejestrowanych dobowych epizodów anomalii' },
                   { title: 'Wizualizacja graficzna', desc: 'Generowanie wykresu dobowego tętna oraz wykresu średniej aktywności fizycznej' },
                 ].map((item, i) => (
-                  <div key={i} className={`flex flex-col sm:flex-row sm:items-center py-2 sm:py-3 [@media(max-height:768px)]:py-1.5 border-b last:border-0 ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
-                    <span className="font-semibold sm:w-1/3 mb-1 sm:mb-0 [@media(max-height:768px)]:mb-0 text-sm sm:text-base [@media(max-height:768px)]:text-sm">{item.title}</span>
+                  <div key={i} className={`flex flex-col sm:flex-row sm:items-center py-2 sm:py-3 [@media(max-height:900px)]:py-1.5 [@media(max-height:768px)]:py-1.5 border-b last:border-0 ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                    <span className="font-semibold sm:w-1/3 mb-1 sm:mb-0 [@media(max-height:768px)]:mb-0 text-sm sm:text-base [@media(max-height:900px)]:text-sm [@media(max-height:768px)]:text-sm">{item.title}</span>
                     <span className={`text-xs sm:text-sm [@media(max-height:768px)]:text-xs sm:w-2/3 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>{item.desc}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className={`flex gap-3 sm:gap-4 [@media(max-height:768px)]:gap-2 p-4 [@media(max-height:768px)]:p-3 rounded-xl sm:rounded-2xl ${isDark ? 'bg-purple-500/10 text-purple-200' : 'bg-purple-50 text-purple-800'}`}>
+            <div className={`flex gap-3 sm:gap-4 [@media(max-height:900px)]:gap-2 [@media(max-height:768px)]:gap-2 p-4 [@media(max-height:900px)]:p-3 [@media(max-height:768px)]:p-3 rounded-xl sm:rounded-2xl ${isDark ? 'bg-purple-500/10 text-purple-200' : 'bg-purple-50 text-purple-800'}`}>
               <Activity className="flex-shrink-0 mt-1" size={18} />
               <p className="text-xs sm:text-sm leading-relaxed">Dzięki korelacji tętna z akcelerometrem wbudowanym w urządzenie, od razu widzisz, czy wyższy puls wynikał z wysiłku, czy był niepokojącą anomalią.</p>
             </div>
           </div>
-          <div className="relative order-1 lg:order-1 flex justify-center">
+          <div className="relative order-1 md:order-1 flex justify-center">
             <div className={`absolute inset-0 bg-gradient-to-tr blur-3xl rounded-full -z-10 w-full max-w-sm mx-auto ${isDark ? 'from-indigo-600/20 to-purple-600/20' : 'from-indigo-400/20 to-purple-400/20'}`} />
             <div className={`relative z-10 p-[4px] sm:p-[6px] rounded-[2.5rem] sm:rounded-[3.2rem] shadow-2xl w-full max-w-[240px] sm:max-w-[300px] ${isDark ? 'bg-gray-800' : 'bg-gray-300'}`}>
               <div className="relative rounded-[2.3rem] sm:rounded-[2.8rem] overflow-hidden bg-black border-[6px] sm:border-[10px] border-black">
@@ -91,33 +91,33 @@ const AppPage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Ekran 3: Raport Kliniczny i AI */}
-      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-8 md:pt-24 md:pb-14 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-6 snap-start relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-[#050505]' : 'bg-[#f5f5f7]'}`}>
+      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-8 md:pt-24 md:pb-14 [@media(max-height:900px)]:pt-14 [@media(max-height:900px)]:pb-6 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-6 snap-start relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-[#050505]' : 'bg-[#f5f5f7]'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 [@media(max-height:768px)]:gap-6 items-center">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 [@media(max-height:900px)]:gap-6 [@media(max-height:768px)]:gap-6 items-center">
             {/* Lewa kolumna: treść */}
             <div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl [@media(max-height:768px)]:text-3xl font-bold mb-4 sm:mb-6 [@media(max-height:768px)]:mb-3 text-center lg:text-left">Raport Kliniczny i Wsparcie AI</h2>
-              <p className={`text-base sm:text-lg [@media(max-height:768px)]:text-sm leading-relaxed mb-6 sm:mb-8 [@media(max-height:768px)]:mb-4 text-center lg:text-left ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Z poziomu aplikacji jednym kliknięciem wygenerujesz kompleksowy <strong>Raport Kliniczny</strong>.</p>
-              <div className="flex flex-col gap-4 sm:gap-6 [@media(max-height:768px)]:gap-3 mb-6 sm:mb-8 [@media(max-height:768px)]:mb-4">
-                <div className={`p-6 sm:p-8 [@media(max-height:768px)]:p-4 rounded-2xl sm:rounded-3xl relative overflow-hidden transition-colors ${isDark ? 'bg-white/5 border border-white/5' : 'bg-white border border-gray-100 shadow-md'}`}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl [@media(max-height:900px)]:text-3xl [@media(max-height:768px)]:text-3xl font-bold mb-4 sm:mb-6 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-3 text-center md:text-left">Raport Kliniczny i Wsparcie AI</h2>
+              <p className={`text-base sm:text-lg [@media(max-height:900px)]:text-sm [@media(max-height:768px)]:text-sm leading-relaxed mb-6 sm:mb-8 [@media(max-height:900px)]:mb-4 [@media(max-height:768px)]:mb-4 text-center md:text-left ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Z poziomu aplikacji jednym kliknięciem wygenerujesz kompleksowy <strong>Raport Kliniczny</strong>.</p>
+              <div className="flex flex-col gap-4 sm:gap-6 [@media(max-height:900px)]:gap-3 [@media(max-height:768px)]:gap-3 mb-6 sm:mb-8 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-4">
+                <div className={`p-6 sm:p-8 [@media(max-height:900px)]:p-4 [@media(max-height:768px)]:p-4 rounded-2xl sm:rounded-3xl relative overflow-hidden transition-colors ${isDark ? 'bg-white/5 border border-white/5' : 'bg-white border border-gray-100 shadow-md'}`}>
                   <div className="absolute top-0 left-0 w-2 h-full bg-green-500" />
-                  <div className="flex items-center gap-3 mb-3 sm:mb-4 [@media(max-height:768px)]:mb-2"><Edit3 className="text-green-500" size={20} /><h3 className={`text-base sm:text-lg [@media(max-height:768px)]:text-base font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>Dziennik Zdarzeń i Notatki Pacjenta</h3></div>
+                  <div className="flex items-center gap-3 mb-3 sm:mb-4 [@media(max-height:900px)]:mb-2 [@media(max-height:768px)]:mb-2"><Edit3 className="text-green-500" size={20} /><h3 className={`text-base sm:text-lg [@media(max-height:768px)]:text-base font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>Dziennik Zdarzeń i Notatki Pacjenta</h3></div>
                   <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Gdy podczas badania poczujesz się gorzej i wciśniesz <strong>dolny przycisk na obudowie urządzenia</strong>, system postawi znacznik w sygnale.</p>
                 </div>
-                <div className={`p-6 sm:p-8 [@media(max-height:768px)]:p-4 rounded-2xl sm:rounded-3xl relative overflow-hidden transition-colors ${isDark ? 'bg-white/5 border border-white/5' : 'bg-white border border-gray-100 shadow-md'}`}>
+                <div className={`p-6 sm:p-8 [@media(max-height:900px)]:p-4 [@media(max-height:768px)]:p-4 rounded-2xl sm:rounded-3xl relative overflow-hidden transition-colors ${isDark ? 'bg-white/5 border border-white/5' : 'bg-white border border-gray-100 shadow-md'}`}>
                   <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500" />
-                  <div className="flex items-center gap-3 mb-3 sm:mb-4 [@media(max-height:768px)]:mb-2"><Brain className="text-indigo-500" size={20} /><h3 className={`text-base sm:text-lg [@media(max-height:768px)]:text-base font-semibold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>Zintegrowany Asystent AI</h3></div>
+                  <div className="flex items-center gap-3 mb-3 sm:mb-4 [@media(max-height:900px)]:mb-2 [@media(max-height:768px)]:mb-2"><Brain className="text-indigo-500" size={20} /><h3 className={`text-base sm:text-lg [@media(max-height:768px)]:text-base font-semibold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>Zintegrowany Asystent AI</h3></div>
                   <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Wbudowany moduł AI klasyfikuje epizody jako "łagodne" lub "krytyczne" i dostarcza wstępne zalecenia.</p>
                 </div>
               </div>
-              <div className={`p-5 sm:p-6 [@media(max-height:768px)]:p-4 rounded-2xl sm:rounded-3xl mb-6 sm:mb-8 [@media(max-height:768px)]:mb-4 flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 sm:gap-6 [@media(max-height:768px)]:gap-4 ${isDark ? 'bg-[#111] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
-                <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 [@media(max-height:768px)]:w-10 [@media(max-height:768px)]:h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500"><Scissors size={20} /></div>
+              <div className={`p-5 sm:p-6 [@media(max-height:900px)]:p-3 [@media(max-height:768px)]:p-4 rounded-2xl sm:rounded-3xl mb-6 sm:mb-8 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-4 flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 sm:gap-6 [@media(max-height:900px)]:gap-3 [@media(max-height:768px)]:gap-4 ${isDark ? 'bg-[#111] border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+                <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 [@media(max-height:900px)]:w-10 [@media(max-height:900px)]:h-10 [@media(max-height:768px)]:w-10 [@media(max-height:768px)]:h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500"><Scissors size={20} /></div>
                 <div>
                   <h3 className="text-base sm:text-lg [@media(max-height:768px)]:text-base font-bold mb-1">Przegląd anomalii i wycinków</h3>
                   <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>Aplikacja automatycznie wycina momenty anomalii. Wszystkie wycinki są w pełni <strong>interaktywne i skalowalne</strong>.</p>
                 </div>
               </div>
-              <div className={`text-center p-4 sm:p-5 [@media(max-height:768px)]:p-3 rounded-xl sm:rounded-2xl ${isDark ? 'bg-white/5' : 'bg-purple-600 text-white shadow-xl'}`}>
+              <div className={`text-center p-4 sm:p-5 [@media(max-height:900px)]:p-3 [@media(max-height:768px)]:p-3 rounded-xl sm:rounded-2xl ${isDark ? 'bg-white/5' : 'bg-purple-600 text-white shadow-xl'}`}>
                 <p className="font-medium text-sm sm:text-base [@media(max-height:768px)]:text-sm flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
                   <Download size={16} /><span>Gotowe opracowanie możesz natychmiast zapisać w formacie PDF i przesłać kardiologowi.</span>
                 </p>

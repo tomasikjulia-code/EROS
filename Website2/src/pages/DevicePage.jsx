@@ -75,23 +75,23 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
 
 
       {/* Hero */}
-      <section className="relative min-h-screen flex flex-col items-center pt-14 sm:pt-20 overflow-hidden snap-start">
+      <section className="relative min-h-screen flex flex-col items-center pt-14 sm:pt-20 [@media(max-height:768px)]:pt-16 [@media(min-height:769px)_and_(max-height:900px)]:pt-14 overflow-hidden snap-start">
         <div className="relative z-10 flex flex-col items-center text-center px-6 w-full flex-1">
-          <h1 className={`text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] font-semibold tracking-tighter mb-3 mt-6 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h1 className={`text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] [@media(max-height:768px)]:text-4xl [@media(min-height:769px)_and_(max-height:900px)]:text-5xl font-semibold tracking-tighter mb-3 mt-6 [@media(max-height:768px)]:mt-2 [@media(max-height:768px)]:mb-2 [@media(min-height:769px)_and_(max-height:900px)]:mt-3 [@media(min-height:769px)_and_(max-height:900px)]:mb-2 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Co w naszym holterze piszczy?
           </h1>
-          <div className="mb-8 sm:mb-12 flex flex-col items-center">
-            <p className={`text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] font-semibold tracking-tighter mb-6 sm:mb-10 transition-colors duration-500 ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+          <div className="mb-8 sm:mb-12 [@media(max-height:768px)]:mb-3 [@media(min-height:769px)_and_(max-height:900px)]:mb-4 flex flex-col items-center">
+            <p className={`text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] [@media(max-height:768px)]:text-4xl [@media(min-height:769px)_and_(max-height:900px)]:text-5xl font-semibold tracking-tighter mb-6 sm:mb-10 [@media(max-height:768px)]:mb-2 [@media(min-height:769px)_and_(max-height:900px)]:mb-4 transition-colors duration-500 ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
               Buzzer.
             </p>
-            <p className={`text-base sm:text-lg font-normal transition-colors duration-500 ${isDark ? 'text-gray-500' : 'text-slate-400'}`}>
+            <p className={`text-base sm:text-lg [@media(max-height:768px)]:text-sm font-normal transition-colors duration-500 ${isDark ? 'text-gray-500' : 'text-slate-400'}`}>
               Zobacz, jak zbudowaliśmy precyzję.
             </p>
           </div>
-          <div className="w-full max-w-4xl mx-auto flex-1 relative flex justify-center items-center mt-auto pb-6 sm:pb-12 [@media(max-height:768px)]:pb-3">
+          <div className="w-full max-w-4xl mx-auto flex-1 relative flex justify-center items-center mt-auto pb-6 sm:pb-12 [@media(max-height:768px)]:pb-3 [@media(min-height:769px)_and_(max-height:900px)]:pb-4">
             <div className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${isDark ? 'opacity-100' : 'opacity-0'}`} style={{ background: 'radial-gradient(ellipse 80% 80% at 50% 50%, rgba(147,51,234,0.2) 0%, transparent 70%)' }} />
             <div className={`relative z-10 mx-auto w-fit rounded-xl sm:rounded-2xl border-[6px] sm:border-[8px] overflow-hidden drop-shadow-2xl ${isDark ? 'border-gray-900' : 'border-gray-100'}`}>
-              <img src="/images/dev-pcb.jpg" alt="Konstrukcja Rythmio" className="block max-h-[45vh] sm:max-h-[55vh] [@media(max-height:768px)]:max-h-[60vh] w-auto" />
+              <img src="/images/dev-pcb.jpg" alt="Konstrukcja Rythmio" className="block max-h-[45vh] sm:max-h-[55vh] [@media(max-height:768px)]:max-h-[52vh] [@media(min-height:769px)_and_(max-height:900px)]:max-h-[42vh] w-auto" />
             </div>
           </div>
         </div>
@@ -100,10 +100,10 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
       {/* Specyfikacja */}
       <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:768px)]:py-6 snap-start border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 [@media(max-height:768px)]:gap-6 items-center">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 [@media(max-height:768px)]:gap-6 items-center">
             <div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">Autorski obwód drukowany.</h2>
-              <p className={`text-base sm:text-lg mb-8 leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl [@media(max-height:768px)]:text-3xl font-bold mb-6 [@media(max-height:768px)]:mb-3">Autorski obwód drukowany.</h2>
+              <p className={`text-base sm:text-lg [@media(max-height:768px)]:text-sm mb-8 [@media(max-height:768px)]:mb-4 leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
                 Zaprojektowaliśmy własną płytkę PCB, aby zoptymalizować zużycie energii i zminimalizować zakłócenia sygnału EKG. Zastosowany zaawansowany analogowy front-end precyzyjnie wzmacnia różnicę potencjałów z klatki piersiowej pacjenta, filtrując szumy i przesyłając czysty sygnał kardiologiczny.
               </p>
               <div className={`rounded-2xl overflow-hidden border transition-colors duration-500 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white shadow-sm'}`}>
@@ -118,8 +118,8 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
                       ['Zasilanie i port',          'Akumulator Li-Ion 3500 mAh / USB-C'],
                     ].map(([param, val], i) => (
                       <tr key={i} className={`border-b last:border-b-0 ${isDark ? 'border-white/5' : 'border-gray-100'}`}>
-                        <td className={`px-4 py-3 font-medium w-2/5 ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>{param}</td>
-                        <td className={`px-4 py-3 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>{val}</td>
+                        <td className={`px-4 py-3 [@media(max-height:768px)]:py-1.5 font-medium w-2/5 ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>{param}</td>
+                        <td className={`px-4 py-3 [@media(max-height:768px)]:py-1.5 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>{val}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -204,12 +204,12 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Galeria */}
-      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:768px)]:py-3 border-y transition-colors duration-500 snap-start ${isDark ? 'bg-[#030303] border-white/5' : 'bg-[#fafafa] border-gray-200'}`} id="galeria">
+      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:768px)]:py-3 [@media(min-height:769px)_and_(max-height:900px)]:py-5 border-y transition-colors duration-500 snap-start ${isDark ? 'bg-[#030303] border-white/5' : 'bg-[#fafafa] border-gray-200'}`} id="galeria">
         <div className="max-w-7xl mx-auto px-6 w-full">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-10 [@media(max-height:768px)]:mb-3 gap-3 sm:gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-10 [@media(max-height:768px)]:mb-3 [@media(min-height:769px)_and_(max-height:900px)]:mb-4 gap-3 sm:gap-6">
             <div className="text-left max-w-2xl">
-              <h2 className="text-3xl lg:text-4xl [@media(max-height:768px)]:text-2xl font-bold mb-2 [@media(max-height:768px)]:mb-1">Proces twórczy.</h2>
-              <p className={`text-sm sm:text-base [@media(max-height:768px)]:text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Od pierwszych szkiców i modeli 3D, po montaż komponentów. Złap i przeciągnij, aby zobaczyć więcej.</p>
+              <h2 className="text-3xl lg:text-4xl [@media(max-height:768px)]:text-2xl [@media(min-height:769px)_and_(max-height:900px)]:text-2xl font-bold mb-2 [@media(max-height:768px)]:mb-1 [@media(min-height:769px)_and_(max-height:900px)]:mb-1">Proces twórczy.</h2>
+              <p className={`text-sm sm:text-base [@media(max-height:768px)]:text-xs [@media(min-height:769px)_and_(max-height:900px)]:text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Od pierwszych szkiców i modeli 3D, po montaż komponentów. Złap i przeciągnij, aby zobaczyć więcej.</p>
             </div>
             <div className="flex gap-4">
               <button onClick={scrollGalleryLeftBtn} className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-gray-100 hover:bg-gray-200 text-slate-900'}`}><ChevronLeft size={24} /></button>
@@ -222,10 +222,10 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
             onMouseLeave={handleGalleryMouseLeave}
             onMouseUp={handleGalleryMouseUp}
             onMouseMove={handleGalleryMouseMove}
-            className="flex gap-4 sm:gap-8 overflow-x-auto snap-x snap-mandatory pb-8 [@media(max-height:768px)]:pb-4 -mx-6 px-6 scroll-smooth cursor-grab active:cursor-grabbing [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            className="flex gap-4 sm:gap-8 overflow-x-auto snap-x snap-mandatory pb-8 [@media(max-height:768px)]:pb-4 [@media(min-height:769px)_and_(max-height:900px)]:pb-4 -mx-6 px-6 scroll-smooth cursor-grab active:cursor-grabbing [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           >
             {galleryImages.map((imgData, index) => (
-              <div key={index} className={`group flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[600px] aspect-[4/3] [@media(max-height:768px)]:aspect-[16/9] relative rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden snap-center transition-colors shadow-xl sm:shadow-2xl ${isDark ? 'border-[4px] sm:border-[6px] border-white/5 bg-[#111]' : 'border-[4px] sm:border-[6px] border-white bg-gray-100'}`}>
+              <div key={index} className={`group flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[600px] aspect-[4/3] [@media(max-height:768px)]:aspect-[16/9] [@media(min-height:769px)_and_(max-height:900px)]:aspect-[16/9] relative rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden snap-center transition-colors shadow-xl sm:shadow-2xl ${isDark ? 'border-[4px] sm:border-[6px] border-white/5 bg-[#111]' : 'border-[4px] sm:border-[6px] border-white bg-gray-100'}`}>
                 <img src={imgData.src} alt={imgData.title} className="w-full h-full object-cover" draggable="false" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent flex items-end p-6 sm:p-8 pointer-events-none">
                   <h3 className="text-white text-lg sm:text-xl md:text-2xl font-semibold drop-shadow-md">{imgData.title}</h3>
@@ -236,7 +236,7 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
               </div>
             ))}
           </div>
-          <div className={`mt-10 [@media(max-height:768px)]:mt-3 pt-8 [@media(max-height:768px)]:pt-3 border-t text-center ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
+          <div className={`mt-10 [@media(max-height:768px)]:mt-3 [@media(min-height:769px)_and_(max-height:900px)]:mt-4 pt-8 [@media(max-height:768px)]:pt-3 [@media(min-height:769px)_and_(max-height:900px)]:pt-4 border-t text-center ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
             <button onClick={onBack} className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-gray-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
               ← Wróć do strony głównej
             </button>

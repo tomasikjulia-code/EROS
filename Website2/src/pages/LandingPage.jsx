@@ -273,7 +273,7 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
 
       {/* Hero Section */}
       <section className={`relative min-h-[100dvh] flex flex-col items-center pt-16 sm:pt-28 [@media(max-height:768px)]:pt-20 overflow-hidden transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`} id="pulpit">
-        <div className="relative z-10 flex flex-col items-center text-center px-4 sm:px-6 w-full sm:flex-1 [@media(max-height:768px)]:flex-none pointer-events-none">
+        <div className="relative z-10 flex flex-col items-center text-center px-4 sm:px-6 w-full lg:flex-1 [@media(max-height:768px)]:flex-none pointer-events-none">
           <div className="relative w-full flex justify-center mb-2 mt-2 sm:mt-6 md:mt-8 [@media(max-height:768px)]:mt-2">
             <EkgBackground isDark={isDark} />
             <h1 className={`relative z-10 text-5xl sm:text-5xl md:text-7xl lg:text-[6rem] [@media(max-height:768px)]:text-4xl font-semibold tracking-tighter transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>Rythmio</h1>
@@ -288,7 +288,7 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
 
           </div>
         </div>
-        <div className="w-full max-w-5xl mx-auto flex-1 relative flex justify-center items-start sm:items-end [@media(max-height:768px)]:items-center sm:mt-auto pb-2 sm:pb-6 lg:pb-12 xl:pb-32 [@media(max-height:768px)]:pb-2 pointer-events-none">
+        <div className="w-full max-w-5xl mx-auto flex-1 relative flex justify-center items-center lg:items-end -mt-6 lg:mt-auto pb-2 sm:pb-6 lg:pb-12 xl:pb-32 [@media(max-height:768px)]:pb-2 pointer-events-none">
           <div className={`absolute bottom-0 inset-x-0 h-3/4 pointer-events-none transition-opacity duration-500 ${isDark ? 'opacity-100' : 'opacity-0'}`} style={{ background: 'radial-gradient(ellipse 70% 100% at 50% 100%, rgba(147,51,234,0.22) 0%, transparent 70%)' }} />
           <div className="relative z-10 w-full h-[45dvh] sm:h-[40dvh] lg:h-[42dvh] [@media(max-height:768px)]:h-[55dvh]">
             {/* Canvas pełna szerokość – model nie przycięty */}
@@ -308,11 +308,11 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
 
       {/* Konstrukcja Section */}
       <section className={`min-h-screen flex items-center py-8 md:py-20 [@media(max-height:768px)]:py-6 relative border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`} id="urzadzenie">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center gap-10 sm:gap-16">
-          <div className="flex-1 text-center lg:text-left">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-10 sm:gap-16">
+          <div className="flex-1 text-center md:text-left">
             <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>Inżynieria w najczystszej postaci.</h2>
             <p className={`text-sm sm:text-lg mb-6 sm:mb-8 leading-relaxed transition-colors duration-500 ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>Rythmio powstało od zera – od projektu płytki PCB po autorskie oprogramowanie wbudowane. Każdy element dobrany tak, aby zapewnić precyzję pomiarów na poziomie urządzeń klinicznych.</p>
-            <ul className="space-y-3 sm:space-y-4 mb-8 sm:mb-10 text-left w-fit mx-auto lg:mx-0">
+            <ul className="space-y-3 sm:space-y-4 mb-8 sm:mb-10 text-left w-fit mx-auto md:mx-0">
               {[
                 { icon: <Cpu size={12} className="sm:w-3.5 sm:h-3.5" />, text: 'Autorski obwód drukowany (PCB)' },
                 { icon: <Layers size={12} className="sm:w-3.5 sm:h-3.5" />, text: 'Wielowarstwowe filtrowanie sygnału' },
@@ -325,12 +325,12 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
                 </li>
               ))}
             </ul>
-            <button onClick={() => changeView('device')} className={`font-semibold text-base sm:text-lg mx-auto lg:mx-0 justify-center transition-colors flex items-center gap-2 group ${isDark ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'}`}>
+            <button onClick={() => changeView('device')} className={`font-semibold text-base sm:text-lg mx-auto md:mx-0 justify-center transition-colors flex items-center gap-2 group ${isDark ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'}`}>
               Poznaj lepiej Nasze urządzenie
               <ArrowRight size={18} className="sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
-          <div className="flex-1 w-full flex justify-center lg:justify-end">
+          <div className="flex-1 w-full flex justify-center md:justify-end">
             <div className="relative w-full max-w-lg sm:max-w-xl">
               <div className={`absolute -inset-4 rounded-3xl blur-2xl -z-10 ${isDark ? 'bg-purple-600/15' : 'bg-purple-400/10'}`} />
               <img src="/images/holter-landing_alt.jpg" alt="Urządzenie Rythmio" className={`w-full h-auto object-cover rounded-2xl shadow-2xl border-4 transition-colors duration-500 ${isDark ? 'border-white/5' : 'border-white'}`} />
@@ -341,8 +341,8 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
 
       {/* App CTA Section */}
       <section className={`min-h-screen flex items-center py-8 md:py-20 [@media(max-height:768px)]:py-6 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`} id="aplikacja">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col-reverse lg:flex-row items-center gap-10 sm:gap-16">
-          <div className="flex-1 w-full flex justify-center lg:justify-start">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col-reverse md:flex-row items-center gap-10 sm:gap-16">
+          <div className="flex-1 w-full flex justify-center md:justify-start">
             <div className="relative w-full max-w-[260px] sm:max-w-[300px] [@media(max-height:768px)]:max-w-[280px]">
               <div
                 className={`absolute top-1/3 left-1/2 w-0 h-0 pointer-events-none transition-opacity duration-500 ${isDark ? 'opacity-100' : 'opacity-0'}`}
@@ -355,10 +355,10 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
               </div>
             </div>
           </div>
-          <div className="flex-1 text-center lg:text-left">
+          <div className="flex-1 text-center md:text-left">
             <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>Pełna kontrola w dedykowanej aplikacji.</h2>
             <p className={`text-sm sm:text-lg mb-6 sm:mb-8 leading-relaxed transition-colors duration-500 ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>Zaprojektowaliśmy interfejs tak, aby był maksymalnie czytelny. Sprawdzaj stan baterii, jakość sygnału elektrod i monitoruj wykres EKG na żywo.</p>
-            <ul className="space-y-3 sm:space-y-4 mb-8 sm:mb-10 text-left w-fit mx-auto lg:mx-0">
+            <ul className="space-y-3 sm:space-y-4 mb-8 sm:mb-10 text-left w-fit mx-auto md:mx-0">
               {['Diagnostyka urządzenia na żywo', 'Precyzyjny podgląd wykresu (do 350 px/s)', 'Historia badań i pobieranie danych'].map((item, i) => (
                 <li key={i} className={`flex items-center gap-3 text-xs sm:text-sm md:text-base ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
                   <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'}`}><Activity size={12} className="sm:w-3.5 sm:h-3.5" /></div>
@@ -366,7 +366,7 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
                 </li>
               ))}
             </ul>
-            <button onClick={() => changeView('app')} className={`font-semibold text-base sm:text-lg mx-auto lg:mx-0 justify-center transition-colors flex items-center gap-2 group ${isDark ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'}`}>
+            <button onClick={() => changeView('app')} className={`font-semibold text-base sm:text-lg mx-auto md:mx-0 justify-center transition-colors flex items-center gap-2 group ${isDark ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'}`}>
               Zobacz aplikację
               <ArrowRight size={18} className="sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
             </button>
@@ -375,16 +375,16 @@ const LandingPage = ({ isDark, toggleTheme, changeView, mobileMenuOpen, setMobil
       </section>
 
       {/* O nas Section */}
-      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-16 [@media(max-height:768px)]:py-6 relative border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`} id="o-nas">
+      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-16 [@media(max-height:900px)]:py-8 [@media(max-height:768px)]:py-6 relative border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`} id="o-nas">
         <div className="max-w-7xl mx-auto px-6 text-center z-10 w-full">
-          <div className="mb-6 sm:mb-12 [@media(max-height:768px)]:mb-4">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5 sm:mb-8 [@media(max-height:768px)]:mb-3">Nasza misja.</h2>
+          <div className="mb-6 sm:mb-12 [@media(max-height:900px)]:mb-4 [@media(max-height:768px)]:mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5 sm:mb-8 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-3">Nasza misja.</h2>
             <img
               src="/images/grupowe_crop.jpg"
               alt="Zespół Rythmio"
-              className={`block mx-auto w-auto max-w-full max-h-[50vh] rounded-2xl sm:rounded-3xl shadow-xl mb-5 sm:mb-8 [@media(max-height:768px)]:mb-3 transition-colors duration-500 ${isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-gray-200'}`}
+              className={`block mx-auto w-auto max-w-full max-h-[50vh] [@media(max-height:900px)]:max-h-[38vh] rounded-2xl sm:rounded-3xl shadow-xl mb-5 sm:mb-8 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-3 transition-colors duration-500 ${isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-gray-200'}`}
             />
-            <p className={`text-sm sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed mb-5 sm:mb-8 [@media(max-height:768px)]:mb-3 [@media(max-height:768px)]:text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Wierzymy, że zaawansowana diagnostyka kardiologiczna powinna być dostępna dla każdego. Tworzymy Rythmio, aby znieść bariery technologiczne i finansowe w monitorowaniu zdrowia serca.</p>
+            <p className={`text-sm sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed mb-5 sm:mb-8 [@media(max-height:900px)]:mb-3 [@media(max-height:900px)]:text-base [@media(max-height:768px)]:mb-3 [@media(max-height:768px)]:text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Wierzymy, że zaawansowana diagnostyka kardiologiczna powinna być dostępna dla każdego. Tworzymy Rythmio, aby znieść bariery technologiczne i finansowe w monitorowaniu zdrowia serca.</p>
             <button onClick={() => changeView('about-us')} className={`inline-flex items-center gap-2 font-semibold text-base sm:text-lg group transition-colors ${isDark ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-500'}`}>
               Poznaj nas
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />

@@ -61,7 +61,7 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
 
       {/* 2. Julia Tomasik */}
       <Section isDark={isDark} alt={true}>
-        <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
+        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
           <div className="flex-1 min-w-0">
             <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Julia Tomasik</h2>
             <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
@@ -76,7 +76,7 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
 
       {/* 3. Szymon Czech */}
       <Section isDark={isDark} alt={false}>
-        <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
+        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
           <div className="flex-1 min-w-0">
             <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Szymon Czech</h2>
             <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
@@ -91,7 +91,7 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
 
       {/* 4. Paweł Czarzasty */}
       <Section isDark={isDark} alt={true}>
-        <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
+        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
           <div className="flex-1 min-w-0">
             <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Paweł Czarzasty</h2>
             <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
@@ -106,7 +106,7 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
 
       {/* 5. Kacper Bizoń */}
       <Section isDark={isDark} alt={false}>
-        <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
+        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
           <div className="flex-1 min-w-0">
             <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Kacper Bizoń</h2>
             <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
@@ -121,7 +121,7 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
 
       {/* 6. Karolina Sonka */}
       <Section isDark={isDark} alt={true}>
-        <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
+        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
           <div className="flex-1 min-w-0">
             <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Karolina Sonka</h2>
             <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>

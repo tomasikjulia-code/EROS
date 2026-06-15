@@ -7,7 +7,7 @@ const VideoPage = ({ isDark, scrollbarStyles, onBack }) => {
     <div ref={containerRef} onScroll={handleScroll} className={`h-screen overflow-y-auto scroll-smooth font-sans selection:bg-purple-500/30 transition-colors duration-500 ${isDark ? 'bg-black text-white' : 'bg-[#fdfdfd] text-slate-900'} ${scrollbarStyles}`}>
 
 
-      <section className="relative min-h-screen flex flex-col items-center justify-start pt-20 sm:justify-center sm:pt-20 pb-8 px-4 sm:px-6 snap-start">
+      <section className="relative min-h-screen flex flex-col items-center justify-start pt-20 sm:justify-center sm:pt-20 md:pt-24 pb-8 px-4 sm:px-6 snap-start">
         {/* Tytuł – wąski */}
         <div className="relative z-10 text-center mb-6 sm:mb-8 w-full max-w-2xl">
           <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tighter transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -16,7 +16,7 @@ const VideoPage = ({ isDark, scrollbarStyles, onBack }) => {
         </div>
 
         {/* Video – szeroki na desktopie */}
-        <div className="relative z-10 w-full max-w-[95vw] lg:max-w-[88vw] xl:max-w-[1400px]">
+        <div className="relative z-10 w-full max-w-[95vw] md:max-w-[92vw] lg:max-w-[88vw] xl:max-w-[1400px]">
           <div className="relative">
             {/* glow */}
             <div className={`absolute -inset-4 rounded-3xl blur-3xl -z-10 ${isDark ? 'bg-purple-600/15' : 'bg-purple-400/10'}`} />
