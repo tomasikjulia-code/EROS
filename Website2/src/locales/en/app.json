@@ -1,0 +1,52 @@
+{
+  "hero": {
+    "title": "Live Cardiology in Your Phone.",
+    "desc": "Rythmio is your heart's command centre. Once Bluetooth connection with the device is established, you have full control over the study and instant insight into your body's condition.",
+    "img_alt": "Rythmio App"
+  },
+  "live": {
+    "title": "Real-time preview.",
+    "subtitle": "Everything you need — with one tap.",
+    "cards": [
+      { "title": "Live ECG",        "desc": "Live mode streams the ECG signal in real time to the smartphone screen. Ideal for immediate verification of recording quality." },
+      { "title": "Quick status",    "desc": "The refresh icon fetches the current battery level, electrode status and measurement stability confirmation from the hardware." },
+      { "title": "Scalable view",   "desc": "ECG and heart rate charts are fully scalable horizontally and vertically. The interface adapts to phone orientation." }
+    ]
+  },
+  "analysis": {
+    "title": "Download and Automatic Analysis",
+    "desc": "Tapping the sync icon triggers a fast transfer of recorded data from the microSD card directly to phone storage.",
+    "metrics_title": "Indicators updated after sync:",
+    "metrics": [
+      { "title": "Recording duration", "desc": "Precise timer of the recorded study" },
+      { "title": "Heart rate trends",  "desc": "Automatic calculation of average, lowest and highest BPM" },
+      { "title": "Arrhythmia counter", "desc": "Total of recorded daily anomaly episodes" },
+      { "title": "Graphical view",     "desc": "Generation of daily heart rate chart and average physical activity chart" }
+    ],
+    "accel_note": "Thanks to heart rate correlation with the built-in accelerometer, you instantly see whether a higher pulse was caused by exertion or was a concerning anomaly.",
+    "img_alt": "App Dashboard"
+  },
+  "report": {
+    "title": "Clinical Report and AI Support",
+    "desc": "From within the app, generate a comprehensive <strong>Clinical Report</strong> with a single click.",
+    "journal_title": "Event Log and Patient Notes",
+    "journal_desc": "When you feel unwell during the study and press the <strong>bottom button on the device enclosure</strong>, the system places a marker in the signal.",
+    "ai_title": "Integrated AI Assistant",
+    "ai_desc": "The built-in AI module classifies episodes as \u201cmild\u201d or \u201ccritical\u201d and provides preliminary recommendations.",
+    "anomaly_title": "Anomaly and segment review",
+    "anomaly_desc": "The app automatically clips anomaly moments. All clips are fully <strong>interactive and scalable</strong>.",
+    "pdf": "The finished report can be instantly saved as a PDF and sent to a cardiologist.",
+    "img_alt": "AI Report"
+  },
+  "extras": {
+    "title": "Additional App Features",
+    "subtitle": "Rythmio is not just real-time measurement, but also convenient health history management.",
+    "cards": [
+      { "title": "Dedicated Archive",  "desc": "A separate history tab collects all cardiac studies performed so far." },
+      { "title": "Voice Assistant",    "desc": "The system regularly reads out voice messages about updated telemetry data." },
+      { "title": "Data Security",      "desc": "All locally stored studies are subject to strict encryption. Export as PDF/CSV." }
+    ],
+    "warning_title": "Important medical note",
+    "warning_desc": "Detection of a significant number of arrhythmic episodes by the app algorithms or AI module requires medical verification. Generated reports are for informational purposes only and <strong>do not replace professional medical diagnosis</strong>."
+  }
+}

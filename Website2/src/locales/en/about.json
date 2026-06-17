@@ -1,0 +1,16 @@
+{
+  "intro": {
+    "title": "Student Innovation from Wrocław",
+    "desc": "We are students of Automation and Robotics at Wrocław University of Science and Technology. We are building Rythmio – an innovative response to the challenges of modern telemedicine. We designed a fully functional, miniature Holter ECG, integrated with a proprietary mobile app based on artificial intelligence algorithms. The project was created as part of the Team Projects Conference.",
+    "comarch_title": "Partnership with Comarch",
+    "comarch_desc": "The technological partner and mentor of the Rythmio project is Comarch. Experts from the IT industry leader supported us at every stage: from consulting the electronic schematics of the analogue module (ADS1292), through Bluetooth transmission optimisation (ESP32), to medical standardisation of clinical reports. Thanks to this collaboration we combined academic knowledge with commercial know-how.",
+    "comarch_alt": "Comarch"
+  },
+  "members": [
+    { "name": "Julia Tomasik",   "desc": "Placeholder" },
+    { "name": "Szymon Czech",    "desc": "Placeholder" },
+    { "name": "Paweł Czarzasty","desc": "Placeholder" },
+    { "name": "Kacper Bizoń",   "desc": "Placeholder" },
+    { "name": "Karolina Sonka",  "desc": "Placeholder" }
+  ]
+}

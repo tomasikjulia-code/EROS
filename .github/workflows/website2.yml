@@ -1,0 +1,57 @@
+name: Website2 CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Website2/**'
+  pull_request:
+    paths:
+      - 'Website2/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Website2
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: Website2/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Smoke test
+        run: |
+          npx vite preview --port 4173 &
+          VITE_PID=$!
+          
+          trap 'kill $VITE_PID' EXIT 
+          
+          for i in $(seq 1 15); do curl -sf http://localhost:4173 && break; sleep 1; done
+          
+          curl -sf http://localhost:4173 | grep -qi "Rythmio"
+          echo "✅ Smoke test passed"
+
+      - name: Upload dist artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: Website2/dist
+          retention-days: 7
