@@ -64,27 +64,43 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {members.map((member, idx) => (
-        <Section key={idx} isDark={isDark} alt={idx % 2 === 0}>
-          <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
-            <div className="flex-1 min-w-0">
-              <h2 className={`text-3xl sm:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>{member.name}</h2>
-              <p className={`text-sm sm:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                {member.desc}
-              </p>
-            </div>
-            <div className="w-full lg:w-60 xl:w-72 flex-shrink-0">
-              <Placeholder isDark={isDark} h="14rem" />
-            </div>
-          </div>
-          {idx === members.length - 1 && (
-            <div className={`mt-10 pt-8 border-t text-center ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-              <button onClick={onBack} className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-gray-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
-                {tc('nav.back')}
-              </button>
-            </div>
-          )}
-        </Section>
-      ))}
+              <Section key={idx} isDark={isDark} alt={idx % 2 === 0}>
+                <div className="flex flex-row items-start gap-4 sm:gap-8 md:gap-12">
+                  
+                  <div className="flex-1 min-w-0">
+                    <h2 className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {member.name}
+                    </h2>
+                    <p className={`text-xs sm:text-sm md:text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                      {member.desc}
+                    </p>
+                  </div>
+                  
+                  <div className="w-1/3 sm:w-2/5 lg:w-72 xl:w-80 flex-shrink-0 aspect-[3/4]">
+                    {member.image ? (
+                      <img
+                        src={member.image}
+                        alt={`Zdjęcie: ${member.name}`}
+                        /* 3. Obrazek zajmuje 100% szerokości i wysokości swojego kontenera (który sam trzyma proporcje) */
+                        className="w-full h-full object-cover rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-lg"
+                      />
+                    ) : (
+                      /* Placeholder wypełnia 100% kontenera, który ma już nadane proporcje aspect-[3/4] */
+                      <Placeholder isDark={isDark} h="100%" />
+                    )}
+                  </div>
+                  
+                </div>
+
+                {idx === members.length - 1 && (
+                  <div className={`mt-10 pt-8 border-t text-center ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                    <button onClick={onBack} className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-gray-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
+                      {tc('nav.back')}
+                    </button>
+                  </div>
+                )}
+              </Section>
+            ))}
 
     </div>
   );

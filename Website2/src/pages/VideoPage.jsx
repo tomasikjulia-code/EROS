@@ -28,7 +28,7 @@ const VideoPage = ({ isDark, scrollbarStyles, onBack }) => {
             >
               <iframe
                 className="w-full h-full"
-                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&controls=1&rel=0"
+                src="https://www.youtube.com/embed/CSdLehhHmIk"
                 title="Rythmio Video"
                 frameBorder="0"
                 allowFullScreen

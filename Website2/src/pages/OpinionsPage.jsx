@@ -27,9 +27,9 @@ const OpinionsPage = ({ isDark, scrollbarStyles, onBack }) => {
         >
           <div className="max-w-3xl mx-auto px-6 w-full">
             <div className={`text-6xl sm:text-7xl font-serif leading-none select-none mb-6 ${isDark ? 'text-purple-500/40' : 'text-purple-400/50'}`}>&ldquo;</div>
-            <p className={`text-xl sm:text-2xl lg:text-3xl font-medium leading-relaxed mb-10 ${isDark ? 'text-gray-100' : 'text-slate-800'}`}>
-              {op.quote}
-            </p>
+              <p className={`text-lg sm:text-l lg:text-xl font-medium leading-relaxed mb-10 ${isDark ? 'text-gray-100' : 'text-slate-800'}`}>
+                {op.quote}
+              </p>
             {(op.name || op.role || op.org) && (
               <div className={`flex items-center gap-4 pt-6 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
                 {op.name && (
