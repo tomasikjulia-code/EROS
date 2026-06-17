@@ -1,10 +1,11 @@
 {
   "intro": {
     "title": "Studencka Innowacja z Wrocławia",
-    "desc": "Jesteśmy grupą studentów 6. semestru Automatyki i Robotyki na Wydziale Elektryczności, Fotoniki i Mikrosystemów Politechniki Wrocławskiej. Projekt Rythmio narodził się w naszych głowach jako ambitna odpowiedź na wyzwania współczesnej telemedycyny. Naszym celem od samego początku było stworzenie w pełni funkcjonalnego, miniaturowego urządzenia typu Holter EKG, zintegrowanego z autorską aplikacją mobilną wspieraną przez algorytmy sztucznej inteligencji. Całość przygotowaliśmy z myślą o uroczystej Konferencji Projektów Zespołowych, stanowiącej podsumowanie naszej dotychczasowej pracy naukowej i konstrukcyjnej.",
+    "desc": "Jesteśmy grupą studentów 6. semestru Automatyki i Robotyki na Wydziale Elektroniki, Fotoniki i Mikrosystemów Politechniki Wrocławskiej. Projekt Rythmio narodził się w naszych głowach jako ambitna odpowiedź na wyzwania współczesnej telemedycyny. Naszym celem od samego początku było stworzenie w pełni funkcjonalnego, miniaturowego urządzenia typu Holter EKG, zintegrowanego z autorską aplikacją mobilną wspieraną przez algorytmy sztucznej inteligencji. Całość przygotowaliśmy z myślą o uroczystej Konferencji Projektów Zespołowych, stanowiącej podsumowanie naszej dotychczasowej pracy naukowej i konstrukcyjnej.",
     "comarch_title": "Współpraca z Comarch",
     "comarch_desc": "Urządzenie oraz oprogramowanie nie powstałyby w obecnej formie, gdyby nie ścisła kooperacja z firmą Comarch. Jako lider rynku IT oraz nowoczesnych rozwiązań z zakresu e-Health, firma objęła opieką mentorski profil naszego projektu.",
-    "comarch_alt": "Comarch"
+    "comarch_alt": "COMARCH",
+    "photo": "/images/comarch.jpg"
   },
   "members": [
     { "name": "Julia Tomasik",   
