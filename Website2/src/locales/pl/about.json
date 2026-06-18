@@ -1,16 +1,28 @@
 {
   "intro": {
     "title": "Studencka Innowacja z Wrocławia",
-    "desc": "Jesteśmy studentami Automatyki i Robotyki na Politechnice Wrocławskiej. Tworzymy Rythmio – innowacyjną odpowiedź na wyzwania współczesnej telemedycyny. Zaprojektowaliśmy w pełni funkcjonalny, miniaturowy Holter EKG, zintegrowany z autorską aplikacją mobilną opartą na algorytmach sztucznej inteligencji. Projekt powstał w ramach Konferencji Projektów Zespołowych.",
+    "desc": "Jesteśmy grupą studentów 6. semestru Automatyki i Robotyki na Wydziale Elektroniki, Fotoniki i Mikrosystemów Politechniki Wrocławskiej. Projekt Rythmio narodził się w naszych głowach jako ambitna odpowiedź na wyzwania współczesnej telemedycyny. Naszym celem od samego początku było stworzenie w pełni funkcjonalnego, miniaturowego urządzenia typu Holter EKG, zintegrowanego z autorską aplikacją mobilną wspieraną przez algorytmy sztucznej inteligencji. Całość przygotowaliśmy z myślą o uroczystej Konferencji Projektów Zespołowych, stanowiącej podsumowanie naszej dotychczasowej pracy naukowej i konstrukcyjnej.",
     "comarch_title": "Współpraca z Comarch",
-    "comarch_desc": "Partnerem technologicznym i mentorem projektu Rythmio jest firma Comarch. Eksperci lidera branży IT wspierali nas na każdym etapie prac: od konsultacji schematów elektronicznych modułu analogowego (ADS1292), przez optymalizację transmisji Bluetooth (ESP32), aż po standaryzację medyczną raportów klinicznych. Dzięki tej współpracy połączyliśmy wiedzę akademicką z komercyjnym know-how.",
-    "comarch_alt": "Comarch"
+    "comarch_desc": "Urządzenie oraz oprogramowanie nie powstałyby w obecnej formie, gdyby nie ścisła kooperacja z firmą Comarch. Jako lider rynku IT oraz nowoczesnych rozwiązań z zakresu e-Health, firma objęła opieką mentorski profil naszego projektu.",
+    "comarch_alt": "COMARCH",
+    "photo": "/images/comarch.jpg"
   },
   "members": [
-    { "name": "Julia Tomasik",   "desc": "Placeholder" },
-    { "name": "Szymon Czech",    "desc": "Placeholder" },
-    { "name": "Paweł Czarzasty","desc": "Placeholder" },
-    { "name": "Kacper Bizoń",   "desc": "Placeholder" },
-    { "name": "Karolina Sonka",  "desc": "Placeholder" }
+    { "name": "Julia Tomasik",   
+    "desc": "Studentka 3 roku automatyki i robotyki na specjalizacji Robotyka. Odbyła staż w firmie zajmującej się systemami czujnikowymi i technologiami pomiarowymi. Posługuje się sprawnie wieloma językami programowania. Świetnie zna podstawy elektroniki użytkowej oraz obsługi mikrokontrolerów, co potwierdzają jej poprzednie projekty. Dodatkowo wykazuje się znajomością programów do tworzenia płytek PCB oraz programów typu CAD. Wcześniej pracowała przy projektach takich jak: Robot Balansujący (Raspberry Pi), Ploter na mazak z silnikami krokowymi (STM32), Przetwornik temperatury łączący się przez WiFi (ESP32).", 
+    "image": "/images/julia.jpg" },
+    { "name": "Szymon Czech",    
+    "desc": "Student 3. roku Automatyki i Robotyki na specjalizacji Robotyka. Najlepiej czuje się w programowaniu software i embedded. Posiada doświadczenie w programowaniu w C, C++, Python, oraz serwisie płytek PCB. Realizował projekt stacji pogodowej (STM32, BME680) zdolnej do komunikacji przez moduł LoRa.", 
+    "image": "/images/szymon.jpg" },
+    { 
+    "name": "Paweł Czarzasty", 
+    "desc": "Student 3 roku automatyki i robotyki na specjalizacji Robotyka. Pasjonat druku 3D w różnych technologiach. Jego zainteresowania oscylują w okół wszystkich tematów związanych z elektroniką użytkową oraz robotyką. Dorywczo zajmuje się zleceniami dla osób trzecich w branży druku 3D.", 
+    "image": "/images/pawel.jpg" },
+    { "name": "Kacper Bizoń",    
+    "desc": "Zawodowo zajmuje się projektowaniem hardware’u. Jego zainteresowania techniczne i badawcze obejmują elektronikę, programowanie, akustykę oraz fizykę. Posiada praktyczne doświadczenie w tworzeniu systemów wbudowanych i urządzeń elektronicznych. Zrealizował projekty takie jak: line follower, ploter, obwody drukowane do pomiaru czasu reakcji, autorskie układy zegarowe, teleskop czy kalkulatory", 
+    "image": "/images/kacper.jpg" },
+    { "name": "Karolina Sonka",  
+    "desc": "Studentka Automatyki i Robotyki (spec. Robotyka) łącząca pasję do systemów wbudowanych z wysokowydajnym programowaniem. Obecnie rozwija kompetencje w dziale R&D sektora telekomunikacyjnego, gdzie na co dzień pracuje z językiem C++ oraz technologią CUDA. Ponadto programowała w językach takich jak Python, Matlab, C. Nabyła doświadczenie w tworzeniu oprogramowania na mikrokontrolery, głównie STM32, realizując m.in. projekt wielofunkcyjnego urządzenia MIDI.", 
+    "image": "/images/karolina.jpg" }
   ]
 }

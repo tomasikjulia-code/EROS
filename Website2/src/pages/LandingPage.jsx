@@ -193,7 +193,7 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
           <div className="relative z-10 w-full h-[45dvh] sm:h-[40dvh] lg:h-[42dvh] [@media(max-height:768px)]:h-[55dvh]">
             {/* Canvas pełna szerokość – model nie przycięty */}
             <div className="absolute inset-0 pointer-events-auto">
-              <HeroModel3D modelUrl="/holter.glb" isDark={isDark} modelScale={0.0275} />
+              <HeroModel3D modelUrl="/RYTHMIO.glb" isDark={isDark} modelScale={0.0275} />
             </div>
             {/* Strefy boczne – na mobilce przechwytują touch dla scrolla, nie dla modelu */}
             <div className="absolute inset-y-0 left-0 w-[clamp(2rem,15%,6rem)] z-10 pointer-events-auto" />

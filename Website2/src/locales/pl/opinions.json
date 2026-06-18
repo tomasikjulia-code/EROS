@@ -1,16 +1,59 @@
 {
   "items": [
     {
-      "quote": "Placeholder",
-      "name": "Placeholder",
-      "role": "Placeholder",
-      "org": "Placeholder"
+      "quote": "Jako lekarz na co dzień pracujący z pacjentami kardiologicznymi, z wielką przyjemnością i satysfakcją przyglądam się Waszemu projektowi. Chcę Wam przekazać kilka słów uznania, bo stworzyliście coś, co naprawdę ułatwia życie – zarówno nam, medykom, jak i przede wszystkim pacjentom. Tradycyjne badanie Holtera bywa dla pacjentów uciążliwe. Plątanina kabli, ciężki rejestrator i lęk, że coś się odklei, często paraliżują ich codzienne funkcjonowanie. Z Rythmio jest zupełnie inaczej. Ten aparat nie ogranicza ruchów, jest lekki i niemal niezauważalny. Pacjenci mogą normalnie żyć, pracować i odpoczywać, dzięki czemu rejestrowany zapis EKG pokazuje ich prawdziwy, codzienny profil sercowy, a nie stres związany z samym badaniem. To, co absolutnie urzeka z perspektywy pacjenta, to intuicyjność obsługi. Urządzenie jest tak proste w obsłudze, że bez problemu radzą sobie z nim nawet starsze osoby. Dodatkowo możliwość podejrzenia zapisu na ekranie telefonu w trakcie badania to strzał w dziesiątkę. Daje to pacjentom ogromne poczucie bezpieczeństwa i kontroli, a nam pewność, że badanie przebiega prawidłowo. Kropką nad „i” jest fakt, że stworzyliście rozwiązanie niskokosztowe. W medycynie rzadko zdarza się, by wysoka jakość szła w parze z dostępnością cenową. Wam się to udało, dzięki czemu nowoczesna diagnostyka może trafić do znacznie szerszego grona potrzebujących. Robicie świetną robotę. Rythmio to po prostu bardzo dobry, przemyślany i ludzki produkt. Trzymam mocno kciuki za Wasz dalszy rozwój i kolejne innowacje!",
+      "name": "Wanda Pociej-Siera",
+      "role": "Lekarz medycyny rodzinnej"
     },
     {
-      "quote": "Placeholder",
-      "name": "Placeholder",
-      "role": "Placeholder",
-      "org": "Placeholder"
+      "quote": "Wygląda bardzo ciekawie. Najważniejsze będą testy praktyczne... także trzymam kciuki. Pozdrawiam",
+      "name": "Sergiusz Sowiński",
+      "role": "Koordynator Oddziału Kardiologii i Intensywnej Opieki Kardiologicznej - Specjalistyczny Szpital Miejski im. M. Kopernika w Toruniu"
+    },
+    {
+      "quote": "Z zainteresowaniem zapoznałam się z państwa innowacyjnym urządzeniem Rythmio. Uważam, że w codziennej praktyce lekarskiej, nie tylko w specjalizacji kardiologicznej, urządzenie daje możliwość kontrolowania i monitorowania określonej grupy pacjentów. Tym samym, jako lekarze, mamy szanse lepszej opieki i leczenia naszych pacjentów. W obecnej sytuacji, przy znacznie utrudnionym dostępie do lekarzy specjalistów, zwłaszcza kardiologów, państwa urządzenie daje nam lekarzom POZ możliwość lepszej diagnostyki i leczenia naszych pacjentów. Wasz produkt to strzał w dziesiątkę. Pozdrawiam i trzymam kciuki.",
+      "name": "Karolina Wojdyniak-Piotrowska",
+      "role": "Lekarz medycyny ogólnej POZ"
+    },
+    {
+      "quote": "Projekt robi bardzo dobre wrażenie. Widać profesjonalne podejście, w tym wykorzystanie rozwiązań stosowanych w przemyśle co jest szczególnie imponujące w wykonaniu tak młodych osób. Akwizycja sygnału ma wiele silnych stron takich jak sprzętowe wstępne filtrowanie, czy też zastosowanie wysokiej rozdzielczości przetwornika ADC. W połączeniu z samplingiem 250Hz jest to złoty środek pomiędzy dobrej jakości sygnałem a ilością danych możliwą do zbierania i przetwarzania w dłuższych okresach czasu. Całościowo urządzenie wraz z aplikacją prezentuje się bardzo dobrze i stanowi świetną bazę do dalszej rozbudowy np rozszerzenia analizy o szczegółowe morfologie EKG.",
+      "name": "Jan Kost",
+      "role": "Inżynier, doktorant nauk medycznych"
+    },
+    {
+      "quote": "Uważam, że projekt Rythmio to świetny pomysł. Ułatwiłoby to diagnostykę zarówno pacjentowi, jak i lekarzowi. Dodatkowy plus to niskie koszty. Gratuluję!",
+      "name": "Agnieszka Pius",
+      "role": "Lekarz Pediatra"
+    },
+    {
+      "quote": "Diagnostyka pacjentów z zaburzeniami kardiologicznymi stanowi szczególnie ważny element w pracy personelu medycznego, a jego głównym narzędziem jest właśnie Holter EKG. Codziennie w pracy zdarza mi się zakładać kilka takich holterów dziennie, co stanowi doskonałe środowisko do oceny potrzeb nie tylko personelu medycznego, ale również pacjentów. Stosowane w aktualnej praktyce urządzenia bardzo często wymagają podłączania systemu do komputera, nie zawierają wyświetlaczy ani programów, które pozwalałyby podejrzeć zapis w trakcie jego trwania. Wiele razy zdarzało się, że pacjent musiał powtarzać badanie przez błędnie zapisane pomiary, odpięte elektrody lub problemy z zakłóceniami. I właśnie aplikacja mobilna oraz transmisja Bluetooth są zdecydowanymi plusami prezentowanego modelu. Możliwość podglądu EKG w czasie rzeczywistym wydaje się być nieoceniona nie tylko dla oceny stanu zdrowia pacjenta, ale również weryfikacji poprawności zapisu. Na bardzo duży plus oceniam również wodoodporność urządzenia, uniwersalność montażu oraz funkcję asystenta głosowego, który w sposób szczególny mógłby wspomóc pracę z pacjentami w starszym wieku. Moim zdaniem Rythmio to innowacyjne urządzenie, które nie tylko poprawi diagnostykę chorób serca, ale również usprawni pracę personelu medycznego i zwiększy komfort użytkowania dla pacjentów.",
+      "name": "Paulina Piórkowska",
+      "role": "Położna (Praca z pacjentami w przychodni POZ i komercyjnymi)"
+    },
+    {
+      "quote": "Projekt robi bardzo dobre wrażenie – połączenie niskokosztowego holtera EKG z aplikacją mobilną do bezprzewodowej analizy badań to nowoczesne i bardzo praktyczne rozwiązanie. Szczególnie doceniam połączenie aspektów medycznych oraz technologicznych, a także skupienie na dostępności i funkcjonalności urządzenia. Widać duże zaangażowanie zespołu oraz przemyślane podejście do realizacji projektu.",
+      "name": "Magdalena Hincz",
+      "role": "Pielęgniarka POZ - Centrum Medyczne Borowiczki Sp. z o.o."
+    },
+    {
+      "quote": "Wygodne i proste w użyciu urządzenie, które może być bardzo pomocne w wykrywaniu i analizowaniu zaburzeń pracy serca. Dużą zaletą jest łatwa, intuicyjna nawigacja po panelu. Dostępność urządzenia może zmniejszyć kolejki do kardiologa.",
+      "name": "Agnieszka Młodziejewska",
+      "role": "Pielęgniarka POZ - Centrum Medyczne Borowiczki Sp. z o.o."
+    },
+    {
+      "quote": "Holter EKG Rythmio to bardzo wygodne i praktyczne urządzenie. Jest lekkie, niewielkie i nie przeszkadza w codziennych aktywnościach. Dzięki całodobowemu monitorowaniu pracy serca pozwala uzyskać dokładne i wiarygodne wyniki. Polecam jako ciekawe narzędzie diagnostyczne.",
+      "name": "Julia Tomaszewska",
+      "role": "Położna POZ"
+    },
+    {
+      "quote": "Po zapoznaniu się z projektem prezentowanego urządzenia myślę, że mogłoby ono znaleźć zastosowanie w codziennej praktyce lekarskiej. Biorąc pod uwagę fakt, iż pacjenci niejednokrotnie wymagają długotrwałego monitoringu w celu wykrycia epizodycznie ujawniających się zaburzeń rytmu, zaproponowany sposób montażu z pewnością podniósłby ich komfort codziennego użytkowania. Oczywiście tego typu urządzenia niosą za sobą ryzyko wystąpienia artefaktów podczas wykonywania przez pacjenta różnych aktywności, w związku z czym dostrzegam dużą wartość wprowadzenia możliwości bieżącego monitoringu w czasie rzeczywistym, który może być od razu weryfikowany przez klinicystę. Jest to też niewątpliwie istotne przy wystąpienia zaburzeń rytmu wymagających natychmiastowej interwencji medycznej. Za duży atut aplikacji uważam także wprowadzenie możliwości dodawania przez pacjenta informacji o wykonywanej aktywności, mogącej wpływać na rejestrowany zapis oraz ewentualnych subiektywnych dolegliwości. Umożliwia to świetną korelację zapisu EKG z objawami manifestowanymi przez badaną osobę i ułatwi z pewnością postawienie trafnej diagnozy przez lekarza analizującego badanie.",
+      "name": "Oliwia Rożek",
+      "role": "Studentka IV roku kierunku lekarskiego"
+    },
+    {
+      "quote": "Szanowni Państwo, zapoznałam się z projektem Rythmio i jako studentka medycyny widzę w nim wiele przyszłościowych rozwiązań. Uważam, że dużą zaletą Rythmio jest to, że pacjent posiada podgląd swojego EKG w czasie rzeczywistym w aplikacji mobilnej. Również możliwość generowania raportów i wysyłania ich do lekarza prowadzącego jest cennym aspektem Rythmio. Z perspektywy pacjenta istotną zaletą jest wygoda noszenia urządzenia. Jest kompaktowe oraz wodoodporne, co zdecydowanie ułatwi pacjentom użytkowanie w trakcie dnia. Myślę, że projekt ma potencjał do zwiększenia dostępności monitorowania kardiologicznego i poprawy komfortu pacjentów.",
+      "name": "Joanna Żmudzińska",
+      "role": "Studentka IV roku kierunku lekarskiego"
     }
   ]
 }

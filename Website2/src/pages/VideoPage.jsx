@@ -14,20 +14,23 @@ const VideoPage = ({ isDark, onBack }) => {
           </h1>
         </div>
 
-        {/* Video */}
-        <div className="relative w-full max-w-[95vw] md:max-w-[88vw] xl:max-w-[1400px] max-h-[70vh]">
-          <div className={`absolute -inset-4 rounded-3xl blur-3xl -z-10 ${isDark ? 'bg-purple-600/15' : 'bg-purple-400/10'}`} />
-          <div
-            className="w-full aspect-video max-h-[70vh] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-[4px] sm:border-[6px] transition-colors duration-500"
-            style={{ borderColor: isDark ? '#111' : '#ebebeb' }}
-          >
-            <iframe
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0&controls=1&rel=0"
-              title="Rythmio Video"
-              frameBorder="0"
-              allowFullScreen
-            />
+        {/* Video – szeroki na desktopie */}
+        <div className="relative z-10 w-full max-w-[95vw] md:max-w-[92vw] lg:max-w-[88vw] xl:max-w-[1400px]">
+          <div className="relative">
+            {/* glow */}
+            <div className={`absolute -inset-4 rounded-3xl blur-3xl -z-10 ${isDark ? 'bg-purple-600/15' : 'bg-purple-400/10'}`} />
+            <div
+              className="w-full aspect-video relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-[4px] sm:border-[6px] transition-colors duration-500"
+              style={{ borderColor: isDark ? '#111' : '#ebebeb' }}
+            >
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/CSdLehhHmIk"
+                title="Rythmio Video"
+                frameBorder="0"
+                allowFullScreen
+              />
+            </div>
           </div>
         </div>
       </section>
