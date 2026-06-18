@@ -3,13 +3,13 @@ import { usePageScroll } from '../hooks/usePageScroll';
 
 const VideoPage = ({ isDark, scrollbarStyles, onBack }) => {
   const { t } = useTranslation('common');
-  const { containerRef, handleScroll } = usePageScroll(50, 0, true);
+  const { containerRef, handleScroll } = usePageScroll(50, 0);
 
   return (
     <div ref={containerRef} onScroll={handleScroll} className={`h-screen overflow-y-auto scroll-smooth font-sans selection:bg-purple-500/30 transition-colors duration-500 ${isDark ? 'bg-black text-white' : 'bg-[#fdfdfd] text-slate-900'} ${scrollbarStyles}`}>
 
 
-      <section className="relative min-h-screen flex flex-col items-center justify-start pt-20 sm:justify-center sm:pt-20 md:pt-24 pb-8 px-4 sm:px-6 snap-start">
+      <section className="relative min-h-screen flex flex-col items-center justify-start pt-20 sm:justify-center sm:pt-20 md:pt-24 pb-8 px-4 sm:px-6">
         {/* Tytuł – wąski */}
         <div className="relative z-10 text-center mb-6 sm:mb-8 w-full max-w-2xl">
           <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tighter transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>

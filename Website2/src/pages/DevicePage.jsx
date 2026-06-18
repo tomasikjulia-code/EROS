@@ -33,7 +33,7 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
   const state1Items = t('interface.state1.items', { returnObjects: true });
   const state2Items = t('interface.state2.items', { returnObjects: true });
   const [maximizedIndex, setMaximizedIndex] = useState(null);
-  const { containerRef, handleScroll, scrollNext, scrollPrev } = usePageScroll(50, 0, true);
+  const { containerRef, handleScroll } = usePageScroll(50, 0);
 
   const galleryRef = useRef(null);
   const isGalleryDown = useRef(false);
@@ -72,7 +72,7 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
 
 
       {/* Hero */}
-      <section className="relative min-h-screen flex flex-col items-center pt-14 sm:pt-20 [@media(max-height:768px)]:pt-16 [@media(min-height:769px)_and_(max-height:900px)]:pt-14 overflow-hidden snap-start">
+      <section className="relative min-h-screen flex flex-col items-center pt-14 sm:pt-20 [@media(max-height:768px)]:pt-16 [@media(min-height:769px)_and_(max-height:900px)]:pt-14 overflow-hidden">
         <div className="relative z-10 flex flex-col items-center text-center px-6 w-full flex-1">
           <h1 className={`text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] [@media(max-height:768px)]:text-4xl [@media(min-height:769px)_and_(max-height:900px)]:text-5xl font-semibold tracking-tighter mb-3 mt-6 [@media(max-height:768px)]:mt-2 [@media(max-height:768px)]:mb-2 [@media(min-height:769px)_and_(max-height:900px)]:mt-3 [@media(min-height:769px)_and_(max-height:900px)]:mb-2 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {t('hero.title')}
@@ -94,7 +94,7 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Specyfikacja */}
-      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:768px)]:py-6 snap-start border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`}>
+      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:768px)]:py-6 border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 [@media(max-height:768px)]:gap-6 items-center">
             <div>
@@ -125,7 +125,7 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Anatomia */}
-      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:900px)]:py-5 [@media(max-height:768px)]:py-4 snap-start border-b transition-colors duration-500 ${isDark ? 'bg-black border-white/5' : 'bg-[#fdfdfd] border-gray-200'}`}>
+      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:900px)]:py-5 [@media(max-height:768px)]:py-4 border-b transition-colors duration-500 ${isDark ? 'bg-black border-white/5' : 'bg-[#fdfdfd] border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="mb-6 md:mb-10 [@media(max-height:900px)]:mb-4 [@media(max-height:768px)]:mb-3">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl [@media(max-height:900px)]:text-3xl font-bold mb-2 [@media(max-height:900px)]:mb-1">{t('anatomy.title')}</h2>
@@ -146,7 +146,7 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Interfejs fizyczny */}
-      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:768px)]:py-6 snap-start border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`}>
+      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:768px)]:py-6 border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="text-center mb-6 md:mb-10 [@media(max-height:768px)]:mb-4">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">{t('interface.title')}</h2>
@@ -184,7 +184,7 @@ const DevicePage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Galeria */}
-      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:768px)]:py-3 [@media(min-height:769px)_and_(max-height:900px)]:py-5 border-y transition-colors duration-500 snap-start ${isDark ? 'bg-[#030303] border-white/5' : 'bg-[#fafafa] border-gray-200'}`} id="galeria">
+      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-14 [@media(max-height:768px)]:py-3 [@media(min-height:769px)_and_(max-height:900px)]:py-5 border-y transition-colors duration-500 ${isDark ? 'bg-[#030303] border-white/5' : 'bg-[#fafafa] border-gray-200'}`} id="galeria">
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-10 [@media(max-height:768px)]:mb-3 [@media(min-height:769px)_and_(max-height:900px)]:mb-4 gap-3 sm:gap-6">
             <div className="text-left max-w-2xl">

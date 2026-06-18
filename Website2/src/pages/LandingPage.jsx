@@ -13,7 +13,7 @@ import { usePageScroll } from '../hooks/usePageScroll';
 const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOpen, setMobileMenuOpen, scrollbarStyles, scrollMemory }) => {
   const { t } = useTranslation('landing');
   const { t: tc } = useTranslation('common');
-  const { isScrolled, isAtBottom, containerRef, handleScroll, scrollNext, scrollPrev } =
+  const { isScrolled, containerRef, handleScroll, scrollNext } =
     usePageScroll(
       typeof window !== 'undefined' ? window.innerHeight * 0.8 : 600,
       scrollMemory?.current ?? 0,
@@ -85,18 +85,6 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
   }, [containerRef]);
 
   const carouselRef = useRef(null);
-  const heroScrolled = useRef(false);
-  const mobileMenuOpenRef = useRef(mobileMenuOpen);
-  useEffect(() => { mobileMenuOpenRef.current = mobileMenuOpen; }, [mobileMenuOpen]);
-
-  const isSnapping = useRef(false);
-  const snapTimerRef = useRef(null);
-  const lockSnap = () => {
-    isSnapping.current = true;
-    clearTimeout(snapTimerRef.current);
-    snapTimerRef.current = setTimeout(() => { isSnapping.current = false; }, 750);
-  };
-
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -110,112 +98,8 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
       const nav = document.querySelector('nav');
       const navH = nav ? nav.offsetHeight : 0;
       el.scrollTo({ top: sections[1].offsetTop - navH, behavior: 'smooth' });
-      heroScrolled.current = true;
-      lockSnap();
     }
   };
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const getSections = () => Array.from(el.querySelectorAll('section'));
-
-    // Zwraca indeks sekcji, której górna krawędź jest najbliżej scrollTop
-    // Próg +50 uwzględnia scroll-padding-top: 32px
-    const getCurrentIdx = (sections) => {
-      let best = 0;
-      sections.forEach((sec, i) => {
-        if (sec.offsetTop <= el.scrollTop + 50) best = i;
-      });
-      return best;
-    };
-
-    const snapToIdx = (idx, sections) => {
-      const clamped = Math.max(0, Math.min(idx, sections.length - 1));
-      el.scrollTo({ top: sections[clamped].offsetTop, behavior: 'smooth' });
-      heroScrolled.current = clamped > 0;
-      lockSnap();
-    };
-
-    const onWheel = (e) => {
-      if (mobileMenuOpenRef.current) { e.preventDefault(); return; }
-      if (isSnapping.current) { e.preventDefault(); return; }
-
-      const isDesktop = window.innerWidth >= 1024;
-
-      if (isDesktop) {
-        // Desktop: snap po każdej sekcji
-        e.preventDefault();
-        const sections = getSections();
-        const idx = getCurrentIdx(sections);
-        snapToIdx(idx + (e.deltaY > 0 ? 1 : -1), sections);
-        return;
-      }
-
-      // Mobile/tablet: tylko snap na granicy hero
-      const NAVBAR = 32; // scroll-padding-top
-      const sections = getSections();
-      const nextTop = sections[1] ? sections[1].offsetTop - NAVBAR : el.clientHeight;
-      const heroHeight = el.clientHeight;
-      if (!heroScrolled.current && el.scrollTop === 0 && e.deltaY > 0) {
-        e.preventDefault();
-        el.scrollTo({ top: nextTop, behavior: 'smooth' });
-        heroScrolled.current = true;
-        lockSnap();
-        return;
-      }
-      if (el.scrollTop > 0 && el.scrollTop <= heroHeight && e.deltaY < 0) {
-        e.preventDefault();
-        el.scrollTo({ top: 0, behavior: 'smooth' });
-        heroScrolled.current = false;
-        lockSnap();
-      }
-    };
-
-    let touchStartY = 0;
-    let touchOnModel = false;
-    const onTouchStart = (e) => {
-      touchOnModel = !!e.target.closest('canvas');
-      if (touchOnModel) return;
-      touchStartY = e.touches[0].clientY;
-    };
-    const onTouchEnd = (e) => {
-      if (mobileMenuOpenRef.current || touchOnModel || isSnapping.current) return;
-      const NAVBAR = 32;
-      const sections = getSections();
-      const nextTop = sections[1] ? sections[1].offsetTop - NAVBAR : el.clientHeight;
-      const heroHeight = el.clientHeight;
-      const deltaY = touchStartY - e.changedTouches[0].clientY;
-      if (!heroScrolled.current && el.scrollTop === 0 && deltaY > 30) {
-        el.scrollTo({ top: nextTop, behavior: 'smooth' });
-        heroScrolled.current = true;
-        lockSnap();
-        return;
-      }
-      if (el.scrollTop > 0 && el.scrollTop <= heroHeight && deltaY < -30) {
-        el.scrollTo({ top: 0, behavior: 'smooth' });
-        heroScrolled.current = false;
-        lockSnap();
-      }
-    };
-
-    const onScroll = () => {
-      if (el.scrollTop === 0) heroScrolled.current = false;
-    };
-
-    el.addEventListener('wheel', onWheel, { passive: false });
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchend', onTouchEnd, { passive: true });
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      el.removeEventListener('wheel', onWheel);
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchend', onTouchEnd);
-      el.removeEventListener('scroll', onScroll);
-      clearTimeout(snapTimerRef.current);
-    };
-  }, [containerRef]);
 
   return (
     <div

@@ -8,7 +8,7 @@ const OpinionsPage = ({ isDark, scrollbarStyles, onBack }) => {
   const { t } = useTranslation('opinions');
   const { t: tc } = useTranslation('common');
   const opinions = t('items', { returnObjects: true }).map((item, i) => ({ ...item, alt: i % 2 !== 0 }));
-  const { containerRef, handleScroll } = usePageScroll(50, 0, true);
+  const { containerRef, handleScroll } = usePageScroll(50, 0);
 
   return (
     <div
