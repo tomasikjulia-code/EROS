@@ -69,19 +69,21 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
     const container = containerRef.current;
     if (!container) return;
     const ids = ['pulpit', 'urzadzenie', 'aplikacja', 'o-nas', 'opinie', 'kontakt'];
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
-        });
-      },
-      { root: container, threshold: 0.5 }
-    );
-    ids.forEach(id => {
-      const el = container.querySelector(`#${id}`);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
+
+    const update = () => {
+      const trigger = window.innerHeight * 0.45; // 45% od góry viewportu
+      let active = ids[0];
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= trigger) active = id;
+      }
+      setActiveSection(active);
+    };
+
+    container.addEventListener('scroll', update, { passive: true });
+    update();
+    return () => container.removeEventListener('scroll', update);
   }, [containerRef]);
 
   const carouselRef = useRef(null);
@@ -117,7 +119,7 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
           <div className="flex items-center gap-3 sm:gap-4 lg:gap-8">
             <div className={`hidden lg:flex gap-6 lg:gap-8 text-sm font-medium items-center transition-all duration-500 ${isScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'} ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
               {[['urzadzenie', tc('nav.device')], ['aplikacja', tc('nav.app')], ['o-nas', tc('nav.us')], ['opinie', tc('nav.opinions')], ['kontakt', tc('nav.contact')]].map(([id, label]) => (
-                <button key={id} onClick={() => scrollTo(id)} className={`transition-colors ${
+                <button key={id} onClick={() => { setActiveSection(id); scrollTo(id); }} className={`transition-colors ${
                   activeSection === id
                     ? isDark ? 'text-white' : 'text-slate-900'
                     : isDark ? 'hover:text-purple-400' : 'hover:text-purple-600'
@@ -205,7 +207,7 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
 
 
       {/* Konstrukcja Section */}
-      <section className={`min-h-screen flex items-center py-8 md:py-20 [@media(max-height:768px)]:py-6 relative border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`} id="urzadzenie">
+      <section className={`py-16 md:py-24 relative border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`} id="urzadzenie">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-10 sm:gap-16">
           <div className="flex-1 text-center md:text-left">
             <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('device.title')}</h2>
@@ -238,7 +240,7 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
       </section>
 
       {/* App CTA Section */}
-      <section className={`min-h-screen flex items-center py-8 md:py-20 [@media(max-height:768px)]:py-6 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`} id="aplikacja">
+      <section className={`py-16 md:py-24 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`} id="aplikacja">
         <div className="max-w-7xl mx-auto px-6 flex flex-col-reverse md:flex-row items-center gap-10 sm:gap-16">
           <div className="flex-1 w-full flex justify-center md:justify-start">
             <div className="relative w-full max-w-[260px] sm:max-w-[300px] [@media(max-height:768px)]:max-w-[280px]">
@@ -273,16 +275,16 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
       </section>
 
       {/* O nas Section */}
-      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-16 [@media(max-height:900px)]:py-8 [@media(max-height:768px)]:py-6 relative border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`} id="o-nas">
+      <section className={`py-16 md:py-24 relative border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`} id="o-nas">
         <div className="max-w-7xl mx-auto px-6 text-center z-10 w-full">
-          <div className="mb-6 sm:mb-12 [@media(max-height:900px)]:mb-4 [@media(max-height:768px)]:mb-4">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5 sm:mb-8 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-3">{t('mission.title')}</h2>
+          <div className="mb-8 sm:mb-12">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5 sm:mb-8">{t('mission.title')}</h2>
             <img
               src="/images/grupowe_crop.jpg"
               alt={t('mission.img_alt')}
-              className={`block mx-auto w-auto max-w-full max-h-[50vh] [@media(max-height:900px)]:max-h-[38vh] rounded-2xl sm:rounded-3xl shadow-xl mb-5 sm:mb-8 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-3 transition-colors duration-500 ${isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-gray-200'}`}
+              className={`block mx-auto w-auto max-w-full max-h-[50vh] rounded-2xl sm:rounded-3xl shadow-xl mb-5 sm:mb-8 transition-colors duration-500 ${isDark ? 'ring-1 ring-white/10' : 'ring-1 ring-gray-200'}`}
             />
-            <p className={`text-sm sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed mb-5 sm:mb-8 [@media(max-height:900px)]:mb-3 [@media(max-height:900px)]:text-base [@media(max-height:768px)]:mb-3 [@media(max-height:768px)]:text-sm ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>{t('mission.desc')}</p>
+            <p className={`text-sm sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed mb-5 sm:mb-8 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>{t('mission.desc')}</p>
             <button onClick={() => changeView('about-us')} className={`inline-flex items-center gap-2 font-semibold text-base sm:text-lg group transition-colors ${isDark ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-500'}`}>
               {t('mission.cta')}
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -294,7 +296,7 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
       </section>
 
       {/* Opinie Section */}
-      <section className={`min-h-screen flex flex-col justify-center py-8 md:py-20 [@media(max-height:768px)]:py-6 relative transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`} id="opinie">
+      <section className={`py-16 md:py-24 relative transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`} id="opinie">
         <div className="max-w-3xl mx-auto px-6 w-full text-center">
           <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('opinions.title')}</h2>
           <p className={`text-base sm:text-lg mb-4 leading-relaxed ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
@@ -311,7 +313,7 @@ const LandingPage = ({ isDark, toggleTheme, toggleLang, changeView, mobileMenuOp
       </section>
 
       {/* Newsletter Section */}
-      <section className={`min-h-screen flex flex-col py-8 md:py-16 [@media(max-height:768px)]:py-6 border-t transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`} id="kontakt">
+      <section className={`min-h-screen flex flex-col py-16 md:py-24 border-t transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`} id="kontakt">
         <div className="flex-1 flex flex-col justify-center">
           <div className="max-w-4xl mx-auto px-6 text-center w-full">
             <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { usePageScroll } from '../hooks/usePageScroll';
 
 const Section = ({ isDark, children, alt = false }) => (
-  <section className={`min-h-screen flex flex-col justify-center py-6 md:py-10 [@media(max-height:768px)]:py-4 transition-colors duration-500 ${alt
+  <section className={`py-16 md:py-24 transition-colors duration-500 ${alt
     ? (isDark ? 'bg-[#050505]' : 'bg-[#f5f5f7]')
     : (isDark ? 'bg-black' : 'bg-[#fdfdfd]')}`}>
     <div className="max-w-7xl mx-auto px-6 w-full">
@@ -34,7 +34,7 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
       className={`h-screen overflow-y-auto scroll-smooth font-sans selection:bg-purple-500/30 transition-colors duration-500 ${isDark ? 'bg-black text-white' : 'bg-[#fdfdfd] text-slate-900'} ${scrollbarStyles}`}>
 
       {/* 1. O projekcie i Comarch */}
-      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-6 md:py-10 transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`}>
+      <section className={`pt-20 pb-16 md:py-24 transition-colors duration-500 ${isDark ? 'bg-black' : 'bg-[#fdfdfd]'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {t('intro.title')}

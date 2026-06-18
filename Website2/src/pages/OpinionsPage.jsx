@@ -19,7 +19,7 @@ const OpinionsPage = ({ isDark, scrollbarStyles, onBack }) => {
       {opinions.map((op, i) => (
         <section
           key={i}
-          className={`min-h-screen flex flex-col justify-center py-20 [@media(max-height:768px)]:py-16 transition-colors duration-500 border-b ${
+          className={`py-16 md:py-24 transition-colors duration-500 border-b ${
             op.alt
               ? isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'
               : isDark ? 'bg-black border-white/5'     : 'bg-[#fdfdfd] border-gray-200'

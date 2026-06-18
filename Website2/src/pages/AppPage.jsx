@@ -17,7 +17,7 @@ const AppPage = ({ isDark, scrollbarStyles, onBack }) => {
     <div ref={containerRef} onScroll={handleScroll} className={`h-screen overflow-y-auto scroll-smooth scroll-pt-16 font-sans selection:bg-purple-500/30 transition-colors duration-500 ${isDark ? 'bg-black text-white' : 'bg-[#fdfdfd] text-slate-900'} ${scrollbarStyles}`}>
 
       {/* Sekcja 1: Hero */}
-      <section className="relative min-h-screen flex flex-col justify-center pt-16 pb-10 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-4 overflow-hidden">
+      <section className="relative flex flex-col justify-center pt-16 pb-16 md:pb-24 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 w-full flex flex-col md:flex-row items-center gap-10 sm:gap-16 [@media(max-height:768px)]:gap-6 relative z-10">
           <div className="flex-1 text-center md:text-left">
             <h1 className={`text-4xl sm:text-5xl lg:text-6xl [@media(max-height:768px)]:text-4xl font-bold mb-4 sm:mb-6 [@media(max-height:768px)]:mb-3 tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{t('hero.title')}</h1>
@@ -36,7 +36,7 @@ const AppPage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Sekcja 2: Live & Status */}
-      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-8 md:pt-24 md:pb-14 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-6 border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`}>
+      <section className={`py-16 md:py-24 border-y transition-colors duration-500 ${isDark ? 'bg-[#050505] border-white/5' : 'bg-[#f5f5f7] border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="mb-6 md:mb-10 [@media(max-height:768px)]:mb-4">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">{t('live.title')}</h2>
@@ -59,7 +59,7 @@ const AppPage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Ekran 2: Pobieranie i Analiza */}
-      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-8 md:pt-24 md:pb-14 [@media(max-height:900px)]:pt-14 [@media(max-height:900px)]:pb-6 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-6 border-y transition-colors duration-500 ${isDark ? 'bg-black border-white/5' : 'bg-[#fdfdfd] border-gray-200'}`}>
+      <section className={`py-16 md:py-24 border-y transition-colors duration-500 ${isDark ? 'bg-black border-white/5' : 'bg-[#fdfdfd] border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full grid md:grid-cols-2 gap-8 md:gap-12 [@media(max-height:900px)]:gap-6 [@media(max-height:768px)]:gap-6 items-center">
           <div className="order-2 md:order-2">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl [@media(max-height:900px)]:text-3xl [@media(max-height:768px)]:text-3xl font-bold mb-4 sm:mb-6 [@media(max-height:900px)]:mb-3 [@media(max-height:768px)]:mb-3 text-center md:text-left">{t('analysis.title')}</h2>
@@ -92,7 +92,7 @@ const AppPage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Ekran 3: Raport Kliniczny i AI */}
-      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-8 md:pt-24 md:pb-14 [@media(max-height:900px)]:pt-14 [@media(max-height:900px)]:pb-6 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-6 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-[#050505]' : 'bg-[#f5f5f7]'}`}>
+      <section className={`py-16 md:py-24 relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-[#050505]' : 'bg-[#f5f5f7]'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full relative z-10">
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 [@media(max-height:900px)]:gap-6 [@media(max-height:768px)]:gap-6 items-center">
             {/* Lewa kolumna: treść */}
@@ -141,7 +141,7 @@ const AppPage = ({ isDark, scrollbarStyles, onBack }) => {
       </section>
 
       {/* Ekran 4: Dodatkowe & Uwaga */}
-      <section className={`min-h-screen flex flex-col justify-center pt-20 pb-8 md:pt-24 md:pb-14 [@media(max-height:768px)]:pt-16 [@media(max-height:768px)]:pb-6 border-t transition-colors duration-500 ${isDark ? 'bg-black border-white/5' : 'bg-[#fdfdfd] border-gray-200'}`}>
+      <section className={`py-16 md:py-24 border-t transition-colors duration-500 ${isDark ? 'bg-black border-white/5' : 'bg-[#fdfdfd] border-gray-200'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full">
           <div className="text-center mb-6 sm:mb-10 [@media(max-height:768px)]:mb-3">
             <h2 className="text-3xl sm:text-4xl [@media(max-height:768px)]:text-2xl font-bold mb-4 [@media(max-height:768px)]:mb-2">{t('extras.title')}</h2>
