@@ -1,18 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import { usePageScroll } from '../hooks/usePageScroll';
 
-const VideoPage = ({ isDark, scrollbarStyles, onBack }) => {
+const VideoPage = ({ isDark, onBack }) => {
   const { t } = useTranslation('common');
-  const { containerRef, handleScroll } = usePageScroll(50, 0, true);
 
   return (
-    <div ref={containerRef} onScroll={handleScroll} className={`h-screen overflow-y-auto scroll-smooth font-sans selection:bg-purple-500/30 transition-colors duration-500 ${isDark ? 'bg-black text-white' : 'bg-[#fdfdfd] text-slate-900'} ${scrollbarStyles}`}>
+    <div className={`h-screen overflow-hidden flex flex-col font-sans selection:bg-purple-500/30 transition-colors duration-500 ${isDark ? 'bg-black text-white' : 'bg-[#fdfdfd] text-slate-900'}`}>
 
-
-      <section className="relative min-h-screen flex flex-col items-center justify-start pt-20 sm:justify-center sm:pt-20 md:pt-24 pb-8 px-4 sm:px-6 snap-start">
-        {/* Tytuł – wąski */}
-        <div className="relative z-10 text-center mb-6 sm:mb-8 w-full max-w-2xl">
-          <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tighter transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+      <section className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-16 pb-6 gap-4 sm:gap-6">
+        {/* Tytuł */}
+        <div className="text-center w-full max-w-2xl">
+          <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tighter transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {t('video.title')}
           </h1>
         </div>
@@ -36,12 +33,13 @@ const VideoPage = ({ isDark, scrollbarStyles, onBack }) => {
             </div>
           </div>
         </div>
-        <div className={`mt-8 pt-6 border-t text-center ${isDark ? 'border-white/5' : 'border-gray-200'}`}>
-          <button onClick={onBack} className={`inline-flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-gray-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
-            {t('nav.back')}
-          </button>
-        </div>
       </section>
+
+      <div className="pb-6 text-center">
+        <button onClick={onBack} className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}>
+          {t('nav.back')}
+        </button>
+      </div>
 
     </div>
   );
