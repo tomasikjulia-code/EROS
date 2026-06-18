@@ -23,7 +23,6 @@ const OpinionsPage = ({ isDark, scrollbarStyles, onBack }) => {
           <h1 className={`text-4xl sm:text-5xl font-bold tracking-tight transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {t('title')}
           </h1>
-          <div className="h-1 w-20 bg-purple-500 rounded mt-4" />
         </div>
 
         {opinions.map((op, i) => (
