@@ -670,15 +670,14 @@ function MainApp() {
 
       isReceivingFileRef.current = true;
 
-      const transferComplete = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error("Error: Transfer timeout")), 300000);
-        transferResolveRef.current = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
+      const localFileInfo = await FileSystem.getInfoAsync(FILE_URI);
+      const actualLocalSize = localFileInfo.exists ? localFileInfo.size : 0;
+
+      const transferComplete = new Promise((resolve) => {
+        transferResolveRef.current = resolve;
       });
 
-      sendData(deviceRef.current.address, `OK ${lastSavedTS} ${previousFileSize.current}`);
+      sendData(deviceRef.current.address, `OK ${lastSavedTS} ${actualLocalSize}`);
       await transferComplete;
       await flushBuffer();
 
@@ -1119,7 +1118,14 @@ const saveToDownloads = async (trendData) => {
     }
   };
 
+function downsampleTrend(data, maxPoints = 200) {
+  if (!data || data.length <= maxPoints) return data;
+  const step = (data.length - 1) / (maxPoints - 1);
+  return Array.from({ length: maxPoints }, (_, i) => data[Math.round(i * step)]);
+}
+
 function generateBpmTrendSvg(trend) {
+  trend = downsampleTrend(trend);
   if (!trend || trend.length < 2) return '';
   const W = 700, H = 200, PL = 40, PR = 10, PT = 15, PB = 28;
   const dW = W - PL - PR, dH = H - PT - PB;
@@ -1139,6 +1145,7 @@ function generateBpmTrendSvg(trend) {
 }
 
 function generateActivityTrendSvg(trend) {
+  trend = downsampleTrend(trend);
   if (!trend || trend.length < 2) return '';
   const W = 700, H = 150, PL = 40, PR = 10, PT = 10, PB = 25;
   const dW = W - PL - PR, dH = H - PT - PB;
