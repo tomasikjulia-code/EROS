@@ -7,10 +7,30 @@
     "comarch_alt": "Comarch"
   },
   "members": [
-    { "name": "Julia Tomasik",   "desc": "Placeholder" },
-    { "name": "Szymon Czech",    "desc": "Placeholder" },
-    { "name": "Paweł Czarzasty","desc": "Placeholder" },
-    { "name": "Kacper Bizoń",   "desc": "Placeholder" },
-    { "name": "Karolina Sonka",  "desc": "Placeholder" }
+    {
+      "name": "Julia Tomasik",
+      "desc": "3rd-year student of Automation and Robotics, specializing in Robotics. Completed an internship at a company dealing with sensor systems and measurement technologies. Proficient in multiple programming languages. Has an excellent understanding of consumer electronics basics and microcontroller operation, as evidenced by her previous projects. Additionally, she is familiar with PCB design software and CAD programs. Previously worked on projects such as: Balancing Robot (Raspberry Pi), Marker Plotter with stepper motors (STM32), WiFi-connected Temperature Transmitter (ESP32).",
+      "image": "/images/julia.jpg" 
+    },
+    {
+      "name": "Szymon Czech",
+      "desc": "3rd-year student of Automation and Robotics, specializing in Robotics. Feels most comfortable in software and embedded programming. Experienced in C, C++, and Python programming, as well as PCB servicing. Developed a weather station project (STM32, BME680) capable of communication via a LoRa module.",
+      "image": "/images/szymon.jpg" 
+    },
+    {
+      "name": "Paweł Czarzasty",
+      "desc": "3rd-year student of Automation and Robotics, specializing in Robotics. Passionate about 3D printing across various technologies. His interests revolve around all topics related to consumer electronics and robotics. He also takes on freelance 3D printing commissions.",
+      "image": "/images/pawel.jpg" 
+    },
+    {
+      "name": "Kacper Bizoń",
+      "desc": "Professionally involved in hardware design. His technical and research interests include electronics, programming, acoustics, and physics. Has practical experience in developing embedded systems and electronic devices. Completed projects such as: line follower, plotter, printed circuit boards for reaction time measurement, custom clock circuits, a telescope, and calculators.",
+      "image": "/images/kacper.jpg" 
+    },
+    {
+      "name": "Karolina Sonka",
+      "desc": "Student of Automation and Robotics (specializing in Robotics) combining a passion for embedded systems with high-performance programming. Currently developing her skills in the R&D department of the telecommunications sector, where she works daily with C++ and CUDA technology. Furthermore, she has programmed in languages such as Python, MATLAB, and C. Gained experience in developing software for microcontrollers, mainly STM32, completing projects that include a multifunctional MIDI device.",
+      "image": "/images/karolina.jpg" 
+    }
   ]
 }
