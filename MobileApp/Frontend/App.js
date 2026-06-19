@@ -4,7 +4,11 @@ import { SafeAreaView, SafeAreaProvider, useSafeAreaInsets } from 'react-native-
 import { AlertCircle, CheckCircle2, Home, History, Settings } from 'lucide-react-native';
 import { styles } from './src/constants/Theme';
 import { initialHistory, generateHourlyTrend, generateMockEcgStrip } from './src/utils/Generators';
-import { requestBluetoothPermissions, getPairedDevices, connectToDevice, disconnectDevice, receiveData, sendData } from './src/utils/BluetoothSerial';
+import { USE_MOCK_BT } from './src/config/Config';
+import * as RealBT from './src/utils/BluetoothSerial';
+import * as MockBT from './src/utils/MockBluetoothSerial';
+const { requestBluetoothPermissions, getPairedDevices, connectToDevice, disconnectDevice, receiveData, sendData } =
+  USE_MOCK_BT ? MockBT : RealBT;
 
 import HomeScreen from './src/screens/HomeScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
@@ -773,14 +777,14 @@ function MainApp() {
           showToast('Badanie odebrane i przeanalizowane!', 'success');
         }
 
-        // Powiadomienia push
-        if (isNotifEnabled) {
+        // Powiadomienia push (expo-notifications niedostępne na web)
+        if (isNotifEnabled && Platform.OS !== 'web') {
           Notifications.scheduleNotificationAsync({
             content: {
               title: "Raport gotowy 🫀",
               body: `Analiza EKG zakończona. Średnie tętno: ${stats.avgBpm} BPM. Zobacz szczegóły w raporcie.`
             },
-            trigger: null, // trigger: null oznacza wysłanie NATYCHMIAST
+            trigger: null,
           });
         }
 

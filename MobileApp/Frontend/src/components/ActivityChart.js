@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, Platform, StatusBar, useWindowDimensions, StyleSheet } from 'react-native';
 import { 
   Svg, Path, Defs, LinearGradient as SvgLinearGradient, 
-  Stop, Polygon, Line, Text as SvgText 
+  Stop, Line, Text as SvgText
 } from 'react-native-svg';
 import { Footprints } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,7 +69,7 @@ const ActivityChart = ({ data }) => {
     };
 
     const pathString = chartData.map((val, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)},${getY(val.activity)}`).join(' ');
-    const areaPoints = `${getX(0)},${H - paddingB} ${pathString} ${getX(chartData.length - 1)},${H - paddingB}`;
+    const areaClosedPath = `${pathString} L ${getX(chartData.length - 1)},${H - paddingB} L ${getX(0)},${H - paddingB} Z`;
 
     const maxTimeMs = chartData[chartData.length - 1].timeMs;
     const formatTimeLabel = (ms) => {
@@ -126,7 +126,7 @@ const ActivityChart = ({ data }) => {
                  );
               })}
 
-              <Polygon points={areaPoints} fill="url(#activityGradient)" />
+              <Path d={areaClosedPath} fill="url(#activityGradient)" />
               <Path d={pathString} fill="none" stroke="#6ee7b7" strokeWidth="6" opacity="0.2" strokeLinecap="round" strokeLinejoin="round" />
               <Path d={pathString} fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
