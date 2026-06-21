@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ScrollView, Animated, View, Text, TouchableOpacity, StatusBar, Platform, PermissionsAndroid } from 'react-native';
+import { ScrollView, Animated, View, Text, TouchableOpacity, StatusBar, Platform, PermissionsAndroid, Alert } from 'react-native';
+import { generateReport } from './src/utils/AIService';
+import { PUBLIC_PROVIDER_IDS } from './src/config/LlmProviders';
 import { SafeAreaView, SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertCircle, CheckCircle2, Home, History, Settings } from 'lucide-react-native';
 import { styles } from './src/constants/Theme';
@@ -305,12 +307,18 @@ function MainApp() {
   const [aiReport, setAiReport] = useState(null);
   const [doctorEmail, setDoctorEmail] = useState('');
 
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingStatus, setGeneratingStatus] = useState(null);
+
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isNotifEnabled, setIsNotifEnabled] = useState(true);
 
   const [toastMessage, setToastMessage] = useState(null);
+  const toastOnPressRef = useRef(null);
   const toastAnim = useRef(new Animated.Value(200)).current;
   const toastTimeoutRef = useRef(null);
+
+  const [isAiModalVisible, setIsAiModalVisible] = useState(false);
   
   const [progressPercent, setProgressPercent] = useState(0);
   const progressIntervalRef = useRef(null);
@@ -419,11 +427,12 @@ function MainApp() {
     });
   }, []);
 
-  const showToast = (message, type = 'success', suppressVoice = false) => {
+  const showToast = (message, type = 'success', suppressVoice = false, onPress = null) => {
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
     }
 
+    toastOnPressRef.current = onPress;
     setToastMessage({ message, type });
     Animated.spring(toastAnim, { toValue: 0, useNativeDriver: true, friction: 8 }).start();
 
@@ -959,20 +968,92 @@ function MainApp() {
       findings: [
         `Tętno: Max ${record.maxBpm} BPM (${record.maxBpmTime}), Min ${record.minBpm} BPM (${record.minBpmTime}).`,
         tachyFinding,
-        bradyFinding, 
+        bradyFinding,
         importantFinding,
         `Pauzy: Brak przerw > 2.0s.`
       ],
-      recommendation: (tachyList.length > 3 || bradyList.length > 3 || importantList.length > 0) 
-        ? "Wykryto znaczną liczbę epizodów arytmicznych lub błędów technicznych. Zobacz wycinki EKG, aby zweryfikować zdarzenia krytyczne. Ta analiza jedynie obrazuje wybrane wycinki z badania i nie jest diagnozą medyczną." 
+      recommendation: (tachyList.length > 3 || bradyList.length > 3 || importantList.length > 0)
+        ? "Wykryto znaczną liczbę epizodów arytmicznych lub błędów technicznych. Zobacz wycinki EKG, aby zweryfikować zdarzenia krytyczne. Ta analiza jedynie obrazuje wybrane wycinki z badania i nie jest diagnozą medyczną."
         : "Algorytm nie wykrył istotnych, groźnych nieprawidłowości w badanym okresie. UWAGA: Raport ma wyłącznie charakter informacyjny i nie zastępuje profesjonalnej diagnozy lekarskiej. Zawsze konsultuj swoje wyniki ze specjalistą.",
-      snippets: snippets, 
+      snippets: snippets,
       tachyDetails: tachyList,
-      bradyDetails: bradyList 
+      bradyDetails: bradyList
     });
 
   setView('report');
 };
+
+  // Zapisuje wynik LLM do listy analiz rekordu (tablica, najnowsze pierwsze)
+  const handleAiReportSaved = (entry) => {
+    if (!activeReportRecord?.id) return;
+    setRecords(prev => prev.map(r =>
+      r.id === activeReportRecord.id
+        ? { ...r, llmReports: [entry, ...(r.llmReports ?? migrateLegacyLlmReport(r))] }
+        : r
+    ));
+  };
+
+  // Usuwa pojedynczą analizę AI z rekordu po id
+  const handleDeleteAiReport = (entryId) => {
+    if (!activeReportRecord?.id) return;
+    setRecords(prev => prev.map(r =>
+      r.id === activeReportRecord.id
+        ? { ...r, llmReports: (r.llmReports ?? []).filter(e => e._meta?.id !== entryId) }
+        : r
+    ));
+  };
+
+  // Generuje raport AI — stan przeżywa zmianę zakładki
+  const doGenerateReport = async (llmConfig) => {
+    setIsGenerating(true);
+    setGeneratingStatus("Wysłano dane do analizy, proszę czekać…");
+    try {
+      const result = await generateReport(aiReport, activeReportRecord, llmConfig, () => {});
+      handleAiReportSaved(result);
+      setGeneratingStatus("Analiza gotowa");
+      setTimeout(() => setGeneratingStatus(null), 3000);
+      showToast("Analiza AI gotowa — kliknij, aby przejść", "success", false, () => {
+        setView('report');
+        setTimeout(() => setIsAiModalVisible(true), 350);
+      });
+    } catch (error) {
+      console.error("Błąd generowania raportu:", error);
+      setGeneratingStatus("Błąd: " + (error?.message ?? "generowanie nie powiodło się"));
+      showToast("Błąd analizy AI: " + (error?.message ?? "nieznany błąd"), "error");
+      setTimeout(() => setGeneratingStatus(null), 4000);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!aiReport) { showToast("Brak danych do analizy", "error"); return; }
+
+    let llmConfig = null;
+    try { const raw = await AsyncStorage.getItem('llm_config'); if (raw) llmConfig = JSON.parse(raw); } catch (_) {}
+
+    if (!llmConfig) { showToast("Skonfiguruj dostawcę AI w Ustawieniach", "info"); setView('settings'); return; }
+
+    if (PUBLIC_PROVIDER_IDS.includes(llmConfig.providerId)) {
+      Alert.alert(
+        '🔒 Prywatność danych',
+        `Wybrano dostawcę: ${llmConfig.providerLabel ?? llmConfig.providerId}.\n\n` +
+        'Dane badania zostaną przesłane do zewnętrznych serwerów tego dostawcy.\n\nNie wysyłaj danych jeśli nie akceptujesz warunków swojego dostawcy.',
+        [
+          { text: 'Anuluj', style: 'cancel' },
+          { text: 'Rozumiem, kontynuuj', style: 'destructive', onPress: () => doGenerateReport(llmConfig) },
+        ]
+      );
+      return;
+    }
+    doGenerateReport(llmConfig);
+  };
+
+  // Migracja starych rekordów z pojedynczym llmReport → llmReports[]
+  function migrateLegacyLlmReport(record) {
+    if (!record.llmReport) return [];
+    return [{ ...record.llmReport, _meta: { id: 'legacy', timestamp: record.date, model: 'nieznany', providerLabel: 'Nieznany', promptTokens: 0, completionTokens: 0, totalTokens: 0 } }];
+  }
 
   const loadMockReport = () => {
     const record = createMockReportRecord();
@@ -1419,53 +1500,73 @@ const deleteCurrentFile = async () => {
     <View style={[styles.container, { paddingTop: Math.max(insets.top, StatusBar.currentHeight || 0) }]}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 + insets.bottom }]}
-        showsVerticalScrollIndicator={false}
-      >
-        {view === 'home' && (
-          <HomeScreen
-            bleState={bleState}
-            deviceData={deviceData}
-            syncState={syncState}
-            diagnostics={diagnostics}
-            toggleBluetooth={toggleBluetooth}
-            refreshDiagnostics={refreshDiagnostics}
-            getFileFromDevice={getFileFromDevice}
-            isLiveEcgActive={isLiveEcgActive}
-            toggleLiveEcg={handleToggleLiveEcg}
-            lastConnectedTime={lastConnectedTime}
-            openReport={openReport}
-            formatDate={formatDate}
-            deleteCurrentFile={deleteCurrentFile}
-            loadMockReport={loadMockReport}
-          />
-        )}
-        {view === 'history' && (
-          <HistoryScreen 
-            records={records} 
-            openReport={openReport} 
-            formatDate={formatDate} 
-            deleteRecord={deleteRecordFromHistory} 
-          />
-        )}
-        {view === 'report' && (
-          <ReportScreen
-            activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
-            aiReport={aiReport} doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
-            showToast={showToast} saveToDownloads={saveToDownloads} generatePdfReport={handleGeneratePdfReport}
-            formatSDCard={formatSDCard} bleState={bleState}
-          />
-        )}
-        {view === 'settings' && (
+      {view === 'settings' && (
+        <View style={{ flex: 1 }}>
           <SettingsScreen
             isVoiceEnabled={isVoiceEnabled} handleVoiceToggle={handleVoiceToggle}
             isNotifEnabled={isNotifEnabled} setIsNotifEnabled={setIsNotifEnabled}
+            showToast={showToast}
           />
-        )}
-      </ScrollView>
+        </View>
+      )}
+
+      {view === 'report' && (
+        <View style={{ flex: 1 }}>
+          <ReportScreen
+            activeReportRecord={activeReportRecord} setView={setView} formatDate={formatDate}
+            aiReport={aiReport} setAiReport={setAiReport}
+            llmReports={
+              (records.find(r => r.id === activeReportRecord?.id)?.llmReports)
+              ?? migrateLegacyLlmReport(activeReportRecord ?? {})
+            }
+            onDeleteAiReport={handleDeleteAiReport}
+            onGenerateReport={handleGenerateReport}
+            isGenerating={isGenerating}
+            generatingStatus={generatingStatus}
+            isAiModalVisible={isAiModalVisible}
+            setIsAiModalVisible={setIsAiModalVisible}
+            doctorEmail={doctorEmail} setDoctorEmail={setDoctorEmail}
+            showToast={showToast} saveToDownloads={saveToDownloads} generatePdfReport={handleGeneratePdfReport}
+            formatSDCard={formatSDCard} bleState={bleState}
+          />
+        </View>
+      )}
+
+      {(view === 'home' || view === 'history') && (
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 + insets.bottom }]}
+          showsVerticalScrollIndicator={false}
+        >
+          {view === 'home' && (
+            <HomeScreen
+              bleState={bleState}
+              deviceData={deviceData}
+              syncState={syncState}
+              diagnostics={diagnostics}
+              toggleBluetooth={toggleBluetooth}
+              refreshDiagnostics={refreshDiagnostics}
+              getFileFromDevice={getFileFromDevice}
+              isLiveEcgActive={isLiveEcgActive}
+              toggleLiveEcg={handleToggleLiveEcg}
+              lastConnectedTime={lastConnectedTime}
+              openReport={openReport}
+              formatDate={formatDate}
+              deleteCurrentFile={deleteCurrentFile}
+              loadMockReport={loadMockReport}
+            />
+          )}
+          {view === 'history' && (
+            <HistoryScreen
+              records={records}
+              openReport={openReport}
+              formatDate={formatDate}
+              deleteRecord={deleteRecordFromHistory}
+            />
+          )}
+        </ScrollView>
+      )}
 
       <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 16), paddingTop: 12, minHeight: 65 + insets.bottom, height: 'auto' }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => setView('home')}>
@@ -1486,9 +1587,13 @@ const deleteCurrentFile = async () => {
         styles.toast,
         toastMessage?.type === 'error' ? styles.toastError : toastMessage?.type === 'info' ? styles.toastInfo : styles.toastSuccess,
         toastMessage?.type === 'loading' && { backgroundColor: '#27272a', borderColor: '#52525b', paddingVertical: 18 },
-        { transform: [{ translateY: toastAnim }], overflow: 'hidden', bottom: Math.max(insets.bottom, 16) + 75 } 
+        { transform: [{ translateY: toastAnim }], overflow: 'hidden', bottom: Math.max(insets.bottom, 16) + 75 }
       ]}>
-        
+        <TouchableOpacity
+          activeOpacity={toastOnPressRef.current ? 0.7 : 1}
+          onPress={() => { if (toastOnPressRef.current) { toastOnPressRef.current(); toastOnPressRef.current = null; } }}
+          style={{ width: '100%' }}
+        >
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
             {toastMessage?.type !== 'loading' && (
@@ -1511,11 +1616,11 @@ const deleteCurrentFile = async () => {
             <View style={{
               height: '100%',
               backgroundColor: '#818cf8',
-              width: `${progressPercent}%` 
+              width: `${progressPercent}%`
             }} />
           </View>
         )}
-        
+        </TouchableOpacity>
       </Animated.View>
 
     </View>

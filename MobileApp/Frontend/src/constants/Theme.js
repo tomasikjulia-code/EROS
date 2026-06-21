@@ -110,7 +110,7 @@ export const styles = StyleSheet.create({
   toggleTrackActive: { backgroundColor: '#4f46e5', borderColor: '#6366f1' },
   toggleThumb: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' },
   toggleThumbActive: { transform: [{ translateX: 18 }] },
-  reportNavRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  reportNavRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingHorizontal: 16, paddingTop: 8 },
   btnBack: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#18181b', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: '#27272a' },
   btnBackText: { color: '#a1a1aa', fontWeight: '600', marginLeft: 4 },
   patientBadge: { backgroundColor: '#18181b', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#27272a' },
