@@ -56,14 +56,10 @@ export const parseEcgFileToTrend = (fileContent) => {
       }
       lastTimeMs = timeMs;
 
+      const important = parts.length >= 6 ? parseInt(parts[5], 10) === 1 : false;
+
       if (!isNaN(timeMs) && !isNaN(bpm)) {
-        trend.push({ 
-          timeMs, 
-          bpm, 
-          activity, 
-          isNoise, 
-          originalLine: line 
-        });
+        trend.push({ timeMs, bpm, ecgRaw, activity, isNoise, important });
       }
     }
   }

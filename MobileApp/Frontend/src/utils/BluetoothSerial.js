@@ -3,6 +3,17 @@ import RNBluetoothClassic, {
 } from 'react-native-bluetooth-classic';
 import { PermissionsAndroid, Platform } from 'react-native';
 
+export function onDeviceDisconnected(address, callback) {
+  const subscription = RNBluetoothClassic.onDeviceDisconnected(
+    (event) => {
+      if (!address || event?.device?.address === address) {
+        callback(event);
+      }
+    }
+  );
+  return subscription;
+}
+
 //Getting permissions
 
 export async function requestBluetoothPermissions() {

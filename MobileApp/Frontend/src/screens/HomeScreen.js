@@ -148,15 +148,15 @@ const HomeScreen = ({
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          onPress={getFileFromDevice} 
-          disabled={bleState !== 'connected'}
+        <TouchableOpacity
+          onPress={getFileFromDevice}
+          disabled={bleState !== 'connected' || syncState === 'syncing'}
           style={{
             flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
             padding: 16, borderRadius: 16, borderWidth: 1,
             backgroundColor: bleState === 'connected' ? 'rgba(129, 140, 248, 0.15)' : 'rgba(39, 39, 42, 0.6)',
             borderColor: bleState === 'connected' ? 'rgba(99, 102, 241, 0.4)' : '#27272a',
-            opacity: bleState !== 'connected' ? 0.4 : 1
+            opacity: (bleState !== 'connected' || syncState === 'syncing') ? 0.4 : 1
           }}
         >
           <FileDown size={18} color={bleState === 'connected' ? "#818cf8" : "#a1a1aa"} />

@@ -11,6 +11,7 @@ import * as RealBT from './src/utils/BluetoothSerial';
 import * as MockBT from './src/utils/MockBluetoothSerial';
 const { requestBluetoothPermissions, getPairedDevices, connectToDevice, disconnectDevice, receiveData, sendData } =
   USE_MOCK_BT ? MockBT : RealBT;
+const onDeviceDisconnected = USE_MOCK_BT ? null : RealBT.onDeviceDisconnected;
 
 import HomeScreen from './src/screens/HomeScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
@@ -82,16 +83,7 @@ const analyzeEcgTrend = (parsedTrend) => {
   for (let i = 0; i < parsedTrend.length; i++) {
     const point = parsedTrend[i];
     
-    let isImportant = false;
-    
-    if (point.originalLine) {
-      const parts = point.originalLine.split(',');
-      if (parts.length >= 6 && parseInt(parts[5], 10) === 1) {
-        isImportant = true;
-      }
-    } else if (point.Important !== undefined || point.important !== undefined) {
-      isImportant = (point.Important == 1 || point.important == 1);
-    }
+    const isImportant = point.important === true;
 
     if (!isCurrentlyImportant) {
       if (isImportant) {
@@ -111,12 +103,11 @@ const analyzeEcgTrend = (parsedTrend) => {
     importantDetails.push({ start: importantStartTime, end: parsedTrend[parsedTrend.length - 1].timeMs, maxBpm: importantMaxBpm });
   }
 
-  const cleanData = parsedTrend.filter(p => p.bpm >= 35 && p.bpm <= 220 && !p.isNoise);
-
-  for (let i = 0; i < cleanData.length; i++) {
-    const point = cleanData[i];
+  for (let i = 0; i < parsedTrend.length; i++) {
+    const point = parsedTrend[i];
     const bpm = point.bpm;
     const timeMs = point.timeMs;
+    if (bpm < 35 || bpm > 220 || point.isNoise) continue;
 
     // Pomijamy szumy z pierwszych 60 sekund badania
     if (timeMs < IGNORE_FIRST_MS) continue;
@@ -179,8 +170,9 @@ const analyzeEcgTrend = (parsedTrend) => {
     }
   }
 
-  if (isCurrentlyTachy && tachyDetails.length > 0) tachyDetails[tachyDetails.length - 1].end = cleanData[cleanData.length - 1].timeMs;
-  if (isCurrentlyBrady && bradyDetails.length > 0) bradyDetails[bradyDetails.length - 1].end = cleanData[cleanData.length - 1].timeMs;
+  const lastTimeMs = parsedTrend.length > 0 ? parsedTrend[parsedTrend.length - 1].timeMs : 0;
+  if (isCurrentlyTachy && tachyDetails.length > 0) tachyDetails[tachyDetails.length - 1].end = lastTimeMs;
+  if (isCurrentlyBrady && bradyDetails.length > 0) bradyDetails[bradyDetails.length - 1].end = lastTimeMs;
 
   return {
     minBpm: minBpm === 999 ? 0 : Math.floor(minBpm),
@@ -207,38 +199,30 @@ const formatMsToTime = (ms) => {
 };
 
 const getEcgSlice = (trend, centerTimeMs, pointsToSide = 150) => {
-  const fallbackLine = [0, 10, -10, 10, -10, 0]; 
-  
+  const fallbackLine = [0, 10, -10, 10, -10, 0];
+
   if (!trend || trend.length === 0 || centerTimeMs == null || isNaN(centerTimeMs)) {
-    return fallbackLine; 
+    return fallbackLine;
   }
 
-  let closestIdx = 0;
-  let minDiff = Infinity;
-  
-  for (let i = 0; i < trend.length; i++) {
-    const diff = Math.abs(trend[i].timeMs - centerTimeMs);
-    if (diff < minDiff) {
-      minDiff = diff;
-      closestIdx = i;
-    }
+  // Binary search — dane są posortowane po timeMs
+  let lo = 0, hi = trend.length - 1, closestIdx = 0;
+  while (lo <= hi) {
+    const mid = (lo + hi) >>> 1;
+    if (trend[mid].timeMs === centerTimeMs) { closestIdx = mid; break; }
+    if (trend[mid].timeMs < centerTimeMs) { lo = mid + 1; closestIdx = mid; }
+    else hi = mid - 1;
   }
 
   const startIdx = Math.max(0, closestIdx - pointsToSide);
   const endIdx = Math.min(trend.length, closestIdx + pointsToSide);
 
   const slice = trend.slice(startIdx, endIdx).map(p => {
-    let val = p.EKG_Raw;
-    
-    if (val === undefined && p.originalLine) {
-       const parts = p.originalLine.split(',');
-       val = parseInt(parts[1], 10); // wyciagamy samo ekg
-    }
-
-    return (val !== undefined && !isNaN(val)) ? val : 0; 
+    const val = p.ecgRaw;
+    return (val !== undefined && !isNaN(val)) ? val : 0;
   });
 
-  return slice.length > 2 ? slice : fallbackLine; 
+  return slice.length > 2 ? slice : fallbackLine;
 };
 
 const speakReportSummary = (stats, durationMins, durationSecs, isVoiceEnabled) => {
@@ -289,6 +273,7 @@ function MainApp() {
 
   const deviceRef = useRef(null);
   const subscriptionRef = useRef(null);
+  const disconnectSubRef = useRef(null);
   const scrollViewRef = useRef(null);
 
   useEffect(() => {
@@ -330,13 +315,13 @@ function MainApp() {
   const readyResolveRef = useRef(null);
   const readyRejectRef = useRef(null);
   const transferResolveRef = useRef(null);
+  const transferRejectRef = useRef(null);
   const previousFileSize = useRef(null);
   const fileSize = useRef(null);
   const toBeReceived = useRef(null);
   const receivedFileSize = useRef(null);
 
   const fileBufferRef = useRef([]);
-  const flushIntervalRef = useRef(null);
   const isFlushingRef = useRef(false);
   const fileWriteQueue = useRef(Promise.resolve());
 
@@ -384,7 +369,8 @@ function MainApp() {
     if (!isLoaded) return;
     const saveData = async () => {
       try {
-        await FileSystem.writeAsStringAsync(HISTORY_FILE_URI, JSON.stringify(records), { encoding: FileSystem.EncodingType.UTF8 });
+        const recordsToSave = records.map(({ hourlyTrend, ...rest }) => rest);
+        await FileSystem.writeAsStringAsync(HISTORY_FILE_URI, JSON.stringify(recordsToSave), { encoding: FileSystem.EncodingType.UTF8 });
         
         if (currentSessionId) await AsyncStorage.setItem('@rythmio_session_id', currentSessionId);
         else await AsyncStorage.removeItem('@rythmio_session_id'); 
@@ -515,10 +501,37 @@ function MainApp() {
         handleIncomingData(rawData);
       });
 
+      // Listener na nieoczekiwane rozłączenie (zasięg, bateria, itp.)
+      disconnectSubRef.current = onDeviceDisconnected?.(rythmio.address, () => {
+        deviceRef.current = null;
+        readyRejectRef.current?.('BLE_DISCONNECTED');
+        readyRejectRef.current = null;
+        readyResolveRef.current = null;
+        transferRejectRef.current?.(new Error('BLE_DISCONNECTED'));
+        transferRejectRef.current = null;
+        transferResolveRef.current = null;
+        isReceivingFileRef.current = false;
+        fileBufferRef.current = [];
+        setBleState('disconnected');
+        setSyncState('idle');
+        setIsLiveEcgActive(false);
+        showToast('Utracono połączenie z holterem.', 'error');
+      });
+
     } else {
       subscriptionRef.current?.remove();
+      disconnectSubRef.current?.remove();
+      disconnectSubRef.current = null;
       await disconnectDevice(deviceRef.current?.address);
       deviceRef.current = null;
+
+      // Odblokuj wiszące Promise'y transferu jeśli rozłączono w trakcie pobierania
+      readyRejectRef.current?.('BLE_DISCONNECTED');
+      readyRejectRef.current = null;
+      readyResolveRef.current = null;
+      transferRejectRef.current?.(new Error('BLE_DISCONNECTED'));
+      transferRejectRef.current = null;
+      transferResolveRef.current = null;
 
       setBleState('disconnected');
       setSyncState('idle');
@@ -571,6 +584,7 @@ function MainApp() {
       if (trimmed.startsWith('S')) {
         transferResolveRef.current?.();
         transferResolveRef.current = null;
+        transferRejectRef.current = null;
         isReceivingFileRef.current = false;
 
         //flushBuffer();
@@ -649,7 +663,12 @@ function MainApp() {
 
   const getFileFromDevice = async () => {
     receivedFileSize.current = 0;
-    transferResolveRef.current=null;
+    transferResolveRef.current = null;
+    transferRejectRef.current = null;
+    fileBufferRef.current = [];
+    fileWriteQueue.current = Promise.resolve();
+    isFlushingRef.current = false;
+    isReceivingFileRef.current = false;
     if (bleState !== 'connected') {
       showToast('Najpierw połącz urządzenie.', 'error');
       return;
@@ -686,8 +705,11 @@ function MainApp() {
       const localFileInfo = await FileSystem.getInfoAsync(FILE_URI);
       const actualLocalSize = localFileInfo.exists ? localFileInfo.size : 0;
 
-      const transferComplete = new Promise((resolve) => {
+      const TRANSFER_TIMEOUT_MS = 5 * 60 * 1000; // 5 minut
+      const transferComplete = new Promise((resolve, reject) => {
         transferResolveRef.current = resolve;
+        transferRejectRef.current = reject;
+        setTimeout(() => reject(new Error("Timeout: Transfer nie zakończył się w czasie")), TRANSFER_TIMEOUT_MS);
       });
 
       sendData(deviceRef.current.address, `OK ${lastSavedTS} ${actualLocalSize}`);
@@ -801,6 +823,8 @@ function MainApp() {
 
     } catch (error) {
       console.error("Błąd czytania pliku:", error);
+      isReceivingFileRef.current = false;
+      fileBufferRef.current = [];
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       setProgressPercent(0);
       showToast('Wystąpił błąd podczas analizy pliku.', 'error');
@@ -845,42 +869,50 @@ function MainApp() {
   }
 
   const flushBuffer = async () => {
-    console.log('Starting flushing...');
     if (fileBufferRef.current.length === 0) return fileWriteQueue.current;
 
     const dataToWrite = fileBufferRef.current.join('');
     fileBufferRef.current = [];
+    isFlushingRef.current = true;
 
-    const rnfsPath = FILE_URI.replace('file://', '');
-
-    // Chain the next write to the end of the previous one
     fileWriteQueue.current = fileWriteQueue.current.then(async () => {
       try {
         await RNFS.appendFile(FILE_URI, dataToWrite, 'utf8');
-        receivedFileSize.current=receivedFileSize.current+dataToWrite.length;
-        console.log('Flush success');
+        receivedFileSize.current += dataToWrite.length;
       } catch (error) {
         console.error('Flush failed:', error);
+      } finally {
+        isFlushingRef.current = false;
       }
     });
-  
-  return fileWriteQueue.current; 
+
+    return fileWriteQueue.current;
   };
 
   const getLastTimestampFromFile = async () => {
     try {
       const fileInfo = await FileSystem.getInfoAsync(FILE_URI);
-      if (!fileInfo.exists) return "0";
+      if (!fileInfo.exists || !fileInfo.size) return "0";
 
-      const content = await FileSystem.readAsStringAsync(FILE_URI);
-      const lines = content.trim().split('\n');
+      let tail;
+      if (Platform.OS !== 'web' && RNFS?.read) {
+        // Native: czytamy tylko ostatnie 256 bajtów
+        tail = await RNFS.read(FILE_URI.replace('file://', ''), 256, Math.max(0, fileInfo.size - 256), 'utf8');
+      } else {
+        // Web: musimy wczytać cały plik
+        const content = await FileSystem.readAsStringAsync(FILE_URI);
+        const allLines = content.trim().split('\n').filter(Boolean);
+        tail = allLines[allLines.length - 1] ?? '';
+        const ts = tail.split(',')[0];
+        return /^[0-9]+$/.test(ts) ? ts : "0";
+      }
 
-      if (lines.length <= 1) return "0";
+      const lines = tail.trim().split('\n').filter(Boolean);
+      if (lines.length === 0) return "0";
 
       const lastLine = lines[lines.length - 1];
-      const parts = lastLine.split(',');
-
-      return parts[0] || "0";
+      const ts = lastLine.split(',')[0];
+      return /^[0-9]+$/.test(ts) ? ts : "0";
     } catch (e) {
       console.error("Error reading last timestamp:", e);
       return "0";
@@ -1482,8 +1514,14 @@ const deleteCurrentFile = async () => {
         await FileSystem.deleteAsync(FILE_URI);
         fileSize.current = 0;
         previousFileSize.current = 0;
-        setDeviceData(null); 
-        setCurrentSessionId(null); 
+        // Przerwij ewentualny trwający transfer
+        isReceivingFileRef.current = false;
+        fileBufferRef.current = [];
+        fileWriteQueue.current = Promise.resolve();
+        isFlushingRef.current = false;
+        setSyncState('idle');
+        setDeviceData(null);
+        setCurrentSessionId(null);
         showToast("Plik badania został usunięty.", "info");
       } else {
         showToast("Brak pliku do usunięcia.", "error");
