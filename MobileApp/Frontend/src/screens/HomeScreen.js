@@ -96,10 +96,10 @@ const HomeScreen = ({
             disabled={bleState === 'disconnected'} 
             style={[styles.btnSync, bleState === 'disconnected' && styles.btnSyncDisabled]}
           >
-             <RefreshCw 
-               size={20} 
-               color={bleState === 'disconnected' ? '#52525b' : '#fff'} 
-               style={syncState === 'syncing' ? { transform: [{ rotate: '45deg' }] } : {}}
+             <RefreshCw
+               size={20}
+               color={bleState === 'disconnected' ? '#52525b' : '#fff'}
+               style={{ opacity: syncState === 'syncing' ? 0.4 : 1 }}
              />
           </TouchableOpacity>
         </View>

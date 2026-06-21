@@ -1586,7 +1586,7 @@ const deleteCurrentFile = async () => {
       <Animated.View style={[
         styles.toast,
         toastMessage?.type === 'error' ? styles.toastError : toastMessage?.type === 'info' ? styles.toastInfo : styles.toastSuccess,
-        toastMessage?.type === 'loading' && { backgroundColor: '#27272a', borderColor: '#52525b', paddingVertical: 18 },
+        toastMessage?.type === 'loading' && { backgroundColor: '#27272a', borderColor: '#52525b', paddingTop: 14, paddingBottom: 8 },
         { transform: [{ translateY: toastAnim }], overflow: 'hidden', bottom: Math.max(insets.bottom, 16) + 75 }
       ]}>
         <TouchableOpacity
@@ -1612,9 +1612,10 @@ const deleteCurrentFile = async () => {
         </View>
 
         {toastMessage?.type === 'loading' && (
-          <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <View style={{ marginTop: 10, height: 3, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.4)' }}>
             <View style={{
               height: '100%',
+              borderRadius: 2,
               backgroundColor: '#818cf8',
               width: `${progressPercent}%`
             }} />
