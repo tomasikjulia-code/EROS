@@ -69,21 +69,23 @@ void displayTask(void *parameter)
 
 void accelTask(void *parameter) {
 
-    while (true) {
+    while (true)
+    {
         if (xSemaphoreTake(accMutex, portMAX_DELAY))
         {  
             HolterDevice.processAccelerometer();
-            vTaskDelay(pdMS_TO_TICKS(1000)); 
             xSemaphoreGive(accMutex);
         }
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
 void buttonTask(void *parameter) {
 
-    while (true) {
+    while (true)
+    {
         HolterDevice.checkButtons();
-        vTaskDelay(pdMS_TO_TICKS(500)); 
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
 
