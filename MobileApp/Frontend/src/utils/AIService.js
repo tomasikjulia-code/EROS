@@ -1,5 +1,4 @@
 import { call as llmCall } from './LlmClient';
-import { generate as generatePdf } from './PdfBuilder';
 
 
 function parseAiReport(response) {
@@ -235,9 +234,6 @@ export const generateReport = async (aiReport, activeReportRecord, llmConfig, on
     console.error('[AIService] Nieprawidłowy format odpowiedzi:', rawResponse);
     throw new Error('Odpowiedź modelu AI ma nieprawidłowy format JSON');
   }
-
-  onProgress?.('📄 Generuję plik PDF…');
-  await generatePdf(parsed, activeReportRecord);
 
   return {
     ...parsed,

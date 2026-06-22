@@ -218,7 +218,10 @@ const getEcgSlice = (trend, centerTimeMs, pointsToSide = 150) => {
   const endIdx = Math.min(trend.length, closestIdx + pointsToSide);
 
   const slice = trend.slice(startIdx, endIdx).map(p => {
-    const val = p.ecgRaw;
+    let val = p.ecgRaw ?? p.EKG_Raw;
+    if (val === undefined && p.originalLine) {
+      val = parseInt(p.originalLine.split(',')[1], 10);
+    }
     return (val !== undefined && !isNaN(val)) ? val : 0;
   });
 
@@ -1102,8 +1105,13 @@ function MainApp() {
       return;
     }
 
+    const llmReports = activeReportRecord.llmReports
+      ?? migrateLegacyLlmReport(activeReportRecord);
+    const latestLlm = llmReports[0] ?? null;
+
     const reportData = {
       ...activeReportRecord,
+      // Wstępna analiza algorytmiczna (snippety EKG, wnioski algorytmu)
       summary: aiReport?.summary || `Raport EKG z dnia ${formatDate(activeReportRecord.date)}`,
       findings: aiReport?.findings || [],
       recommendation: aiReport?.recommendation || '',
@@ -1111,7 +1119,10 @@ function MainApp() {
       tachyDetails: activeReportRecord.tachyDetails || [],
       bradyDetails: activeReportRecord.bradyDetails || [],
       importantDetails: activeReportRecord.importantDetails || [],
-      eventComments: eventComments
+      eventComments: eventComments,
+      // Analizy AI (LLM) — wszystkie zapisane, najnowsza pierwsza
+      llmReports: llmReports,
+      latestLlm: latestLlm,
     };
 
     await generatePdfReport(reportData, mode, emailData);
@@ -1325,6 +1336,30 @@ const generatePdfReport = async (reportData, mode = 'share', emailData = null) =
     const findingsHtml = (reportData.findings || [])
       .map(f => `<li>${f}</li>`).join('');
 
+    const llmReportsHtml = (reportData.llmReports || []).map((entry, idx) => {
+      const meta = entry._meta || {};
+      const ts = meta.timestamp
+        ? (() => { try { return new Date(meta.timestamp).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return meta.timestamp; } })()
+        : '--';
+      const model = [meta.providerLabel, meta.model].filter(Boolean).join(' / ') || 'AI';
+      const findingsList = Array.isArray(entry.findings) && entry.findings.length
+        ? `<ul class="findings">${entry.findings.map(f => `<li>${f}</li>`).join('')}</ul>`
+        : '';
+      const rec = entry.recommendation
+        ? `<div class="recommendation" style="margin-top:8px;">${entry.recommendation}</div>`
+        : '';
+      return `
+        <div class="keep-together" style="margin-bottom:16px; padding:12px 14px; border:1px solid #c4b5fd; border-radius:6px; background:#faf8ff;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-weight:bold; font-size:10.5pt; color:#4338ca;">Analiza AI #${idx + 1}</span>
+            <span style="font-size:8.5pt; color:#888;">${model} &bull; ${ts}</span>
+          </div>
+          ${entry.summary ? `<p style="margin:0 0 8px; font-size:10.5pt; line-height:1.55;">${entry.summary}</p>` : ''}
+          ${findingsList}
+          ${rec}
+        </div>`;
+    }).join('');
+
     const bpmChartSvg = generateBpmTrendSvg(reportData.hourlyTrend);
     const activityChartSvg = generateActivityTrendSvg(reportData.hourlyTrend);
 
@@ -1348,96 +1383,233 @@ const generatePdfReport = async (reportData, mode = 'share', emailData = null) =
         </div>`;
     }).join('');
 
+    const formattedDate = reportData.date
+      ? (() => { try { return new Date(reportData.date).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return reportData.date; } })()
+      : '--';
+    const generatedAt = (() => { try { return new Date().toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch { return new Date().toISOString(); } })();
+    const hiddenTachy = Math.max(0, (reportData.tachyDetails || []).length - 10);
+    const hiddenBrady = Math.max(0, (reportData.bradyDetails || []).length - 10);
+
     const html = `
       <html>
       <head>
         <meta charset="utf-8"/>
         <style>
-          @page { margin: 40px 24px; }
-          body { font-family: Helvetica, Arial, sans-serif; color: #222; padding: 0 24px; font-size: 13px; }
-          h1 { text-align: center; font-size: 22px; margin-bottom: 4px; }
-          h2 { font-size: 15px; margin-top: 20px; margin-bottom: 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-          .subtitle { text-align: center; color: #777; margin-bottom: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
-          th { background: #f0f0f0; text-align: left; padding: 5px 8px; }
-          td { padding: 4px 8px; border-bottom: 1px solid #eee; }
-          .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; margin-top: 6px; }
-          .stat { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #f0f0f0; }
-          .stat-label { color: #666; }
-          .stat-value { font-weight: bold; }
-          .chart-caption { font-size: 11px; color: #888; text-align: center; margin-top: 2px; margin-bottom: 10px; }
-          .recommendation { background: #f9f9f9; border-left: 3px solid #818cf8; padding: 10px 14px; margin-top: 6px; font-size: 12px; color: #444; }
-          .footer { text-align: center; color: #aaa; font-size: 10px; margin-top: 30px; }
-          .page-start { page-break-before: always; }
+          @page { margin: 18mm 15mm; }
+          body { font-family: Helvetica, Arial, sans-serif; color: #1a1a1a; font-size: 11pt; line-height: 1.5; }
+
+          /* Nagłówek */
+          .header { border-bottom: 3px solid #6366f1; padding-bottom: 10px; margin-bottom: 14px; }
+          .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+          .brand { font-size: 22pt; font-weight: bold; color: #6366f1; letter-spacing: 1px; }
+          .brand-sub { font-size: 9pt; color: #888; margin-top: 1px; }
+          .report-meta { text-align: right; font-size: 9pt; color: #666; }
+          .report-meta strong { color: #333; }
+
+          h2 { font-size: 12pt; font-weight: bold; color: #4338ca; margin: 18px 0 6px;
+               border-bottom: 1px solid #e0e0e0; padding-bottom: 3px; }
+
+          /* Siatka statystyk */
+          .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; margin: 6px 0 10px; }
+          .stat { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f2f2f2; font-size: 10pt; }
+          .stat-label { color: #555; }
+          .stat-value { font-weight: bold; color: #111; }
+          .stat-sub { font-size: 8.5pt; color: #888; }
+
+          /* Tabele */
+          table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 10pt; }
+          thead th { background: #f0f0ff; color: #4338ca; text-align: left; padding: 5px 8px; font-size: 9.5pt; border-bottom: 2px solid #c7d2fe; }
+          tbody td { padding: 4px 8px; border-bottom: 1px solid #eee; }
+          tbody tr:nth-child(even) td { background: #fafafa; }
+          .table-note { font-size: 9pt; color: #888; margin: -4px 0 8px; font-style: italic; }
+
+          /* Wycinki EKG */
+          .snippet { margin: 10px 0; padding: 8px 10px; border: 1px solid #e0e0e0; border-radius: 5px; page-break-inside: avoid; }
+          .snippet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+          .snippet-title { font-weight: bold; font-size: 10pt; color: #333; }
+          .snippet-meta { font-size: 9.5pt; color: #666; }
+          .snippet-comment { margin-top: 6px; padding: 5px 10px; background: #f5f5ff; border-left: 3px solid #818cf8; border-radius: 3px; font-size: 9pt; color: #444; }
+
+          /* Wnioski i zalecenia */
+          ul.findings { padding-left: 18px; margin: 4px 0; }
+          ul.findings li { margin-bottom: 4px; font-size: 10.5pt; line-height: 1.55; }
+          .recommendation { background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 5px; padding: 10px 14px; margin: 6px 0; font-size: 10.5pt; color: #3730a3; line-height: 1.55; }
+
+          /* Podsumowanie */
+          .summary-box { background: #f8faff; border-left: 4px solid #6366f1; padding: 10px 14px; border-radius: 0 5px 5px 0; margin: 6px 0 10px; font-size: 10.5pt; line-height: 1.6; }
+
+          /* Legenda wykresu */
+          .chart-caption { font-size: 9pt; color: #888; text-align: center; margin: 2px 0 12px; }
+
+          /* Stopka */
+          .footer { border-top: 1px solid #ddd; padding-top: 8px; margin-top: 24px; text-align: center; font-size: 8.5pt; color: #aaa; }
+
+          .page-break { page-break-before: always; }
           .keep-together { page-break-inside: avoid; }
+          .no-data { color: #aaa; font-style: italic; font-size: 10pt; }
         </style>
       </head>
       <body>
-        <h1>RAPORT EKG</h1>
-        <p class="subtitle">Data badania: ${reportData.date || '--'}</p>
 
-        <h2>Podsumowanie</h2>
-        <p>${reportData.summary || ''}</p>
-
-        <h2>Statystyki</h2>
-        <div class="stats-grid">
-          <div class="stat"><span class="stat-label">Czas badania:</span><span class="stat-value">${reportData.duration || '--'}</span></div>
-          <div class="stat"><span class="stat-label">Liczba QRS:</span><span class="stat-value">${(reportData.totalBeats || 0).toLocaleString()}</span></div>
-          <div class="stat"><span class="stat-label">Średnie tętno:</span><span class="stat-value">${reportData.avgBpm || 0} BPM</span></div>
-          <div class="stat"><span class="stat-label">Min tętno:</span><span class="stat-value">${reportData.minBpm || 0} BPM</span></div>
-          <div class="stat"><span class="stat-label">Max tętno:</span><span class="stat-value">${reportData.maxBpm || 0} BPM</span></div>
-          <div class="stat"><span class="stat-label">Epizody tachykardii:</span><span class="stat-value">${reportData.tachyEpisodes || 0}</span></div>
-          <div class="stat"><span class="stat-label">Epizody bradykardii:</span><span class="stat-value">${reportData.bradyEpisodes || 0}</span></div>
-          <div class="stat"><span class="stat-label">Ważne zdarzenia:</span><span class="stat-value">${reportData.importantDetails?.length || 0}</span></div>
+        <!-- Nagłówek -->
+        <div class="header">
+          <div class="header-top">
+            <div>
+              <div class="brand">RYTHMIO</div>
+              <div class="brand-sub">Ambulatoryjny Holter EKG</div>
+            </div>
+            <div class="report-meta">
+              <div><strong>Data badania:</strong> ${formattedDate}</div>
+              <div><strong>Wygenerowano:</strong> ${generatedAt}</div>
+              <div><strong>Czas trwania:</strong> ${reportData.duration || '--'}</div>
+            </div>
+          </div>
         </div>
 
+        <!-- Podsumowanie AI -->
+        ${reportData.summary ? `
+        <h2>Podsumowanie kliniczne</h2>
+        <div class="summary-box">${reportData.summary}</div>` : ''}
+
+        <!-- Statystyki -->
+        <h2>Parametry badania</h2>
+        <div class="stats-grid">
+          <div class="stat">
+            <span class="stat-label">Liczba zespołów QRS:</span>
+            <span class="stat-value">${(reportData.totalBeats || 0).toLocaleString('pl-PL')}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Średnie tętno:</span>
+            <span class="stat-value">${reportData.avgBpm || 0} BPM</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Tętno minimalne:</span>
+            <span class="stat-value">${reportData.minBpm || 0} BPM
+              ${reportData.minBpmTime ? `<span class="stat-sub">(godz. ${reportData.minBpmTime})</span>` : ''}
+            </span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Tętno maksymalne:</span>
+            <span class="stat-value">${reportData.maxBpm || 0} BPM
+              ${reportData.maxBpmTime ? `<span class="stat-sub">(godz. ${reportData.maxBpmTime})</span>` : ''}
+            </span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Epizody tachykardii:</span>
+            <span class="stat-value">${reportData.tachyEpisodes || 0}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Epizody bradykardii:</span>
+            <span class="stat-value">${reportData.bradyEpisodes || 0}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Zdarzenia pacjenta:</span>
+            <span class="stat-value">${reportData.importantDetails?.length || 0}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Rozpiętość tętna:</span>
+            <span class="stat-value">${(reportData.maxBpm || 0) - (reportData.minBpm || 0)} BPM</span>
+          </div>
+        </div>
+
+        <!-- Wykresy -->
         ${bpmChartSvg ? `
-        <h2>Trend tętna</h2>
-        ${bpmChartSvg}
-        <div class="chart-caption">Tętno (BPM) w czasie badania</div>` : ''}
+        <div class="keep-together">
+          <h2>Trend tętna</h2>
+          ${bpmChartSvg}
+          <div class="chart-caption">Tętno (BPM) w czasie trwania badania</div>
+        </div>` : ''}
 
         ${activityChartSvg ? `
-        <h2>Trend aktywności</h2>
-        ${activityChartSvg}
-        <div class="chart-caption">Poziom aktywności pacjenta</div>` : ''}
-
-        ${tachyRows ? `
-        <h2>Epizody Tachykardii</h2>
-        <table><thead><tr><th>#</th><th>Start</th><th>Koniec</th><th>Czas trwania</th><th>Max BPM</th></tr></thead>
-        <tbody>${tachyRows}</tbody></table>` : ''}
-
-        ${bradyRows ? `
-        <h2>Epizody Bradykardii</h2>
-        <table><thead><tr><th>#</th><th>Start</th><th>Koniec</th><th>Czas trwania</th><th>Min BPM</th></tr></thead>
-        <tbody>${bradyRows}</tbody></table>` : ''}
-
-        ${importantRows ? `
-        <div class="page-start keep-together">
-        <h2>Ważne Zdarzenia Pacjenta</h2>
-        <table><thead><tr><th>#</th><th>Start</th><th>Koniec</th><th>Czas trwania</th><th>BPM</th></tr></thead>
-        <tbody>${importantRows}</tbody></table>
+        <div class="keep-together">
+          <h2>Trend aktywności</h2>
+          ${activityChartSvg}
+          <div class="chart-caption">Poziom aktywności ruchowej pacjenta</div>
         </div>` : ''}
 
+        <!-- Tachykardia -->
+        ${tachyRows ? `
+        <div class="keep-together">
+          <h2>Epizody tachykardii (≥100 BPM przez ≥30 s)</h2>
+          <table>
+            <thead><tr><th>#</th><th>Początek</th><th>Koniec</th><th>Czas trwania</th><th>Maks. BPM</th></tr></thead>
+            <tbody>${tachyRows}</tbody>
+          </table>
+          ${hiddenTachy > 0 ? `<p class="table-note">+ ${hiddenTachy} kolejnych epizodów niewyświetlonych</p>` : ''}
+        </div>` : ''}
+
+        <!-- Bradykardia -->
+        ${bradyRows ? `
+        <div class="keep-together">
+          <h2>Epizody bradykardii (&lt;50 BPM przez ≥30 s)</h2>
+          <table>
+            <thead><tr><th>#</th><th>Początek</th><th>Koniec</th><th>Czas trwania</th><th>Min. BPM</th></tr></thead>
+            <tbody>${bradyRows}</tbody>
+          </table>
+          ${hiddenBrady > 0 ? `<p class="table-note">+ ${hiddenBrady} kolejnych epizodów niewyświetlonych</p>` : ''}
+        </div>` : ''}
+
+        <!-- Zdarzenia pacjenta -->
+        ${importantRows ? `
+        <div class="keep-together">
+          <h2>Zdarzenia oznaczone przez pacjenta</h2>
+          <table>
+            <thead><tr><th>#</th><th>Początek</th><th>Koniec</th><th>Czas trwania</th><th>BPM</th></tr></thead>
+            <tbody>${importantRows}</tbody>
+          </table>
+        </div>` : ''}
+
+        <!-- Wycinki EKG -->
         ${snippetsHtml ? `
-        <h2>Wycinki EKG</h2>
+        <h2>Reprezentatywne wycinki EKG</h2>
         ${snippetsHtml}` : ''}
 
+        <!-- Wnioski AI -->
         ${findingsHtml ? `
         <div class="keep-together">
-        <h2>Wnioski</h2>
-        <ul>${findingsHtml}</ul>
+          <h2>Szczegółowe wnioski kliniczne</h2>
+          <ul class="findings">${findingsHtml}</ul>
         </div>` : ''}
 
+        <!-- Zalecenia algorytmu -->
         ${reportData.recommendation ? `
         <div class="keep-together">
-        <h2>Zalecenia</h2>
-        <div class="recommendation">${reportData.recommendation}</div>
+          <h2>Zalecenia (analiza algorytmiczna)</h2>
+          <div class="recommendation">${reportData.recommendation}</div>
         </div>` : ''}
 
-        <p class="footer">Wygenerowano przez Rythmio &bull; Raport ma charakter informacyjny i nie zastępuje diagnozy lekarskiej.</p>
+        <!-- Analizy AI (LLM) -->
+        ${llmReportsHtml ? `
+        <div class="page-break">
+          <h2>Analizy AI</h2>
+          ${llmReportsHtml}
+        </div>` : ''}
+
+        <!-- Stopka -->
+        <div class="footer">
+          Wygenerowano przez Rythmio Holter EKG &bull;
+          Raport ma charakter informacyjny i nie zastępuje diagnozy ani konsultacji lekarskiej.
+        </div>
+
       </body>
       </html>
     `;
+
+    // Na webie expo-print nie obsługuje printToFileAsync — otwieramy HTML w nowej karcie
+    if (Platform.OS === 'web') {
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url  = URL.createObjectURL(blob);
+      const win  = window.open(url, '_blank');
+      if (win) {
+        win.addEventListener('load', () => {
+          win.focus();
+          win.print();
+        });
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      showToast('Raport otwarty — użyj "Zapisz jako PDF" w oknie drukowania.', 'info');
+      return;
+    }
 
     const { uri } = await Print.printToFileAsync({ html });
     const safeUri = FileSystem.cacheDirectory + `Raport_EKG_${Date.now()}.pdf`;
