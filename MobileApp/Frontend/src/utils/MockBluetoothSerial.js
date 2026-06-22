@@ -2,15 +2,13 @@
  * MockBluetoothSerial – identyczne API jak BluetoothSerial.js
  * Używany gdy USE_MOCK_BT = true w Config.js.
  *
- * Symulowany scenariusz CSV (5 minut, 50 Hz):
- *   0–60 s   : rytm zatokowy 72 BPM  (ignorowane w analizie – IGNORE_FIRST_MS)
- *  60–120 s  : rytm zatokowy 72 BPM
- * 120–180 s  : tachykardia   115 BPM  → wykryty epizod
- * 180–210 s  : powrót         85 BPM
- * 210–250 s  : bradykardia    42 BPM  → wykryty epizod
- * 250–270 s  : powrót         62 BPM
- * 270–271 s  : ważne zdarzenie (Important = 1)
- * 271–300 s  : rytm zatokowy 68 BPM
+ * Symulowany scenariusz CSV (~8h ±1h, 50 Hz):
+ *  Faza 1  0–15%    : sen głęboki  ~54 BPM
+ *  Faza 2  15–40%   : sen lekki    ~62 BPM
+ *  Faza 3  40–52%   : pobudka/rano ~75 BPM
+ *  Faza 4  52–68%   : aktywność    ~82 BPM  → epizod tachykardii
+ *  Faza 5  68–90%   : popołudnie   ~71 BPM  → epizod bradykardii + ważne zdarzenie
+ *  Faza 6  90–100%  : wieczór      ~65 BPM
  */
 
 const MOCK_DEVICE = { name: 'RYTHMIO', address: 'MOCK:00:11:22:33:44' };
@@ -31,30 +29,63 @@ function ecgSample(cyclePos, cycleLen) {
 // ─── Generator pliku CSV ─────────────────────────────────────────────────────
 
 function generateMockCsv() {
-  const RATE = 50;           // Hz
-  const DURATION = 5 * 60;  // s
-  const DT = 1000 / RATE;   // ms / próbkę
+  const RATE     = 50;                                                     // Hz
+  const RAND_MIN = Math.floor(Math.random() * 121) - 60;                  // ±60 min
+  const DURATION = (2 * 60 + RAND_MIN) * 60;                              // s (7h–9h)
+  const DT       = 1000 / RATE;                                            // ms/próbkę
+
+  // Fazy: [od_s, do_s, target_bpm]
+  const PHASES = [
+    [0,                 DURATION * 0.15, 54],   // sen głęboki
+    [DURATION * 0.15,   DURATION * 0.40, 62],   // sen lekki/REM
+    [DURATION * 0.40,   DURATION * 0.52, 75],   // pobudka
+    [DURATION * 0.52,   DURATION * 0.68, 82],   // aktywność
+    [DURATION * 0.68,   DURATION * 0.90, 71],   // popołudnie
+    [DURATION * 0.90,   DURATION,        65],    // wieczór
+  ];
+
+  // Losowe epizody
+  const tachyStart  = DURATION * (0.52 + Math.random() * 0.10);  // w fazie aktywności
+  const tachyEnd    = tachyStart  + 60 * (8 + Math.random() * 8);
+  const bradyStart  = DURATION * (0.68 + Math.random() * 0.10);  // w popołudniu
+  const bradyEnd    = bradyStart  + 60 * (5 + Math.random() * 6);
+  const importantAt = DURATION * (0.70 + Math.random() * 0.10);
 
   const rows = ['Timestamp_ms,ECG_Raw,BPM,LeadOff,Activity,Important'];
-  let cp = 0; // pozycja w cyklu QRS
+  let cp     = 0;    // pozycja w cyklu QRS
+  let bpmOU  = 65;   // Ornstein-Uhlenbeck state
 
   for (let i = 0; i < DURATION * RATE; i++) {
     const timeMs = Math.round(i * DT);
     const tSec   = timeMs / 1000;
+    const frac   = tSec / DURATION;
 
-    let bpm = 72;
-    if      (tSec >= 120 && tSec < 180) bpm = 115;
-    else if (tSec >= 180 && tSec < 210) bpm = 85;
-    else if (tSec >= 210 && tSec < 250) bpm = 42;
-    else if (tSec >= 250 && tSec < 270) bpm = 62;
-    else if (tSec >= 270)               bpm = 68;
+    // Znajdź docelowy BPM z faz
+    let targetBpm = 65;
+    for (const [from, to, bpm] of PHASES) {
+      if (tSec >= from && tSec < to) { targetBpm = bpm; break; }
+    }
 
-    const cycleLen = Math.round(RATE * 60 / bpm);
-    const raw      = ecgSample(cp % cycleLen, cycleLen);
+    // Epizody nadpisują cel
+    if (tSec >= tachyStart && tSec < tachyEnd) targetBpm = 112 + Math.random() * 10;
+    if (tSec >= bradyStart  && tSec < bradyEnd)  targetBpm =  42 + Math.random() * 6;
+
+    // OU random walk — krok co próbkę (RATE próbek/s, więc α bardzo małe)
+    const alpha    = 0.008 / RATE;
+    const sigma    = 0.35;
+    const noise    = (Math.random() + Math.random() - 1) * sigma;
+    bpmOU         += alpha * (targetBpm - bpmOU) + noise;
+    const bpm      = Math.max(36, Math.min(165, Math.round(bpmOU)));
+
+    const cycleLen  = Math.round(RATE * 60 / Math.max(bpm, 30));
+    const raw       = ecgSample(cp % cycleLen, cycleLen);
     cp++;
 
-    const activity  = Math.round(Math.random() * 3 * 10) / 10;
-    const important = (tSec >= 270 && tSec < 271) ? 1 : 0;
+    // Aktywność: noc ~0, dzień ~3–6
+    const actBase   = frac < 0.40 ? 0.5 : frac < 0.68 ? 5.0 : 2.5;
+    const activity  = Math.max(0, Math.round((actBase + (Math.random() - 0.5) * actBase * 0.6) * 10) / 10);
+
+    const important = (tSec >= importantAt && tSec < importantAt + 1) ? 1 : 0;
 
     rows.push(`${timeMs},${raw},${bpm},0,${activity},${important}`);
   }
@@ -132,13 +163,41 @@ class MockBtSession {
   }
 
   async _sendFile() {
-    const lines = (this._csv || '').split('\n');
-    const CHUNK = 30; // linii na "pakiet"
-    for (let i = 0; i < lines.length; i += CHUNK) {
-      await new Promise(r => setTimeout(r, 15));
-      lines.slice(i, i + CHUNK).forEach(l => l.trim() && this.emit(l));
+    const lines  = (this._csv || '').split('\n');
+    const CHUNK  = 1000;
+    const CHUNKS = Math.ceil(lines.length / CHUNK);
+
+    // Co ~15 chunków displayTask blokuje sdMutex na 500–2000 ms
+    const DISPLAY_EVERY  = 15;
+    const DISPLAY_MIN_MS = 500;
+    const DISPLAY_MAX_MS = 2000;
+
+    // Co ~60 chunków memory-pressure pause: 50–150 ms
+    const MEM_EVERY  = 60;
+    const MEM_MIN_MS = 50;
+    const MEM_MAX_MS = 150;
+
+    for (let ci = 0; ci < CHUNKS; ci++) {
+      // Bazowy delay między chunkami (symuluje 5–20 ms SD read + BT write)
+      await new Promise(r => setTimeout(r, 8 + Math.random() * 10));
+
+      // Pauza sdMutex od displayTask
+      if (ci > 0 && ci % DISPLAY_EVERY === 0) {
+        const pause = DISPLAY_MIN_MS + Math.random() * (DISPLAY_MAX_MS - DISPLAY_MIN_MS);
+        await new Promise(r => setTimeout(r, pause));
+      }
+
+      // Pauza memory-pressure
+      if (ci > 0 && ci % MEM_EVERY === 0) {
+        const pause = MEM_MIN_MS + Math.random() * (MEM_MAX_MS - MEM_MIN_MS);
+        await new Promise(r => setTimeout(r, pause));
+      }
+
+      const start = ci * CHUNK;
+      lines.slice(start, start + CHUNK).forEach(l => l.trim() && this.emit(l));
     }
-    this.emit('S'); // koniec transferu
+
+    this.emit('S');
   }
 
   destroy() {

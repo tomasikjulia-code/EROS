@@ -5,7 +5,7 @@ import { PUBLIC_PROVIDER_IDS } from './src/config/LlmProviders';
 import { SafeAreaView, SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertCircle, CheckCircle2, Home, History, Settings } from 'lucide-react-native';
 import { styles } from './src/constants/Theme';
-import { initialHistory, generateHourlyTrend, generateMockEcgStrip } from './src/utils/Generators';
+import { generateMockEcgStrip } from './src/utils/Generators';
 import { USE_MOCK_BT } from './src/config/Config';
 import * as RealBT from './src/utils/BluetoothSerial';
 import * as MockBT from './src/utils/MockBluetoothSerial';
@@ -18,7 +18,6 @@ import HistoryScreen from './src/screens/HistoryScreen';
 import ReportScreen from './src/screens/ReportScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import { ecgBuffer } from './src/utils/EcgBuffer.js'
-import { parseEcgFileToTrend } from './src/utils/CsvParser';
 
 import * as FileSystem from 'expo-file-system/legacy';
 import { Asset } from 'expo-asset';
@@ -80,33 +79,20 @@ const analyzeEcgTrend = (parsedTrend) => {
 
   const IGNORE_FIRST_MS = 60000; 
 
-  for (let i = 0; i < parsedTrend.length; i++) {
-    const point = parsedTrend[i];
-    
-    const isImportant = point.important === true;
-
-    if (!isCurrentlyImportant) {
-      if (isImportant) {
-        isCurrentlyImportant = true;
-        importantStartTime = point.timeMs;
-        importantMaxBpm = point.bpm;
-      }
-    } else {
-      if (point.bpm > importantMaxBpm) importantMaxBpm = point.bpm;
-      if (!isImportant) {
-        isCurrentlyImportant = false;
-        importantDetails.push({ start: importantStartTime, end: point.timeMs, maxBpm: importantMaxBpm });
-      }
-    }
-  }
-  if (isCurrentlyImportant && parsedTrend.length > 0) {
-    importantDetails.push({ start: importantStartTime, end: parsedTrend[parsedTrend.length - 1].timeMs, maxBpm: importantMaxBpm });
-  }
-
+  // Jeden przebieg — important + statystyki + tachy/brady
   for (let i = 0; i < parsedTrend.length; i++) {
     const point = parsedTrend[i];
     const bpm = point.bpm;
     const timeMs = point.timeMs;
+
+    // Important events (niezależnie od szumu)
+    const isImportant = point.important === true;
+    if (!isCurrentlyImportant) {
+      if (isImportant) { isCurrentlyImportant = true; importantStartTime = timeMs; importantMaxBpm = bpm; }
+    } else {
+      if (bpm > importantMaxBpm) importantMaxBpm = bpm;
+      if (!isImportant) { isCurrentlyImportant = false; importantDetails.push({ start: importantStartTime, end: timeMs, maxBpm: importantMaxBpm }); }
+    }
     if (bpm < 35 || bpm > 220 || point.isNoise) continue;
 
     // Pomijamy szumy z pierwszych 60 sekund badania
@@ -171,8 +157,9 @@ const analyzeEcgTrend = (parsedTrend) => {
   }
 
   const lastTimeMs = parsedTrend.length > 0 ? parsedTrend[parsedTrend.length - 1].timeMs : 0;
-  if (isCurrentlyTachy && tachyDetails.length > 0) tachyDetails[tachyDetails.length - 1].end = lastTimeMs;
-  if (isCurrentlyBrady && bradyDetails.length > 0) bradyDetails[bradyDetails.length - 1].end = lastTimeMs;
+  if (isCurrentlyTachy    && tachyDetails.length > 0)     tachyDetails[tachyDetails.length - 1].end = lastTimeMs;
+  if (isCurrentlyBrady    && bradyDetails.length > 0)     bradyDetails[bradyDetails.length - 1].end = lastTimeMs;
+  if (isCurrentlyImportant && parsedTrend.length > 0)    importantDetails.push({ start: importantStartTime, end: lastTimeMs, maxBpm: importantMaxBpm });
 
   return {
     minBpm: minBpm === 999 ? 0 : Math.floor(minBpm),
@@ -328,6 +315,11 @@ function MainApp() {
   const isFlushingRef = useRef(false);
   const fileWriteQueue = useRef(Promise.resolve());
 
+  // Inline parsing podczas transferu — eliminuje readAsStringAsync + dwa przebiegi po transferze
+  const trendRawRef = useRef([]);
+  const activitySumRef = useRef(0);
+  const activityCntRef = useRef(0);
+
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -433,12 +425,14 @@ function MainApp() {
     if (type === 'loading') {
       setProgressPercent(0);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      
+
       progressIntervalRef.current = setInterval(() => {
         setProgressPercent(prev => {
             return Math.floor(Math.min(99, (receivedFileSize.current / (toBeReceived.current || 1)) * 100));
         });
-      }, 130); 
+      }, 130);
+    } else if (type === 'analyzing') {
+      // Nie ruszaj progressPercent ani intervalu — transfer już 100%, trwa parsowanie
     } else {
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
@@ -553,7 +547,10 @@ function MainApp() {
       if (trimmed.startsWith('READY')) {
         const totalSize = parseInt(trimmed.split(' ')[1], 10);
         previousFileSize.current = fileSize.current || 0;
-        toBeReceived.current = Math.max(0, totalSize - previousFileSize.current);
+        const delta = totalSize - previousFileSize.current;
+        // delta <= 0 gdy poprzedni plik był większy (np. mock losuje mniejszy zakres)
+        // → pełny retransfer: używamy totalSize jako mianownika progresu
+        toBeReceived.current = delta > 0 ? delta : totalSize;
         
         fileSize.current = totalSize;
         AsyncStorage.setItem('fileSize', String(totalSize)).catch(e =>
@@ -585,13 +582,16 @@ function MainApp() {
       }
 
       if (trimmed.startsWith('S')) {
+        // Koniec transferu — natychmiast pokaż 100%, nie czekaj na IO
+        if (progressIntervalRef.current) {
+          clearInterval(progressIntervalRef.current);
+          progressIntervalRef.current = null;
+        }
+        setProgressPercent(100);
         transferResolveRef.current?.();
         transferResolveRef.current = null;
         transferRejectRef.current = null;
         isReceivingFileRef.current = false;
-
-        //flushBuffer();
-
         return;
       }
 
@@ -672,6 +672,9 @@ function MainApp() {
     fileWriteQueue.current = Promise.resolve();
     isFlushingRef.current = false;
     isReceivingFileRef.current = false;
+    trendRawRef.current = [];
+    activitySumRef.current = 0;
+    activityCntRef.current = 0;
     if (bleState !== 'connected') {
       showToast('Najpierw połącz urządzenie.', 'error');
       return;
@@ -719,28 +722,39 @@ function MainApp() {
       await transferComplete;
       await flushBuffer();
 
-      //await fileWriteQueue.current; 
-      
+      //await fileWriteQueue.current;
+
       console.log('All data safely on disk.');
 
       const finalCheck = await FileSystem.getInfoAsync(FILE_URI);
       console.log(`Final file size: ${finalCheck.size} bytes`);
 
-      // // (Symulacja transferu pliku - do wywalenia potem)
-      // await new Promise(resolve => setTimeout(resolve, 2000));
-      // const [{ localUri }] = await Asset.loadAsync(require('./assets/test_ekg.csv'));
-      // await FileSystem.copyAsync({ from: localUri, to: FILE_URI });
+      showToast('Trwa analiza EKG...', 'analyzing');
 
-      showToast('Trwa analiza EKG...', 'loading');
+      // Filtr szumu — mutujemy raw in-place (bez alokacji nowych obiektów)
+      const raw = trendRawRef.current;
+      const avgActivity = activityCntRef.current > 0
+        ? activitySumRef.current / activityCntRef.current : 0;
+      const motionNoiseThreshold = Math.max(avgActivity * 3, 6.0);
+      let lastValidBpm = 0;
+      let lastValidTimeMs = 0;
 
-      const fileContent = await FileSystem.readAsStringAsync(FILE_URI, {
-        encoding: FileSystem.EncodingType.UTF8
-      });
+      for (let i = 0; i < raw.length; i++) {
+        const pt = raw[i];
+        let isNoise = false;
+        if (pt.leadOff === 1)                                                                          isNoise = true;
+        else if (pt.activity > motionNoiseThreshold)                                                   isNoise = true;
+        else if (pt.bpm < 20 && pt.activity > 1.0)                                                    isNoise = true;
+        else if (pt.ecgRaw === 0)                                                                      isNoise = true;
+        else if (lastValidBpm > 0 && Math.abs(pt.bpm - lastValidBpm) > 50 && (pt.timeMs - lastValidTimeMs) < 15000) isNoise = true;
+        else if (pt.bpm < 20 || pt.bpm > 250)                                                         isNoise = true;
+        pt.isNoise = isNoise;
+        if (!isNoise) { lastValidBpm = pt.bpm; lastValidTimeMs = pt.timeMs; }
+      }
 
-      const parsedTrend = parseEcgFileToTrend(fileContent);
+      const parsedTrend = raw; // ta sama tablica, bez kopiowania
 
-      if (!parsedTrend || parsedTrend.length === 0) {
-        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      if (parsedTrend.length === 0) {
         setProgressPercent(0);
         showToast('Błąd: Plik jest pusty lub uszkodzony.', 'error');
         setSyncState('idle');
@@ -781,9 +795,6 @@ function MainApp() {
         pauses: { count: 0, longest: "0", longestTime: "--" },
         hourlyTrend: parsedTrend
       };
-
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      setProgressPercent(100);
 
       setTimeout(() => {
         setDeviceData(newData);
@@ -853,18 +864,30 @@ function MainApp() {
 
   const writeToFile = (data) => {
     try {
-      //console.log(data);
-      //const row = `${timestampMs},${ECGRaw},${BPM},${leadOff}\n`
-      // await FileSystem.writeAsStringAsync(FILE_URI, data+"\n", {
-      //   encoding: FileSystem.EncodingType.UTF8,
-      //   append: true,
-      // });
-      //console.log('Received data packet:', data.trim());
-      fileBufferRef.current.push(data + '\n');
-      //console.log(`Buffer size: ${fileBufferRef.current.length}`);
+      const line = data + '\n';
+      fileBufferRef.current.push(line);
+      receivedFileSize.current += line.length;
 
       if (fileBufferRef.current.length > 4000 && !isFlushingRef.current) {
         flushBuffer();
+      }
+
+      // Inline parsing — parsuj każdą linię od razu zamiast czekać na koniec transferu
+      const parts = data.split(',');
+      if (parts.length >= 5) {
+        const timeMs = parseInt(parts[0], 10);
+        const ecgRaw = parseInt(parts[1], 10);
+        const bpm    = parseInt(parts[2], 10);
+        const leadOff = parseInt(parts[3], 10);
+        const actRaw  = parts[4].trim();
+        const activity = actRaw === 'B' ? 0 : parseFloat(actRaw);
+        const important = parts.length >= 6 ? parseInt(parts[5], 10) === 1 : false;
+
+        if (!isNaN(timeMs) && !isNaN(bpm) && !isNaN(activity)) {
+          trendRawRef.current.push({ timeMs, bpm, ecgRaw, leadOff, activity, important });
+          activitySumRef.current += activity;
+          activityCntRef.current += 1;
+        }
       }
     } catch (error) {
       console.error('Failed to write to file:', error);
@@ -881,7 +904,6 @@ function MainApp() {
     fileWriteQueue.current = fileWriteQueue.current.then(async () => {
       try {
         await RNFS.appendFile(FILE_URI, dataToWrite, 'utf8');
-        receivedFileSize.current += dataToWrite.length;
       } catch (error) {
         console.error('Flush failed:', error);
       } finally {
@@ -1131,39 +1153,103 @@ function MainApp() {
 const createMockReportRecord = () => {
   const now = new Date();
 
+  // Czas trwania: 8h ± losowe minuty w zakresie ±1h (czyli 7h–9h)
+  const randomMinuteOffset = Math.floor(Math.random() * 121) - 60; // -60..+60 min
+  const durationMinutes   = 8 * 60 + randomMinuteOffset;           // 420–540 min
+  const durationMs        = durationMinutes * 60 * 1000;
+  const durationHours     = Math.floor(durationMinutes / 60);
+  const durationRemMins   = durationMinutes % 60;
+  const durationStr       = `${String(durationHours).padStart(2,'0')}:${String(durationRemMins).padStart(2,'0')}:00`;
+
+  // ECG — wierny kształt PQRST z naturalnym szumem i artefaktami
   const generateEcgSample = (tick) => {
-    let value = Math.random() * 600 - 300;
-    const cycle = tick % 250;
+    const noise   = (Math.random() + Math.random() - 1) * 280; // gaussopodobny szum bazowy
+    const wander  = 400 * Math.sin(tick / 420);                // powolne dryfowanie linii
+    let value     = noise + wander;
+    const cycle   = tick % 250;
 
-    if (cycle > 20 && cycle < 40) value += 1000 * Math.sin((cycle - 20) * Math.PI / 20);
-    else if (cycle === 50) value -= 2000;
-    else if (cycle === 53) value += 7800;
-    else if (cycle === 56) value -= 6500;
-    else if (cycle > 90 && cycle < 130) value += 2000 * Math.sin((cycle - 90) * Math.PI / 40);
+    // Fala P
+    if (cycle >= 20 && cycle < 40)  value += 900  * Math.sin((cycle - 20) * Math.PI / 20);
+    // Kompleks QRS
+    else if (cycle === 50)           value -= 1800;
+    else if (cycle === 53)           value += 7800;
+    else if (cycle === 56)           value -= 6200;
+    // Fala T
+    else if (cycle >= 90 && cycle < 130) value += 1800 * Math.sin((cycle - 90) * Math.PI / 40);
 
-    if (tick % 1000 > 750) {
-      if (cycle === 50) value -= 3000;
-      else if (cycle === 55) value += 12000;
-      else if (cycle === 65) value -= 9000;
-      else if (cycle > 90 && cycle < 140) value -= 3000 * Math.sin((cycle - 90) * Math.PI / 50);
+    // Co kilkaset uderzeń — mocniejszy QRS (zmienność biologiczna)
+    if (tick % 900 > 680) {
+      if      (cycle === 50)              value -= 2500;
+      else if (cycle === 55)              value += 11000;
+      else if (cycle === 65)              value -= 8500;
+      else if (cycle >= 90 && cycle < 140) value -= 2500 * Math.sin((cycle - 90) * Math.PI / 50);
     }
+
+    // Sporadyczny artefakt ruchowy (co ~3000 ticków, krótki)
+    if (tick % 3100 > 3050) value += (Math.random() - 0.5) * 8000;
 
     return Math.round(value);
   };
 
-  const hourlyTrend = Array.from({ length: 120 }).map((_, index) => {
-    const timeMs = index * 120000;
-    const baseBpm = 70 + Math.round(12 * Math.sin(index / 12));
-    const bpm = Math.max(40, Math.min(150, baseBpm + Math.round(Math.random() * 16 - 8)));
-    const activity = Math.round(Math.random() * 10);
-    const ecgRaw = generateEcgSample(index * 7);
+  // BPM — Ornstein-Uhlenbeck random walk z fazami doby i epizodami
+  const INTERVAL_MS = 120000; // punkt co 2 minuty
+  const totalPoints = Math.ceil(durationMs / INTERVAL_MS);
+
+  // Cel BPM zależny od fazy badania (0=start, 1=koniec)
+  const getTargetBpm = (frac) => {
+    if (frac < 0.12) return 58;  // spokój / leżenie przed snem
+    if (frac < 0.22) return 54;  // najgłębszy sen
+    if (frac < 0.40) return 62;  // sen lekki / fazy REM
+    if (frac < 0.52) return 75;  // pobudka, wstawanie
+    if (frac < 0.68) return 82;  // aktywność przedpołudniowa
+    if (frac < 0.78) return 77;  // nieco spokojniej
+    if (frac < 0.90) return 71;  // po południu
+    return 65;                    // wieczór, wyciszenie
+  };
+
+  // Aktywność fizyczna zależna od fazy
+  const getBaseActivity = (frac) => {
+    if (frac < 0.40) return 0.8;   // noc — prawie zero
+    if (frac < 0.52) return 4.0;   // poranny ruch
+    if (frac < 0.68) return 6.5;   // aktywność
+    if (frac < 0.78) return 3.5;   // spokojniej
+    return 2.0;                     // wieczór
+  };
+
+  let bpmState = 65; // bieżący BPM — ciągły stan między punktami
+  let nextTachyAt = Math.floor(totalPoints * (0.45 + Math.random() * 0.15));
+  let nextBradyAt = Math.floor(totalPoints * (0.10 + Math.random() * 0.25));
+  let tachyDuration = 0, bradyDuration = 0;
+
+  const hourlyTrend = Array.from({ length: totalPoints }).map((_, index) => {
+    const timeMs = index * INTERVAL_MS;
+    const frac   = index / (totalPoints - 1);
+
+    // Gauss-like noise (suma 3 uniform → bardziej centralna)
+    const gaussNoise = (Math.random() + Math.random() + Math.random() - 1.5) * 2.8;
+
+    // Mean reversion — powolne podążanie za celem (α=0.06 → zmiana ok. 6% różnicy co krok)
+    bpmState += 0.06 * (getTargetBpm(frac) - bpmState) + gaussNoise;
+
+    // Epizod tachykardii (jeden, trwa ~6–12 punktów = 12–24 min)
+    if (index === nextTachyAt) tachyDuration = 6 + Math.floor(Math.random() * 7);
+    if (tachyDuration > 0) { bpmState += 4 + Math.random() * 3; tachyDuration--; }
+
+    // Epizod bradykardii (jeden, trwa ~4–8 punktów = 8–16 min)
+    if (index === nextBradyAt) bradyDuration = 4 + Math.floor(Math.random() * 5);
+    if (bradyDuration > 0) { bpmState -= 3 + Math.random() * 2; bradyDuration--; }
+
+    const bpm      = Math.max(38, Math.min(160, Math.round(bpmState)));
+    const actBase  = getBaseActivity(frac);
+    const activity = Math.max(0, Math.round(actBase + (Math.random() - 0.5) * actBase * 0.7));
+    const ecgRaw   = generateEcgSample(index * 7);
+
     return {
       time: `${Math.floor(timeMs / 60000)}:${String(Math.floor((timeMs % 60000) / 1000)).padStart(2, '0')}`,
       bpm,
       timeMs,
       activity,
-      EKG_Raw: ecgRaw,
-      originalLine: `${timeMs},${ecgRaw},${bpm},0,${activity},0`
+      ecgRaw,
     };
   });
 
@@ -1171,7 +1257,7 @@ const createMockReportRecord = () => {
   const mockRecord = {
     id: `mock-${Date.now()}`,
     date: now.toISOString(),
-    duration: "24:00:00",
+    duration: durationStr,
     totalBeats: hourlyTrend.length,
     avgBpm: stats.avgBpm,
     minBpm: stats.minBpm,
@@ -1181,15 +1267,15 @@ const createMockReportRecord = () => {
     maxBpmTime: formatMsToTime(stats.maxBpmTimeMs),
     maxBpmTimeMs: stats.maxBpmTimeMs,
     tachyEpisodes: stats.tachyEpisodes,
-    tachyDetails: stats.tachyDetails.length ? stats.tachyDetails : [{ start: 1800000, end: 1860000, maxBpm: 128 }],
+    tachyDetails: stats.tachyDetails.length ? stats.tachyDetails : [{ start: Math.floor(durationMs * 0.5), end: Math.floor(durationMs * 0.5) + 60000, maxBpm: 118 }],
     bradyEpisodes: stats.bradyEpisodes,
-    bradyDetails: stats.bradyDetails.length ? stats.bradyDetails : [{ start: 7200000, end: 7260000, minBpm: 48 }],
-    importantDetails: stats.importantDetails.length ? stats.importantDetails : [{ start: 10800000, end: 10860000, maxBpm: 72 }],
+    bradyDetails: stats.bradyDetails.length ? stats.bradyDetails : [{ start: Math.floor(durationMs * 0.2), end: Math.floor(durationMs * 0.2) + 60000, minBpm: 46 }],
+    importantDetails: stats.importantDetails.length ? stats.importantDetails : [{ start: Math.floor(durationMs * 0.65), end: Math.floor(durationMs * 0.65) + 60000, maxBpm: 79 }],
     arrhythmiaEvents: stats.arrhythmiaEvents,
-    veb: { total: 3, pairs: 0, runs: 0, burden: "< 0.1%" },
-    sveb: { total: 8, pairs: 0, runs: 0, burden: "< 0.1%" },
-    pauses: { count: 1, longest: "2.2s", longestTime: "03:15:10" },
-    hourlyTrend: hourlyTrend,
+    veb:  { total: 3, pairs: 0, runs: 0, burden: '< 0.1%' },
+    sveb: { total: 8, pairs: 0, runs: 0, burden: '< 0.1%' },
+    pauses: { count: 1, longest: '2.2s', longestTime: formatMsToTime(Math.floor(durationMs * 0.35)) },
+    hourlyTrend,
   };
   return mockRecord;
 };
