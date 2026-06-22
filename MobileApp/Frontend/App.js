@@ -79,13 +79,11 @@ const analyzeEcgTrend = (parsedTrend) => {
 
   const IGNORE_FIRST_MS = 60000; 
 
-  // Jeden przebieg — important + statystyki + tachy/brady
   for (let i = 0; i < parsedTrend.length; i++) {
     const point = parsedTrend[i];
     const bpm = point.bpm;
     const timeMs = point.timeMs;
 
-    // Important events (niezależnie od szumu)
     const isImportant = point.important === true;
     if (!isCurrentlyImportant) {
       if (isImportant) { isCurrentlyImportant = true; importantStartTime = timeMs; importantMaxBpm = bpm; }
@@ -94,17 +92,13 @@ const analyzeEcgTrend = (parsedTrend) => {
       if (!isImportant) { isCurrentlyImportant = false; importantDetails.push({ start: importantStartTime, end: timeMs, maxBpm: importantMaxBpm }); }
     }
     if (bpm < 35 || bpm > 220 || point.isNoise) continue;
-
-    // Pomijamy szumy z pierwszych 60 sekund badania
     if (timeMs < IGNORE_FIRST_MS) continue;
 
-    // Statystyki ogólne Min/Max
     if (bpm < minBpm){ minBpm = bpm; minBpmTimeMs = timeMs; }
     if (bpm > maxBpm){ maxBpm = bpm; maxBpmTimeMs = timeMs; }
     sumBpm += bpm;
     validBpmCount++;
 
-    //TACHYKARDIA
     if (!isCurrentlyTachy) {
       if (bpm >= TACHY_THRESHOLD) {
         if (tachyStartTime === 0) tachyStartTime = timeMs;
@@ -129,7 +123,6 @@ const analyzeEcgTrend = (parsedTrend) => {
       }
     }
 
-    //BRADYKARDIA
     if (!isCurrentlyBrady) {
       if (bpm <= BRADY_THRESHOLD) {
         if (bradyStartTime === 0) bradyStartTime = timeMs;
@@ -144,7 +137,6 @@ const analyzeEcgTrend = (parsedTrend) => {
       }
     } else {
       let currentIdx = bradyDetails.length - 1;
-      // Podczas bradykardii szukamy najniższej wartości
       if (bpm < bradyDetails[currentIdx].minBpm) bradyDetails[currentIdx].minBpm = bpm;
 
       if (bpm > BRADY_STOP_THRESHOLD) {
@@ -192,7 +184,6 @@ const getEcgSlice = (trend, centerTimeMs, pointsToSide = 150) => {
     return fallbackLine;
   }
 
-  // Binary search — dane są posortowane po timeMs
   let lo = 0, hi = trend.length - 1, closestIdx = 0;
   while (lo <= hi) {
     const mid = (lo + hi) >>> 1;
@@ -267,7 +258,6 @@ function MainApp() {
   const scrollViewRef = useRef(null);
 
   useEffect(() => {
-    // Kiedy zmienia się 'view', przewiń na samą górę
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({ y: 0, animated: false }); 
     }
@@ -315,7 +305,6 @@ function MainApp() {
   const isFlushingRef = useRef(false);
   const fileWriteQueue = useRef(Promise.resolve());
 
-  // Inline parsing podczas transferu — eliminuje readAsStringAsync + dwa przebiegi po transferze
   const trendRawRef = useRef([]);
   const activitySumRef = useRef(0);
   const activityCntRef = useRef(0);
@@ -541,15 +530,12 @@ function MainApp() {
   function handleIncomingData(rawData) {
     try {
       const trimmed = rawData.trim();
-      //console.log(trimmed);
       if (!trimmed) return;
 
       if (trimmed.startsWith('READY')) {
         const totalSize = parseInt(trimmed.split(' ')[1], 10);
         previousFileSize.current = fileSize.current || 0;
         const delta = totalSize - previousFileSize.current;
-        // delta <= 0 gdy poprzedni plik był większy (np. mock losuje mniejszy zakres)
-        // → pełny retransfer: używamy totalSize jako mianownika progresu
         toBeReceived.current = delta > 0 ? delta : totalSize;
         
         fileSize.current = totalSize;
@@ -582,7 +568,6 @@ function MainApp() {
       }
 
       if (trimmed.startsWith('S')) {
-        // Koniec transferu — natychmiast pokaż 100%, nie czekaj na IO
         if (progressIntervalRef.current) {
           clearInterval(progressIntervalRef.current);
           progressIntervalRef.current = null;
@@ -591,13 +576,10 @@ function MainApp() {
         transferResolveRef.current?.();
         transferResolveRef.current = null;
         transferRejectRef.current = null;
-        isReceivingFileRef.current = false;
         return;
       }
 
       if (isReceivingFileRef.current) {
-        //const line=parseFilePacket(trimmed);
-        //if(line && !isNaN(line.timestampMs)) writeToFile(line);
         writeToFile(trimmed);
       }
 
@@ -690,7 +672,7 @@ function MainApp() {
     try {
 
       const waitForReady = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error("Timeout: Device not ready")), 5000);
+        const timeout = setTimeout(() => reject(new Error("Timeout: Device not ready")), 15000);
         readyResolveRef.current = () => {
           clearTimeout(timeout);
           resolve();
@@ -711,7 +693,8 @@ function MainApp() {
       const localFileInfo = await FileSystem.getInfoAsync(FILE_URI);
       const actualLocalSize = localFileInfo.exists ? localFileInfo.size : 0;
 
-      const TRANSFER_TIMEOUT_MS = 5 * 60 * 1000; // 5 minut
+      const bytesToReceive = toBeReceived.current || 0;
+      const TRANSFER_TIMEOUT_MS = Math.max(5 * 60 * 1000, (bytesToReceive / 40000) * 1000 * 1.5);
       const transferComplete = new Promise((resolve, reject) => {
         transferResolveRef.current = resolve;
         transferRejectRef.current = reject;
@@ -720,9 +703,9 @@ function MainApp() {
 
       sendData(deviceRef.current.address, `OK ${lastSavedTS} ${actualLocalSize}`);
       await transferComplete;
+      isReceivingFileRef.current = false;
       await flushBuffer();
-
-      //await fileWriteQueue.current;
+      await fileWriteQueue.current;
 
       console.log('All data safely on disk.');
 
@@ -731,7 +714,6 @@ function MainApp() {
 
       showToast('Trwa analiza EKG...', 'analyzing');
 
-      // Filtr szumu — mutujemy raw in-place (bez alokacji nowych obiektów)
       const raw = trendRawRef.current;
       const avgActivity = activityCntRef.current > 0
         ? activitySumRef.current / activityCntRef.current : 0;
@@ -752,7 +734,7 @@ function MainApp() {
         if (!isNoise) { lastValidBpm = pt.bpm; lastValidTimeMs = pt.timeMs; }
       }
 
-      const parsedTrend = raw; // ta sama tablica, bez kopiowania
+      const parsedTrend = raw;
 
       if (parsedTrend.length === 0) {
         setProgressPercent(0);
@@ -872,7 +854,6 @@ function MainApp() {
         flushBuffer();
       }
 
-      // Inline parsing — parsuj każdą linię od razu zamiast czekać na koniec transferu
       const parts = data.split(',');
       if (parts.length >= 5) {
         const timeMs = parseInt(parts[0], 10);
@@ -1772,6 +1753,7 @@ const deleteCurrentFile = async () => {
         await FileSystem.deleteAsync(FILE_URI);
         fileSize.current = 0;
         previousFileSize.current = 0;
+        await AsyncStorage.removeItem('fileSize');
         // Przerwij ewentualny trwający transfer
         isReceivingFileRef.current = false;
         fileBufferRef.current = [];
