@@ -29,10 +29,10 @@ function ecgSample(cyclePos, cycleLen) {
 // ─── Generator pliku CSV ─────────────────────────────────────────────────────
 
 function generateMockCsv() {
-  const RATE     = 50;                                                     // Hz
+  const RATE     = 50;                                                    // Hz
   const RAND_MIN = Math.floor(Math.random() * 121) - 60;                  // ±60 min
-  const DURATION = (2 * 60 + RAND_MIN) * 60;                              // s (7h–9h)
-  const DT       = 1000 / RATE;                                            // ms/próbkę
+  const DURATION = (2 * 60 + RAND_MIN) * 60;                              // s
+  const DT       = 1000 / RATE;                                           // ms/próbkę
 
   // Fazy: [od_s, do_s, target_bpm]
   const PHASES = [
@@ -112,7 +112,7 @@ class MockBtSession {
     else if (c === 'GET_ECG')        this._startEcg();
     else if (c === 'STOP')           this._stopEcg();
     else if (c === 'GET_FILE')       this._sendReady();
-    else if (c.startsWith('OK'))     this._sendFile();
+    else if (c.startsWith('OK'))     this._sendFile(c);
     // REMOVE_FILE – ignorowany po cichu
   }
 
@@ -162,32 +162,47 @@ class MockBtSession {
     this.emit(`READY ${this._csv.length}`);
   }
 
-  async _sendFile() {
-    const lines  = (this._csv || '').split('\n');
-    const CHUNK  = 1000;
+  async _sendFile(cmd = '') {
+    // Parsuj OK <timestamp> <localFileSize> — tak jak ESP32 robi lastIndexOf(' ')
+    const parts = cmd.trim().split(' ');
+    const localFileSize = parts.length >= 3 ? parseInt(parts[parts.length - 1], 10) : 0;
+
+    // Symuluj _fileToSend.seek(localFileSize): pomiń linie których bajty mieszczą się w już posiadanym pliku
+    const allLines = (this._csv || '').split('\n');
+    let byteOffset = 0;
+    let startIdx = 0;
+    for (let i = 0; i < allLines.length; i++) {
+      const lineBytes = allLines[i].length + 1; // +1 za \n
+      if (byteOffset >= localFileSize) { startIdx = i; break; }
+      byteOffset += lineBytes;
+    }
+    const lines = localFileSize > 0 ? allLines.slice(startIdx) : allLines;
+
+    // ESP32: static buffer[4096] + vTaskDelay(5ms) per chunk
+    // ~22 bytes/line → 4096/22 ≈ 186 linii/chunk
+    const CHUNK  = 186;
     const CHUNKS = Math.ceil(lines.length / CHUNK);
 
-    // Co ~15 chunków displayTask blokuje sdMutex na 500–2000 ms
-    const DISPLAY_EVERY  = 15;
-    const DISPLAY_MIN_MS = 500;
-    const DISPLAY_MAX_MS = 2000;
+    // displayTask z timeout 100ms: bierze sdMutex co ~100ms (20 chunków × 5ms),
+    // ale trzyma tylko czas jednego odświeżenia e-papieru (nie do 2000ms)
+    const DISPLAY_EVERY  = 20;
+    const DISPLAY_MIN_MS = 100;
+    const DISPLAY_MAX_MS = 300;
 
-    // Co ~60 chunków memory-pressure pause: 50–150 ms
-    const MEM_EVERY  = 60;
+    // memory-pressure: vTaskDelay(50ms) gdy RAM < 20KB — sporadycznie
+    const MEM_EVERY  = 30;
     const MEM_MIN_MS = 50;
-    const MEM_MAX_MS = 150;
+    const MEM_MAX_MS = 100;
 
     for (let ci = 0; ci < CHUNKS; ci++) {
-      // Bazowy delay między chunkami (symuluje 5–20 ms SD read + BT write)
-      await new Promise(r => setTimeout(r, 8 + Math.random() * 10));
+      // vTaskDelay(5ms) po każdym 4KB chunk w ESP32
+      await new Promise(r => setTimeout(r, 4 + Math.random() * 2));
 
-      // Pauza sdMutex od displayTask
       if (ci > 0 && ci % DISPLAY_EVERY === 0) {
         const pause = DISPLAY_MIN_MS + Math.random() * (DISPLAY_MAX_MS - DISPLAY_MIN_MS);
         await new Promise(r => setTimeout(r, pause));
       }
 
-      // Pauza memory-pressure
       if (ci > 0 && ci % MEM_EVERY === 0) {
         const pause = MEM_MIN_MS + Math.random() * (MEM_MAX_MS - MEM_MIN_MS);
         await new Promise(r => setTimeout(r, pause));

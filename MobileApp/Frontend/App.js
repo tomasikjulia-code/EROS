@@ -334,7 +334,12 @@ function MainApp() {
         const totalSize = parseInt(trimmed.split(' ')[1], 10);
         previousFileSize.current = fileSize.current || 0;
         const delta = totalSize - previousFileSize.current;
-        toBeReceived.current = delta > 0 ? delta : totalSize;
+        // Pełny transfer (lastTS=0): urządzenie wysyła cały plik → toBeReceived = totalSize
+        // Inkrementalny: urządzenie wysyła tylko nowe bajty → toBeReceived = delta
+        toBeReceived.current = totalSize;
+        console.log(`[READY] totalSize=${totalSize} prevSize=${previousFileSize.current} delta=${delta} toBeReceived=${toBeReceived.current}`);
+        const mb = (toBeReceived.current / 1024 / 1024).toFixed(1);
+        showToast(`Pobieranie badania z holtera... (${mb} MB)`, 'loading');
         
         fileSize.current = totalSize;
         AsyncStorage.setItem('fileSize', String(totalSize)).catch(e =>
@@ -366,11 +371,14 @@ function MainApp() {
       }
 
       if (trimmed === 'S') {
+        console.log(`[TRANSFER] 'S' received. received=${receivedFileSize.current} toBeReceived=${toBeReceived.current} ratio=${(receivedFileSize.current/(toBeReceived.current||1)*100).toFixed(1)}%`);
         if (progressIntervalRef.current) {
           clearInterval(progressIntervalRef.current);
           progressIntervalRef.current = null;
+          console.log('[TRANSFER] interval cleared');
         }
         setProgressPercent(100);
+        console.log('[TRANSFER] setProgressPercent(100) called');
         transferResolveRef.current?.();
         transferResolveRef.current = null;
         transferRejectRef.current = null;
@@ -480,6 +488,11 @@ function MainApp() {
       const localFileInfo = await FileSystem.getInfoAsync(FILE_URI);
       const actualLocalSize = localFileInfo.exists ? localFileInfo.size : 0;
 
+      // ESP robi seek(actualLocalSize) i wysyła od tam do końca — dokładna liczba bajtów
+      toBeReceived.current = (fileSize.current || 0) - actualLocalSize;
+      if (toBeReceived.current <= 0) toBeReceived.current = fileSize.current || 1;
+      console.log(`[TRANSFER] actualLocalSize=${actualLocalSize} fileSize=${fileSize.current} toBeReceived=${toBeReceived.current}`);
+
       const bytesToReceive = toBeReceived.current || 0;
       const TRANSFER_TIMEOUT_MS = Math.max(5 * 60 * 1000, (bytesToReceive / 40000) * 1000 * 1.5);
       const transferComplete = new Promise((resolve, reject) => {
@@ -489,12 +502,18 @@ function MainApp() {
       });
 
       sendData(deviceRef.current.address, `OK ${lastSavedTS} ${actualLocalSize}`);
+      console.log('[TRANSFER] waiting for transferComplete...');
       await transferComplete;
+      console.log('[TRANSFER] transferComplete resolved');
       isReceivingFileRef.current = false;
+      console.log('[TRANSFER] flushBuffer start');
       await flushBuffer();
+      console.log('[TRANSFER] flushBuffer done, waiting for fileWriteQueue...');
       await fileWriteQueue.current;
+      console.log('[TRANSFER] fileWriteQueue done, starting analysis. trendRaw.length=', trendRawRef.current.length);
 
       showToast('Trwa analiza EKG...', 'analyzing');
+      console.log('[TRANSFER] showToast analyzing called');
 
       const raw = trendRawRef.current;
       const avgActivity = activityCntRef.current > 0
