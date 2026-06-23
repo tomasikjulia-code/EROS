@@ -1,4 +1,5 @@
 {
+  "title": "Expert Opinions",
   "items": [
     {
       "quote": "As a doctor working daily with cardiac patients, it is with great pleasure and satisfaction that I follow your project. I would like to express my appreciation because you have created something that truly makes life easier – both for us, medical professionals, and, above all, for the patients. Traditional Holter monitoring can be burdensome for patients. The tangle of cables, a heavy recorder, and the fear that something will detach often paralyze their daily functioning. With Rythmio, it is completely different. This device does not restrict movement; it is lightweight and almost unnoticeable. Patients can live, work, and rest normally, meaning the recorded ECG trace shows their true, daily cardiac profile rather than the stress of the test itself. What is absolutely captivating from a patient's perspective is how intuitive it is to use. The device is so simple to operate that even elderly people can manage it without any trouble. Additionally, the ability to preview the recording on a phone screen during the test is a total game-changer. It gives patients a great sense of security and control, and gives us the confidence that the test is running correctly. The icing on the cake is the fact that you have created a low-cost solution. In medicine, it is rare for high quality to go hand in hand with affordability. You have succeeded, allowing modern diagnostics to reach a much wider group of people in need. You are doing a fantastic job. Rythmio is simply a very good, well-thought-out, and human-centric product. I am keeping my fingers firmly crossed for your further development and future innovations!",
@@ -16,9 +17,9 @@
       "role": "Primary Care General Practitioner"
     },
     {
-      "quote": "The project makes a very good impression. A professional approach is evident, including the use of industrial-grade solutions, which is particularly impressive coming from such young people. Signal acquisition has many strengths, such as hardware pre-filtering and the use of a high-resolution ADC converter. Combined with 250Hz sampling, it is a sweet spot between high signal quality and the amount of data that can be collected and processed over long periods of time. Overall, the device together with the app looks very good and provides an excellent foundation for further expansion, for example, extending the analysis to detailed ECG morphologies.",
-      "name": "Jan Kost",
-      "role": "Engineer, PhD candidate in Medical Sciences"
+      "quote": "I believe that the concept of combining a mobile ECG device with an application is very interesting and responds to a real need for easier heart monitoring. I consider the clear way of presenting results and the ability to generate reports as a plus. In further development, medical validation and refining the communication of results to the user seem particularly important.",
+      "name": "Paulina Krzemińska",
+      "role": "Primary Care Physician"
     },
     {
       "quote": "I think the Rythmio project is a great idea. It would make diagnostics easier for both the patient and the doctor. An additional plus is the low cost. Congratulations!",
@@ -26,9 +27,24 @@
       "role": "Pediatrician"
     },
     {
+      "quote": "The project makes a very good impression. A professional approach is evident, including the use of industrial-grade solutions, which is particularly impressive coming from such young people. Signal acquisition has many strengths, such as hardware pre-filtering and the use of a high-resolution ADC converter. Combined with 250Hz sampling, it is a sweet spot between high signal quality and the amount of data that can be collected and processed over long periods of time. Overall, the device together with the app looks very good and provides an excellent foundation for further expansion, for example, extending the analysis to detailed ECG morphologies.",
+      "name": "Jan Kost",
+      "role": "Engineer, PhD candidate in Medical Sciences"
+    },
+    {
       "quote": "Diagnostics of patients with cardiac disorders is a particularly important element in the work of medical personnel, and its primary tool is the Holter ECG monitor. In my daily work, I often set up several such Holters a day, which provides an excellent environment for assessing the needs of both medical staff and patients. Devices currently used in practice very often require connecting the system to a computer, and they do not feature screens or programs that allow for a preview of the recording while it is running. There have been many times when a patient had to repeat the test due to incorrectly recorded measurements, detached electrodes, or interference issues. And this is exactly where the mobile app and Bluetooth transmission are absolute advantages of the presented model. The ability to preview the ECG in real-time seems invaluable, not only for assessing the patient's health condition but also for verifying the correctness of the recording. I also highly rate the device's waterproofing, the versatility of mounting, and the voice assistant feature, which could uniquely support work with elderly patients. In my opinion, Rythmio is an innovative device that will not only improve the diagnosis of heart diseases but also streamline the work of medical personnel and increase user comfort for patients.",
       "name": "Paulina Piórkowska",
-      "role": "Midwife (Working with primary care and private clinic patients)"
+      "role": "Midwife - Working with primary care and private clinic patients"
+    },
+    {
+      "quote": "The Rythmio Holter ECG is a very convenient and practical device. It is lightweight, small, and does not interfere with daily activities. Thanks to 24-hour heart monitoring, it allows for accurate and reliable results. I recommend it as an interesting diagnostic tool.",
+      "name": "Julia Tomaszewska",
+      "role": "Primary Care Midwife"
+    },
+    {
+      "quote": "After familiarizing myself with the presentation of the Rythmio system, I believe it is a modern and highly promising solution supporting cardiac diagnostics and remote patient monitoring. The solution can find application in primary healthcare, coordinated care, cardiology clinics, and the monitoring of patients after cardiovascular incidents. From the point of view of medical personnel, the reduction of time needed for the preliminary analysis of tests and the ability to quickly identify patients requiring further specialized diagnostics is particularly valuable.",
+      "name": "Marlena Krzemińska",
+      "role": "Master's Degree, Specialist in Family Nursing"
     },
     {
       "quote": "The project makes a very good impression – combining a low-cost Holter ECG with a mobile app for wireless analysis of tests is a modern and highly practical solution. I particularly appreciate the combination of medical and technological aspects, as well as the focus on the device's accessibility and functionality. The team's strong commitment and a well-thought-out approach to the project's execution are clearly visible.",
@@ -39,11 +55,6 @@
       "quote": "A convenient and easy-to-use device that can be very helpful in detecting and analyzing heart rhythm disorders. A big advantage is the easy, intuitive navigation through the interface. The availability of this device could help reduce waiting lists for cardiologists.",
       "name": "Agnieszka Młodziejewska",
       "role": "Primary Care Nurse - Borowiczki Medical Center Sp. z o.o."
-    },
-    {
-      "quote": "The Rythmio Holter ECG is a very convenient and practical device. It is lightweight, small, and does not interfere with daily activities. Thanks to 24-hour heart monitoring, it allows for accurate and reliable results. I recommend it as an interesting diagnostic tool.",
-      "name": "Julia Tomaszewska",
-      "role": "Primary Care Midwife"
     },
     {
       "quote": "After reviewing the project of the presented device, I think it could find application in daily medical practice. Considering that patients often require long-term monitoring to detect episodic rhythm disorders, the proposed mounting method would definitely increase their comfort in daily use. Of course, devices of this type carry a risk of artifacts occurring during various patient activities, which is why I see great value in introducing the possibility of ongoing, real-time monitoring that can be immediately verified by a clinician. This is also undoubtedly crucial in the event of rhythm disorders requiring immediate medical intervention. I also consider the ability for patients to add information about their performed activities, which might affect the recorded trace, as well as any subjective symptoms, to be a major asset of the application. This allows for an excellent correlation of the ECG recording with the symptoms manifested by the subject and will certainly make it easier for the analyzing physician to make an accurate diagnosis.",

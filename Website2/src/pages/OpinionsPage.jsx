@@ -21,9 +21,8 @@ const OpinionsPage = ({ isDark, scrollbarStyles, onBack }) => {
 
         <div className="max-w-3xl mx-auto px-6 w-full mb-12 mt-6">
           <h1 className={`text-4xl sm:text-5xl font-bold tracking-tight transition-colors duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Opinie specjalistów
+            {t('title')}
           </h1>
-          <div className="h-1 w-20 bg-purple-500 rounded mt-4" />
         </div>
 
         {opinions.map((op, i) => (
