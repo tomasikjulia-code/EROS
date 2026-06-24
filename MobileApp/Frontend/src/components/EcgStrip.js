@@ -1,11 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, Modal, Pressable, StyleSheet, ScrollView, Platform, StatusBar, useWindowDimensions } from 'react-native';
 import { Svg, Polyline } from 'react-native-svg';
 import { Activity, Clock, Heart } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from '../constants/Theme';
 
-const EcgStrip = ({ title, description, time, hr, data }) => {
+// Maksymalna liczba punktów w normalnym widoku i fullscreenie
+const MAX_POINTS_NORMAL = 400;
+const MAX_POINTS_FULL   = 800;
+
+function downsample(arr, maxPts) {
+  if (arr.length <= maxPts) return arr;
+  const step = arr.length / maxPts;
+  const out = new Array(maxPts);
+  for (let i = 0; i < maxPts; i++) out[i] = arr[Math.round(i * step)];
+  return out;
+}
+
+function buildPoints(arr) {
+  let minVal = arr[0], maxVal = arr[0];
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] < minVal) minVal = arr[i];
+    if (arr[i] > maxVal) maxVal = arr[i];
+  }
+  const range = (maxVal - minVal) || 1;
+  const parts = new Array(arr.length);
+  for (let i = 0; i < arr.length; i++) {
+    parts[i] = `${i},${(190 - ((arr[i] - minVal) / range) * 180).toFixed(1)}`;
+  }
+  return { points: parts.join(' '), count: arr.length };
+}
+
+const EcgStrip = React.memo(({ title, description, time, hr, data }) => {
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const isPortrait = windowHeight >= windowWidth;
@@ -14,17 +40,20 @@ const EcgStrip = ({ title, description, time, hr, data }) => {
   const [isRotated, setIsRotated] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1); // Mnożnik szerokości (1x do 10x)
 
-  // Zabezpieczenie przed pusta tablica
-  const safeData = data && data.length > 0 ? data : [0, 0];
-  const minVal = Math.min(...safeData);
-  const maxVal = Math.max(...safeData);
-  const range = (maxVal - minVal) || 1; 
+  const safeData = useMemo(
+    () => (data && data.length > 0 ? data : [0, 0]),
+    [data]
+  );
 
-  // Skalowanie osi Y
-  const points = safeData.map((val, i) => {
-    const normalizedY = 190 - ((val - minVal) / range) * 180;
-    return `${i},${normalizedY.toFixed(1)}`;
-  }).join(' ');
+  const { points, count } = useMemo(
+    () => buildPoints(downsample(safeData, MAX_POINTS_NORMAL)),
+    [safeData]
+  );
+
+  const { points: pointsFull, count: countFull } = useMemo(
+    () => buildPoints(downsample(safeData, MAX_POINTS_FULL)),
+    [safeData]
+  );
 
   // Bezpieczne marginesy dla trybu pełnoekranowego
   const getSafePaddings = () => {
@@ -48,23 +77,25 @@ const EcgStrip = ({ title, description, time, hr, data }) => {
 
   // Główny render wykresu (współdzielony między normalnym a fullscreenem)
   const renderChart = (isFS, W, H) => {
-    const chartWidth = W * (isFS ? zoomLevel : 1); 
+    const chartWidth = W * (isFS ? zoomLevel : 1);
+    const pts = isFS ? pointsFull : points;
+    const cnt = isFS ? countFull  : count;
 
     return (
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={isFS}
         bounces={false}
         style={{ flex: 1 }}
       >
         <View style={{ width: chartWidth, height: H }}>
-          <Svg viewBox={`0 0 ${safeData.length} 200`} width="100%" height="100%" preserveAspectRatio="none">
-            <Polyline 
-              points={points} 
-              fill="none" 
-              stroke="#34d399" 
-              strokeWidth="2.5" 
-              strokeLinejoin="round" 
+          <Svg viewBox={`0 0 ${cnt} 200`} width="100%" height="100%" preserveAspectRatio="none">
+            <Polyline
+              points={pts}
+              fill="none"
+              stroke="#34d399"
+              strokeWidth="2.5"
+              strokeLinejoin="round"
             />
           </Svg>
         </View>
@@ -166,7 +197,7 @@ const EcgStrip = ({ title, description, time, hr, data }) => {
       </Modal>
     </View>
   );
-};
+});
 
 const localStyles = StyleSheet.create({
   zoomBtn: { width: 36, height: 36, backgroundColor: '#3f3f46', justifyContent: 'center', alignItems: 'center', borderRadius: 6 },

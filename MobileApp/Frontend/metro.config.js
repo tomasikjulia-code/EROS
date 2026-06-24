@@ -14,6 +14,12 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       type: 'sourceFile',
     };
   }
+  if (platform === 'web' && (moduleName === 'expo-file-system/legacy' || moduleName === 'expo-file-system')) {
+    return {
+      filePath: path.resolve(__dirname, 'src/mocks/expo-file-system.web.js'),
+      type: 'sourceFile',
+    };
+  }
   if (originalResolveRequest) {
     return originalResolveRequest(context, moduleName, platform);
   }

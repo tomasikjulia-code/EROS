@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, Platform, StatusBar, useWindowDimensions, StyleSheet } from 'react-native';
-import { 
-  Svg, Path, Defs, LinearGradient as SvgLinearGradient, 
-  Stop, Polygon, Circle, Line, Text as SvgText 
+import {
+  Svg, Path, Defs, LinearGradient as SvgLinearGradient,
+  Stop, Circle, Line, Text as SvgText
 } from 'react-native-svg';
 import { Activity } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -76,7 +76,8 @@ const TrendChart = ({ data }) => {
     const getY = (bpm) => paddingT + drawHeight - ((bpm - yMin) / yRange) * drawHeight;
 
     const areaPathString = chartData.map((val, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)},${getY(val.bpm)}`).join(' ');
-    const areaPoints = `${getX(0)},${H - paddingB} ${areaPathString} ${getX(chartData.length - 1)},${H - paddingB}`;
+    // Polygon wymaga samych par współrzędnych – używamy Path z zamkniętym obszarem
+    const areaClosedPath = `${areaPathString} L ${getX(chartData.length - 1)},${H - paddingB} L ${getX(0)},${H - paddingB} Z`;
 
     const segments = [];
     if (chartData.length > 0) {
@@ -151,7 +152,7 @@ const TrendChart = ({ data }) => {
                  );
               })}
 
-              <Polygon points={areaPoints} fill="url(#chartArea)" />
+              <Path d={areaClosedPath} fill="url(#chartArea)" />
 
               {segments.map((seg, index) => {
                 const segPath = seg.points.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${getX(pt.originalIndex)},${getY(pt.bpm)}`).join(' ');

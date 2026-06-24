@@ -5,7 +5,10 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "start:mock": "cross-env EXPO_PUBLIC_MOCK_BT=true expo start",
+    "start:mock:web": "cross-env EXPO_PUBLIC_MOCK_BT=true expo start --web",
+    "android:mock": "cross-env EXPO_PUBLIC_MOCK_BT=true expo run:android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -40,6 +43,7 @@
   },
   "devDependencies": {
     "@react-native-community/cli": "latest",
+    "cross-env": "^10.1.0",
     "eas-cli": "^19.0.5"
   },
   "private": true,
