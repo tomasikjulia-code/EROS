@@ -24,7 +24,7 @@ DeviceManager::DeviceManager(){
     SDcardEnabled = 0; //na początek nic nie ma i dopiero pozneij w inicie sprawdzam czy karta jest
     fileSystemEnabled = 0; //na poczatek nie ma systemu plikow bo nawet nie wiadomo czy jest karta
 
-    EKGTestTime = 0; //na start czas badania ustawiany na zero jak cos bo pierwszy widok urzadzenia bedzie pozwalal ustawic ta wielkosc
+    EKGTestTime = 1; //na start czas badania ustawiany na jedynkę jak cos bo pierwszy widok urzadzenia bedzie pozwalal ustawic ta wielkosc
     testTimeChosen = false;
 
     currentDisplayState = DISPLAY_OFF;
@@ -340,7 +340,7 @@ void DeviceManager::waitingForSDcard(){
 
     Serial.println("Initializing SD card.");
 
-    SDcardEnabled = SD.begin(SD_CS_PIN, vspi, 4000000);
+    SDcardEnabled = SD.begin(SD_CS_PIN, vspi, 20000000);
     delay(100);
     fileSystemEnabled = holter.begin("/test_ekg.csv");
     delay(100);
@@ -479,45 +479,6 @@ void DeviceManager::writeBufferToSD(SemaphoreHandle_t sdMutex) {
 }
 
 
-//--------------------------UWAGA TO FUNKCJA DO ZAPISU LINIA PO LINII NA KARCIE SD------------------------------
-void DeviceManager::EKGReadingAndSending(){
-        if (isTimeEnded()) {
-            if (holter.isRecording()) {
-                holter.closeFile();
-                Serial.println(">>> STOP: Plik zapisany i zamkniety! <<<");
-                displayEnabled=false;
-                wakeUpDisplay();
-                displayEndScreen();
-                currentDisplayState=DISPLAY_END;
-            }
-        }
-        processHeartRate();
-        if (holter.isRecording()) {
-            int16_t val = isLeadOff() ? 0 : (int16_t)getFilteredValue();
-            
-            float activityToSave = -1;
-            if (newActivityReady) {
-                activityToSave = lastActivityValue;
-                newActivityReady = false; 
-            }
-            
-            int buttonStatus = importantButton;
-            importantButton = 0;
-
-            holter.writeSample(millis()- startTime, val, getAverageBPM(), isLeadOff(), activityToSave, buttonStatus);
-
-            static unsigned long lastTick = 0;
-            if (millis() - lastTick > 1000) {
-                
-                
-                lastTick = millis();
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(4));
-}
-//------------------------KONIEC NIEUZYWANEJ FUNKCJI DO ZAPISU LINIA PO LINII NA KARCIE SD------------------------------
-
-
 uint8_t DeviceManager::calculateLeftHours()
 {
     uint32_t elapsedHours = (millis() - startTime) / MS_PER_HOUR;
@@ -547,17 +508,16 @@ void DeviceManager::updateDisplay(uint32_t timeInMs, SemaphoreHandle_t sdMutex){
 
         static bool hasEndBeeped = false;
 
-        // --- PIKNIĘCIE NA ZAKOŃCZENIE BADANIA ---
         if (!hasEndBeeped) {
 
             for (int i = 0; i < 3; i++) {
                 BuzzerManager.setVolume(15);
                 BuzzerManager.playContinuous();
-                vTaskDelay(pdMS_TO_TICKS(200)); // Piknięcie przez 200 ms
+                vTaskDelay(pdMS_TO_TICKS(200)); 
                 BuzzerManager.stop();
-                vTaskDelay(pdMS_TO_TICKS(150)); // Przerwa ciszy 150 ms
+                vTaskDelay(pdMS_TO_TICKS(150)); 
             }
-            hasEndBeeped = true; // Oznaczamy, że już raz zapikaliśmy i wyciszamy na zawsze
+            hasEndBeeped = true; 
         }
 
         vTaskDelay(pdMS_TO_TICKS(500));
@@ -703,6 +663,12 @@ void DeviceManager::checkTestTimeButtons()
         {
             testTimeChosen = true;
             Serial.println(">>> CZAS ZATWIERDZONY <<<");
+
+            BuzzerManager.setVolume(15);        
+            BuzzerManager.playContinuous();   
+            delay(150);                        
+            BuzzerManager.stop();               
+
             confirmPressStart = 0;
         }
         return; 

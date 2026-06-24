@@ -79,7 +79,6 @@ class DeviceManager{
         void chooseTestTime(); //funkcja do wyboru czasu trwania badania dziala w petli dopoki nie dokonasz wyboru
         //ta funkcja obsluguje komunikaty dostarczone z aplikacji przez bluetooth
         void checkBluetooth(SemaphoreHandle_t sdMutex); // fucnkja sprawdzajaca czy bluetooth m klienta i sprawdzajaca czy on przypadkiem nic nie wyslal
-        void EKGReadingAndSending(); //funkcja odpowiedzialna za czytanie oraz zapis na karcie SD probek badania
         void BTSendingFile(SemaphoreHandle_t sdMutex); //funkcja wysylajaca caly plik lub jego czesc przez bluetooth
         void BTSendingState(); //funkcja wysylajaca stan elektrod oraz stan baterii przez bluetooth
         void updateDisplay(uint32_t timeInMs, SemaphoreHandle_t sdMutex); //funkcja odświerzająca wyświetlacz tyle czasu ile trzeba (pozniej go wylacza) (czas podany w milisekundach)
