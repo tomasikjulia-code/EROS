@@ -2,7 +2,7 @@
  * MockBluetoothSerial – identyczne API jak BluetoothSerial.js
  * Używany gdy USE_MOCK_BT = true w Config.js.
  *
- * Symulowany scenariusz CSV (~8h ±1h, 50 Hz):
+ * Symulowany scenariusz CSV (~45 min ±10 min, 50 Hz):
  *  Faza 1  0–15%    : sen głęboki  ~54 BPM
  *  Faza 2  15–40%   : sen lekki    ~62 BPM
  *  Faza 3  40–52%   : pobudka/rano ~75 BPM
@@ -30,8 +30,8 @@ function ecgSample(cyclePos, cycleLen) {
 
 function generateMockCsv() {
   const RATE     = 50;                                                    // Hz
-  const RAND_MIN = Math.floor(Math.random() * 121) - 60;                  // ±60 min
-  const DURATION = (2 * 60 + RAND_MIN) * 60;                              // s
+  const RAND_MIN = Math.floor(Math.random() * 21) - 10;                // ±10 min
+  const DURATION = (45 + RAND_MIN) * 60;                                  // s
   const DT       = 1000 / RATE;                                           // ms/próbkę
 
   // Fazy: [od_s, do_s, target_bpm]
@@ -178,14 +178,14 @@ class MockBtSession {
     }
     const lines = localFileSize > 0 ? allLines.slice(startIdx) : allLines;
 
-    // ESP32: static buffer[4096] + vTaskDelay(5ms) per chunk
-    // ~22 bytes/line → 4096/22 ≈ 186 linii/chunk
+    // ESP32: static buffer[4096] + vTaskDelay(20ms) per chunk + vTaskDelay(1ms) per write (×4)
+    // ~22 bytes/line → 4096/22 ≈ 186 linii/chunk; łączny czas ≈ 24ms/chunk
     const CHUNK  = 186;
     const CHUNKS = Math.ceil(lines.length / CHUNK);
 
-    // displayTask z timeout 100ms: bierze sdMutex co ~100ms (20 chunków × 5ms),
-    // ale trzyma tylko czas jednego odświeżenia e-papieru (nie do 2000ms)
-    const DISPLAY_EVERY  = 20;
+    // displayTask z timeout 100ms: bierze sdMutex co ~100ms (≈5 chunków × 20ms),
+    // trzyma czas jednego odświeżenia e-papieru
+    const DISPLAY_EVERY  = 5;
     const DISPLAY_MIN_MS = 100;
     const DISPLAY_MAX_MS = 300;
 
@@ -195,8 +195,8 @@ class MockBtSession {
     const MEM_MAX_MS = 100;
 
     for (let ci = 0; ci < CHUNKS; ci++) {
-      // vTaskDelay(5ms) po każdym 4KB chunk w ESP32
-      await new Promise(r => setTimeout(r, 4 + Math.random() * 2));
+      // vTaskDelay(20ms) outer + ~4× vTaskDelay(1ms) inner write loop = ~24ms/chunk
+      await new Promise(r => setTimeout(r, 22 + Math.random() * 4));
 
       if (ci > 0 && ci % DISPLAY_EVERY === 0) {
         const pause = DISPLAY_MIN_MS + Math.random() * (DISPLAY_MAX_MS - DISPLAY_MIN_MS);
