@@ -336,7 +336,7 @@ function MainApp() {
         const delta = totalSize - previousFileSize.current;
         // Pełny transfer (lastTS=0): urządzenie wysyła cały plik → toBeReceived = totalSize
         // Inkrementalny: urządzenie wysyła tylko nowe bajty → toBeReceived = delta
-        toBeReceived.current = totalSize;
+        toBeReceived.current = delta;
         console.log(`[READY] totalSize=${totalSize} prevSize=${previousFileSize.current} delta=${delta} toBeReceived=${toBeReceived.current}`);
         const mb = (toBeReceived.current / 1024 / 1024).toFixed(1);
         showToast(`Pobieranie badania z holtera... (${mb} MB)`, 'loading');
@@ -452,6 +452,7 @@ function MainApp() {
     trendRawRef.current = [];
     activitySumRef.current = 0;
     activityCntRef.current = 0;
+    toBeReceived.current = null;
     if (bleState !== 'connected') {
       showToast('Najpierw połącz urządzenie.', 'error');
       return;
