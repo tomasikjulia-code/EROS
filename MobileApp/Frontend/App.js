@@ -93,6 +93,8 @@ function MainApp() {
   const [isLiveEcgActive, setIsLiveEcgActive] = useState(false);
   const [lastConnectedTime, setLastConnectedTime] = useState(null);
 
+  const [currentBpm, setCurrentBpm] = useState('--');
+
   const isReceivingFileRef = useRef(false);
   const readyResolveRef = useRef(null);
   const readyRejectRef = useRef(null);
@@ -412,10 +414,11 @@ function MainApp() {
   }
 
 
-  const handleToggleLiveEcg = () => {
+const handleToggleLiveEcg = () => {
     if (isLiveEcgActive) {
       if (bleState === 'connected' && deviceRef.current) sendData(deviceRef.current.address, "STOP");
       setIsLiveEcgActive(false);
+      setCurrentBpm('--'); 
     } else {
       if (bleState === 'connected' && deviceRef.current) sendData(deviceRef.current.address, "GET_ECG");
       setIsLiveEcgActive(true);
@@ -785,15 +788,14 @@ function MainApp() {
 
   const importantList = record.importantDetails || [];
   importantList.forEach((ep, index) => { 
-    const duration = (ep.end && ep.end > ep.start) ? (ep.end - ep.start) : 0;
-    const centerTime = ep.start + duration / 2;
+    const centerTime = Math.max(0, ep.start - 5000);
 
     snippets.push({
       title: `Ważne Zdarzenie #${index + 1}`,
-      description: `Zgłoszona anomalia. Czas trwania: ${Math.round(duration / 1000)}s`,
+      description: `Zgłoszenie pacjenta (zapis 10s przed naciśnięciem)`,
       time: formatMsToTime(ep.start),
       hr: ep.maxBpm || '--', 
-      data: getEcgSlice(record.hourlyTrend, centerTime, 600)
+      data: getEcgSlice(record.hourlyTrend, centerTime, 2500)
     });
   });
 
@@ -1025,6 +1027,8 @@ const deleteCurrentFile = async () => {
               refreshDiagnostics={refreshDiagnostics}
               getFileFromDevice={getFileFromDevice}
               isLiveEcgActive={isLiveEcgActive}
+              currentBpm={currentBpm}
+              onBpmUpdate={setCurrentBpm}
               toggleLiveEcg={handleToggleLiveEcg}
               lastConnectedTime={lastConnectedTime}
               openReport={openReport}

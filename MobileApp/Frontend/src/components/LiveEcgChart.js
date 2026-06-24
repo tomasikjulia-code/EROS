@@ -3,28 +3,51 @@ import { View, Text, Modal, Pressable, StyleSheet, Platform, StatusBar, useWindo
 import Svg, { Path, Line, Circle, G, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ecgBuffer } from '../utils/EcgBuffer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SAMPLE_RATE = 250;
 const MIN_AMPLITUDE_RANGE = 2000;
 
-const LiveEcgChart = ({ isMeasuring }) => {
+// Trzymamy zoom globalnie, żeby nie resetował się przy zmianie zakładki
+let globalZoomLevel = 350;
+
+const LiveEcgChart = ({ isMeasuring, onBpmUpdate }) => {
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-
-  // Sprawdzamy czy telefon jest fizycznie w pionie
   const isPortrait = windowHeight >= windowWidth;
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isRotated, setIsRotated] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(350);
+  const [zoomLevel, setZoomLevel] = useState(globalZoomLevel);
   
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
   const [chartData, setChartData] = useState({ pathString: '', lastX: 0, lastY: 0 });
   
   const smoothedMin = useRef(-1000);
   const smoothedMax = useRef(1000);
-  const zoomRef = useRef(350);
+  const zoomRef = useRef(globalZoomLevel);
   const sizeRef = useRef({ width: 0, height: 0 });
+  
+  // Referencja do kontrolowania częstotliwości aktualizacji BPM (żeby nie muliło UI)
+  const lastBpmUpdate = useRef(Date.now());
+
+  // Wczytanie zapisanego przybliżenia z pamięci przy pierwszym renderze
+  useEffect(() => {
+    AsyncStorage.getItem('@rythmio_live_zoom').then((savedZoom) => {
+      if (savedZoom !== null) {
+        const parsedZoom = parseInt(savedZoom, 10);
+        setZoomLevel(parsedZoom);
+        globalZoomLevel = parsedZoom; // Aktualizujemy też zmienną globalną
+      }
+    });
+  }, []);
+
+const handleZoomChange = (newZoom) => {
+    setZoomLevel(newZoom);
+    globalZoomLevel = newZoom; 
+    // Zapisujemy trwale w telefonie
+    AsyncStorage.setItem('@rythmio_live_zoom', newZoom.toString());
+  };
 
   useEffect(() => {
     zoomRef.current = zoomLevel;
@@ -35,7 +58,10 @@ const LiveEcgChart = ({ isMeasuring }) => {
   }, [chartSize]);
 
   useEffect(() => {
-    if (!isMeasuring) return;
+    if (!isMeasuring) {
+      if (onBpmUpdate) onBpmUpdate('--');
+      return;
+    }
 
     const renderLoop = setInterval(() => {
       const W = sizeRef.current.width;
@@ -46,6 +72,49 @@ const LiveEcgChart = ({ isMeasuring }) => {
       const snapshot = ecgBuffer.getSnapshot();
       if (!snapshot || snapshot.length === 0) return;
 
+      const now = Date.now();
+      if (onBpmUpdate && now - lastBpmUpdate.current > 1000 && snapshot.length > 500) {
+        lastBpmUpdate.current = now;
+        
+        // Bierzemy okno z ostatnich 4 sekund (4 * 250 = 1000 próbek)
+        const windowSize = Math.min(snapshot.length, 1000);
+        const bpmWindow = snapshot.slice(-windowSize);
+        
+        let maxVal = -Infinity;
+        let minVal = Infinity;
+        
+        for (let i = 0; i < bpmWindow.length; i++) {
+            if (bpmWindow[i] > maxVal) maxVal = bpmWindow[i];
+            if (bpmWindow[i] < minVal) minVal = bpmWindow[i];
+        }
+
+        // Dynamiczny próg: zliczamy piki ucinając top 30% z maksymalnej amplitudy EKG
+        const threshold = maxVal - ((maxVal - minVal) * 0.3); 
+        let peakCount = 0;
+        let lastPeakIndex = -1000;
+        
+        // Okres refrakcji: co najmniej 0.3 sekundy między pikami (maks 200 BPM)
+        // 0.3s * 250Hz = 75 próbek
+        const minDistance = 75; 
+
+        for (let i = 0; i < bpmWindow.length; i++) {
+            if (bpmWindow[i] > threshold && (i - lastPeakIndex) > minDistance) {
+                peakCount++;
+                lastPeakIndex = i;
+            }
+        }
+
+        // BPM = (ilość uderzeń w oknie / czas trwania okna w sek) * 60
+        const windowInSeconds = bpmWindow.length / SAMPLE_RATE;
+        const calculatedBpm = Math.round((peakCount / windowInSeconds) * 60);
+
+        // Odrzucamy absurdalne wartości (artefakty z ruchu)
+        if (calculatedBpm > 30 && calculatedBpm < 250) {
+            onBpmUpdate(calculatedBpm);
+        } else if (calculatedBpm === 0) {
+            onBpmUpdate('--');
+        }
+      }
       const visibleSamples = Math.floor((W / zoomRef.current) * SAMPLE_RATE);
       const displaySnapshot = snapshot.length > visibleSamples 
         ? snapshot.slice(-visibleSamples) 
@@ -120,7 +189,7 @@ const LiveEcgChart = ({ isMeasuring }) => {
     }, 40); 
 
     return () => clearInterval(renderLoop);
-  }, [isMeasuring]);
+  }, [isMeasuring, onBpmUpdate]); 
 
   const renderMedicalGrid = (W, H) => {
     if (W === 0 || H === 0) return null;
@@ -182,7 +251,6 @@ const LiveEcgChart = ({ isMeasuring }) => {
         paddingRight: safePad.pr 
       }]}>
         
-        {/* Lewa strona: Obrót w Fullscreen, Info w normalnym widoku */}
         <View style={{ width: 44, alignItems: 'flex-start' }}>
           {isFS ? (
             isPortrait && (
@@ -200,11 +268,10 @@ const LiveEcgChart = ({ isMeasuring }) => {
           )}
         </View>
 
-        {/* Środek: Kontrola Zoomu */}
         <View style={styles.zoomControls}>
           <Pressable 
             style={({ pressed }) => [styles.zoomBtn, pressed && styles.zoomBtnPressed]} 
-            onPress={() => setZoomLevel(prev => Math.max(prev - 100, 50))}
+            onPress={() => handleZoomChange(Math.max(zoomLevel - 100, 50))}
           >
             <Text style={styles.zoomBtnText}>-</Text>
           </Pressable>
@@ -216,13 +283,12 @@ const LiveEcgChart = ({ isMeasuring }) => {
 
           <Pressable 
             style={({ pressed }) => [styles.zoomBtn, pressed && styles.zoomBtnPressed]} 
-            onPress={() => setZoomLevel(prev => Math.min(prev + 100, 3000))}
+            onPress={() => handleZoomChange(Math.min(zoomLevel + 100, 3000))}
           >
             <Text style={styles.zoomBtnText}>+</Text>
           </Pressable>
         </View>
 
-        {/* Prawa strona: Zamknij w Fullscreen, Pełny Ekran w normalnym widoku */}
         <View style={{ width: 44, alignItems: 'flex-end' }}>
           {isFS ? (
             <Pressable onPress={() => { setIsFullscreen(false); setIsRotated(false); }} style={[styles.squareBtn, { backgroundColor: '#e11d48' }]}>
@@ -321,7 +387,6 @@ const LiveEcgChart = ({ isMeasuring }) => {
                 style={{ flex: 1, overflow: 'hidden', borderRadius: 8, position: 'relative' }}
                 onLayout={(e) => setChartSize(e.nativeEvent.layout)}
               >
-                {/* Pływające informacje o częstotliwości w trybie pełnego ekranu */}
                 <View style={{ position: 'absolute', top: 12, left: 12, zIndex: 10, flexDirection: 'row', gap: 8, alignItems: 'center' }}>
                   <View style={[styles.badgeAuto, { backgroundColor: 'rgba(39, 39, 42, 0.8)' }]}>
                     <Text style={styles.badgeText}>AUTO</Text>
