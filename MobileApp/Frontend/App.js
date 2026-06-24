@@ -373,6 +373,14 @@ function MainApp() {
         return;
       }
 
+      if (trimmed.startsWith('B')) {
+        const bpmVal = parseInt(trimmed.slice(1), 10);
+        if (!isNaN(bpmVal)) {
+          setCurrentBpm(bpmVal);
+        }
+        return;
+      }
+
       if (trimmed === 'S') {
         console.log(`[TRANSFER] 'S' received. received=${receivedFileSize.current} toBeReceived=${toBeReceived.current} ratio=${(receivedFileSize.current/(toBeReceived.current||1)*100).toFixed(1)}%`);
         if (progressIntervalRef.current) {
@@ -1013,7 +1021,6 @@ const deleteCurrentFile = async () => {
               getFileFromDevice={getFileFromDevice}
               isLiveEcgActive={isLiveEcgActive}
               currentBpm={currentBpm}
-              onBpmUpdate={setCurrentBpm}
               toggleLiveEcg={handleToggleLiveEcg}
               lastConnectedTime={lastConnectedTime}
               openReport={openReport}

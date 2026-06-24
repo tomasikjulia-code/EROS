@@ -11,7 +11,7 @@ const MIN_AMPLITUDE_RANGE = 2000;
 // Trzymamy zoom globalnie, żeby nie resetował się przy zmianie zakładki
 let globalZoomLevel = 350;
 
-const LiveEcgChart = ({ isMeasuring, onBpmUpdate }) => {
+const LiveEcgChart = ({ isMeasuring }) => {
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const isPortrait = windowHeight >= windowWidth;
@@ -27,9 +27,6 @@ const LiveEcgChart = ({ isMeasuring, onBpmUpdate }) => {
   const smoothedMax = useRef(1000);
   const zoomRef = useRef(globalZoomLevel);
   const sizeRef = useRef({ width: 0, height: 0 });
-  
-  // Referencja do kontrolowania częstotliwości aktualizacji BPM (żeby nie muliło UI)
-  const lastBpmUpdate = useRef(Date.now());
 
   // Wczytanie zapisanego przybliżenia z pamięci przy pierwszym renderze
   useEffect(() => {
@@ -37,12 +34,12 @@ const LiveEcgChart = ({ isMeasuring, onBpmUpdate }) => {
       if (savedZoom !== null) {
         const parsedZoom = parseInt(savedZoom, 10);
         setZoomLevel(parsedZoom);
-        globalZoomLevel = parsedZoom; // Aktualizujemy też zmienną globalną
+        globalZoomLevel = parsedZoom;
       }
     });
   }, []);
 
-const handleZoomChange = (newZoom) => {
+  const handleZoomChange = (newZoom) => {
     setZoomLevel(newZoom);
     globalZoomLevel = newZoom; 
     // Zapisujemy trwale w telefonie
@@ -59,7 +56,6 @@ const handleZoomChange = (newZoom) => {
 
   useEffect(() => {
     if (!isMeasuring) {
-      if (onBpmUpdate) onBpmUpdate('--');
       return;
     }
 
@@ -72,49 +68,6 @@ const handleZoomChange = (newZoom) => {
       const snapshot = ecgBuffer.getSnapshot();
       if (!snapshot || snapshot.length === 0) return;
 
-      const now = Date.now();
-      if (onBpmUpdate && now - lastBpmUpdate.current > 1000 && snapshot.length > 500) {
-        lastBpmUpdate.current = now;
-        
-        // Bierzemy okno z ostatnich 4 sekund (4 * 250 = 1000 próbek)
-        const windowSize = Math.min(snapshot.length, 1000);
-        const bpmWindow = snapshot.slice(-windowSize);
-        
-        let maxVal = -Infinity;
-        let minVal = Infinity;
-        
-        for (let i = 0; i < bpmWindow.length; i++) {
-            if (bpmWindow[i] > maxVal) maxVal = bpmWindow[i];
-            if (bpmWindow[i] < minVal) minVal = bpmWindow[i];
-        }
-
-        // Dynamiczny próg: zliczamy piki ucinając top 30% z maksymalnej amplitudy EKG
-        const threshold = maxVal - ((maxVal - minVal) * 0.3); 
-        let peakCount = 0;
-        let lastPeakIndex = -1000;
-        
-        // Okres refrakcji: co najmniej 0.3 sekundy między pikami (maks 200 BPM)
-        // 0.3s * 250Hz = 75 próbek
-        const minDistance = 75; 
-
-        for (let i = 0; i < bpmWindow.length; i++) {
-            if (bpmWindow[i] > threshold && (i - lastPeakIndex) > minDistance) {
-                peakCount++;
-                lastPeakIndex = i;
-            }
-        }
-
-        // BPM = (ilość uderzeń w oknie / czas trwania okna w sek) * 60
-        const windowInSeconds = bpmWindow.length / SAMPLE_RATE;
-        const calculatedBpm = Math.round((peakCount / windowInSeconds) * 60);
-
-        // Odrzucamy absurdalne wartości (artefakty z ruchu)
-        if (calculatedBpm > 30 && calculatedBpm < 250) {
-            onBpmUpdate(calculatedBpm);
-        } else if (calculatedBpm === 0) {
-            onBpmUpdate('--');
-        }
-      }
       const visibleSamples = Math.floor((W / zoomRef.current) * SAMPLE_RATE);
       const displaySnapshot = snapshot.length > visibleSamples 
         ? snapshot.slice(-visibleSamples) 
@@ -189,7 +142,7 @@ const handleZoomChange = (newZoom) => {
     }, 40); 
 
     return () => clearInterval(renderLoop);
-  }, [isMeasuring, onBpmUpdate]); 
+  }, [isMeasuring]); 
 
   const renderMedicalGrid = (W, H) => {
     if (W === 0 || H === 0) return null;

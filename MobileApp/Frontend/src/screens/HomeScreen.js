@@ -27,8 +27,7 @@ const HomeScreen = ({
   lastConnectedTime,
   deleteCurrentFile,
   loadMockReport,
-  currentBpm,
-  onBpmUpdate
+  currentBpm
 }) => {
 
   const confirmDelete = () => {
@@ -223,7 +222,7 @@ const HomeScreen = ({
           <Text style={{ color: '#a1a1aa', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginLeft: 8, marginBottom: 4 }}>
             MONITORING EKG NA ŻYWO
           </Text>
-          <LiveEcgChart isMeasuring={isLiveEcgActive} onBpmUpdate={onBpmUpdate} />
+          <LiveEcgChart isMeasuring={isLiveEcgActive} />
         </View>
       )}
 
