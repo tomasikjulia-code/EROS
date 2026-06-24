@@ -67,32 +67,6 @@ void CsvWriter::writeBuffer(const Sample* samples, size_t count, SemaphoreHandle
     }
 }
 
-/*
-    void CsvWriter::writeBuffer(const Sample* samples, size_t count) {
-        if (!_recording || samples == nullptr || count == 0) return;
-
-        for (size_t i = 0; i < count; i++) {
-            _file.print(samples[i].timestamp);
-            _file.print(",");
-            _file.print(samples[i].rawValue);
-            _file.print(",");
-            _file.print(samples[i].bpm);
-            _file.print(",");
-            _file.print(samples[i].leadOff ? "1" : "0");
-            _file.print(",");
-            
-            if (samples[i].activity < 0) {
-                _file.print("B"); 
-            } else {
-                _file.print(samples[i].activity, 2);
-            }
-            
-            _file.print(",");
-            _file.println(samples[i].important);
-        }
-        _file.flush(); 
-    }
-*/
 void CsvWriter::writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool leadOff, float activity, int important) {
     if (!_recording) return;
 

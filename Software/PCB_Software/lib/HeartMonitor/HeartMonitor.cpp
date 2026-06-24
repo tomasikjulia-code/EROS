@@ -1,11 +1,10 @@
 #include "HeartMonitor.h"
+#define DEBUG_HEART_RATE true
 
 SPIClass hspi(HSPI);
 ads1292r ADS1292R(hspi);
 
 ads1292OutputValues ecgRespirationValues;
-boolean ret;
-
 
 void initHeartMonitor() {
     
@@ -18,8 +17,15 @@ void initHeartMonitor() {
     ADS1292R.ads1292Init(ADS1292_CS_PIN, ADS1292_PWDN_PIN, ADS1292_START_PIN);
     Serial.println("ADS1292R init done");
 
-    for (int i = 0; i < NUM_READINGS; i++) readings[i] = 0;
-    for (int i = 0; i < MWI_WINDOW; i++) mwiBuffer[i] = 0;
+    for (uint8_t i = 0; i < NUM_READINGS; i++) readings[i] = 0;
+    for (uint8_t  i = 0; i < MWI_WINDOW; i++) mwiBuffer[i] = 0;
+
+    spki = 400000.0f;
+    npki = 50000.0f;
+    dynamicThreshold = 200000.0f;
+    maxSignalThisBeat = 0;
+    mwiSum = 0;
+    mwiIndex = 0;
 
 }
 
@@ -28,25 +34,55 @@ bool isLeadOff() {
 } 
 /**
  * @brief Główna funkcja przetwarzająca sygnał EKG w czasie rzeczywistym przy użyciu algorytmu Pan-Tompkinsa.
- * Fazy działania:
-    ->Filtrowanie: Usuwa składową stałą i szumy wysokoczęstotliwościowe (EMA).
-    ->Różniczkowanie: Oblicza nachylenie sygnału w celu wykrycia stromych zboczy zespołu QRS.
-    ->Potęgowanie: Podnosi wynik do kwadratu, aby wyeliminować wartości ujemne i nieliniowo wzmocnić najwyższe piki.
-    ->Całkowanie (MWI): Wygładza sygnał w oknie czasowym, tworząc impulsy energii.
-    ->Detekcja i Obliczanie BPM: Wykrywa przekroczenie progu PT_THRESHOLD z uwzględnieniem histerezy i czasu martwego, 
-    a następnie aktualizuje średnią kroczącą BPM.
+ * Implementuje adaptacyjny próg detekcji.
+ * * Fazy działania:
+    ->Filtrowanie: Usuwa składową stałą (centrowanie sygnału) i odcina szumy mięśniowe/sieciowe (filtr EMA).
+    ->Różniczkowanie: Oblicza pochodną sygnału, aby uwypuklić strome zbocza załamka R w zespole QRS.
+    ->Potęgowanie: Podnosi wynik do kwadratu, eliminując wartości ujemne i nieliniowo wzmacniając najwyższe piki.
+    ->Całkowanie (MWI): Analizuje energię sygnału w ruchomym oknie czasowym, tworząc stabilny profil fali QRS.
+    ->Detekcja i Adaptacja: Wykrywa uderzenie serca poprzez przekroczenie dynamicznego progu (dynamicThreshold). 
+      Wykorzystuje czas martwy (blokada refrakcji) oraz histerezę (opadnięcie poniżej 40% progu) do poprawnej separacji impulsów.
+    ->Śledzenie Sygnału i Szumu (SPKI/NPKI): Na bieżąco uaktualnia średnią energię poprawnych uderzeń (SPKI) oraz 
+      szumu tła (NPKI), co pozwala na automatyczne "pływanie" progu detekcji wraz ze zmianą pozycji ciała pacjenta.
+    ->Obliczanie i Logowanie BPM: Wyznacza interwał RR, oblicza chwilowe oraz średnie kroczące BPM, 
+      a następnie wypisuje dane diagnostyczne do terminala.
  */
 bool processHeartRate() {
 
-    ret = ADS1292R.getAds1292EcgAndRespirationSamples(ADS1292_DRDY_PIN, ADS1292_CS_PIN, &ecgRespirationValues);
+    bool ret = ADS1292R.getAds1292EcgAndRespirationSamples(ADS1292_DRDY_PIN, ADS1292_CS_PIN, &ecgRespirationValues);
     
     if (!ret) return false;
+
+    static bool wasLeadOff = false;
 
     if (isLeadOff()) { 
         averageBPM = 0; 
         hbeat = false; 
         firstBeat = true;
+        wasLeadOff = true;
         return true; 
+    }
+
+    if (wasLeadOff) {
+        spki = 400000.0f;
+        npki = 50000.0f;
+        dynamicThreshold = 200000.0f;
+        maxSignalThisBeat = 0;
+        
+        mwiSum = 0;
+        mwiIndex = 0;
+        for (uint8_t i = 0; i < MWI_WINDOW; i++) {
+            mwiBuffer[i] = 0;
+        }
+
+        totalBPM = 0;
+        readIndex = 0;
+        for (uint8_t i = 0; i < NUM_READINGS; i++) {
+            readings[i] = 0;
+        }
+
+        wasLeadOff = false;
+        //Serial.println(F("\n>>> Elektrody podłączone ponownie - zresetowano progi Pan-Tompkinsa <<<"));
     }
 
     int32_t rawValue = (int32_t)(ecgRespirationValues.sDaqVals[1]);
@@ -67,17 +103,25 @@ bool processHeartRate() {
     mwiSum += mwiBuffer[mwiIndex];
     mwiIndex = (mwiIndex + 1) % MWI_WINDOW;
 
-    integratedSignal = mwiSum / MWI_WINDOW;
+    integratedSignal = mwiSum / (float)MWI_WINDOW;
+
+    //Serial.print(">integratedSignal:");
+    //Serial.println(integratedSignal);
 
     unsigned long currentTime = millis();
 
-    if (integratedSignal > PT_THRESHOLD && integratedSignal < PT_MAX_LIMIT) {      
-        if (!hbeat && (currentTime - lastBeatTime > 300)) { 
+    if (hbeat) {
+        if (integratedSignal > maxSignalThisBeat) {
+            maxSignalThisBeat = integratedSignal;
+        }
+    }
+    if (integratedSignal > dynamicThreshold && integratedSignal < PT_MAX_LIMIT) {      
+        if (!hbeat && (currentTime - lastBeatTime > REFRACTORY_PERIOD)) { 
             
             if (!firstBeat) {
                 unsigned long duration = currentTime - lastBeatTime;
                 
-                if (duration >= 300 && duration <= 2000) {
+                if (duration >= REFRACTORY_PERIOD && duration <= 2000) {
                     int currentBPM = 60000 / duration;
                     
                     totalBPM -= readings[readIndex];
@@ -85,17 +129,38 @@ bool processHeartRate() {
                     totalBPM += readings[readIndex];
                     readIndex = (readIndex + 1) % NUM_READINGS;
                     averageBPM = totalBPM / NUM_READINGS;
+
+                    Serial.print("BPM chwilowe: ");
+                    Serial.print(currentBPM);
+                    Serial.print("\t| Średnie: ");
+                    Serial.print(averageBPM);
+                    Serial.print("\t| Próg dynamiczny: ");
+                    Serial.println(dynamicThreshold);
                 }
             }
             lastBeatTime = currentTime;
             firstBeat = false;
             hbeat = true; 
+            maxSignalThisBeat = integratedSignal; 
         }
-    } 
-    if (integratedSignal < (PT_THRESHOLD * 0.4f)) {
+    }
+    
+    if (integratedSignal < (dynamicThreshold * 0.4f)) {
+        if (hbeat) {
+            spki = (0.125f * maxSignalThisBeat) + (0.875f * spki);
+        }
         hbeat = false;
     }
-    //printf(">IntegratedSignal: %f \n", integratedSignal);
+
+    if (!hbeat && (currentTime - lastBeatTime > REFRACTORY_PERIOD)) {
+        npki = (0.05f * integratedSignal) + (0.95f * npki);
+    }
+
+    dynamicThreshold = npki + 0.25f * (spki - npki);
+
+    if (dynamicThreshold < 50000.0f) {
+        dynamicThreshold = 50000.0f;
+    }
     return ret;
 }
 /**
