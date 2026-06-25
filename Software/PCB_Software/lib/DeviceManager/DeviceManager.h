@@ -4,9 +4,9 @@
 #include "HeartMonitor.h"
 #include "CsvWriter.h" 
 #include "Accelerometer.h"
-#include <ArduinoJson.h>
 #include <BuzzerManager.h>
 #include <driver/adc.h>
+#include "esp_bt.h" 
 
 //definicje pinow do przyciskow
 #define BTN_LCD 39

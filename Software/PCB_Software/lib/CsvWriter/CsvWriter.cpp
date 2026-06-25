@@ -57,6 +57,8 @@ void CsvWriter::writeBuffer(const Sample* samples, size_t count, SemaphoreHandle
             
             _file.write((const uint8_t*)_writeBuf, offset);
 
+            printf("Wolna pamiec: %lu\n", esp_get_free_heap_size());
+
             _writeCounter++;
             if (_writeCounter % 4 == 0) {
                 _file.flush();

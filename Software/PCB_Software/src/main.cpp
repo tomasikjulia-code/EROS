@@ -37,8 +37,14 @@ void sdWriteTask(void *parameter)
     while (true)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        HolterDevice.writeBufferToSD(sdMutex);
+        //HolterDevice.writeBufferToSD(sdMutex);
         //Serial.println(">>> Zapisano bufor na kartę SD <<<");
+        unsigned long startWrite = millis();
+        HolterDevice.writeBufferToSD(sdMutex);
+        unsigned long writeTime = millis() - startWrite;
+        if (writeTime > 100) {
+            Serial.printf("UWAGA: Zapis na SD trwał %lu ms\n", writeTime);
+        }
     }
 }
 void btTask(void *parameter)
@@ -105,8 +111,8 @@ void setup()
 
 
     xTaskCreatePinnedToCore(measureTask, "Measure Task", 4096, NULL, 3, &measureTaskHandle, 1);
-    xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 4096, NULL, 2, &sdWriteTaskHandle, 1);
-    xTaskCreatePinnedToCore(btTask, "BT Task", 8192, NULL, 2, &btTaskHandle, 0);
+    xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 4096, NULL, 2, &sdWriteTaskHandle, 0);
+    xTaskCreatePinnedToCore(btTask, "BT Task", 4096, NULL, 2, &btTaskHandle, 0);
     xTaskCreatePinnedToCore(displayTask, "Display Task", 4096, NULL, 1, &displayTaskHandle, 0);
     xTaskCreatePinnedToCore(accelTask, "Accel Task", 2048, NULL, 1, &accelTaskHandle, 0);
     xTaskCreatePinnedToCore(buttonTask, "Button Task", 1024, NULL, 1, &buttonTaskHandle, 0);

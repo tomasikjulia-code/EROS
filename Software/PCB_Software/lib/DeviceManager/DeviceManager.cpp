@@ -114,6 +114,8 @@ void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
         //inicjalizacja Bluetooth
         //czekamy jakis tam czas i sprawdzamy czy ktos sie polaczy do naszego holtera a jesli enabled juz jest wlaczony to nie wlaczaj
         if(!btStarted){
+            esp_bt_mem_release(ESP_BT_MODE_BLE); //zwalnianie pamieci zarezerowanej na BLE
+
             SerialBT.begin("RYTHMIO");
             btStarted = true;
         }
@@ -147,17 +149,33 @@ void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
 
             if (response == "GET_ECG") {
             //wysylamy tutaj na biezaco probki EKG do momentu uzyskania komunikatu STOP od aplikacji
+                uint8_t counter = 0;
                 while (SerialBT.hasClient()) {
+                    static char stopBuffer[5];
+                    static int stopIdx = 0;
+
                     if (SerialBT.available()) {
-                        String command = SerialBT.readStringUntil('\n');
-                        command.trim();
-                        if (command == "STOP") {
-                            break;
+                        char c = SerialBT.read();
+                        if (c != '\n' && c != '\r' && stopIdx < 4) {
+                            stopBuffer[stopIdx++] = c;
+                        } else {
+                            stopBuffer[stopIdx] = '\0';
+                            if (strcmp(stopBuffer, "STOP") == 0) {
+                                stopIdx = 0;
+                                break; 
+                            }
+                            stopIdx = 0; 
                         }
                     }
                     SerialBT.print('E'); // 'E' to prefix oznaczajacy ze to jest probka EKG a nie jakis inny komunikat, potem idzie wartosc probki
                     SerialBT.println(getFilteredValue()); //tutaj wysylamy probke EKG 
                     vTaskDelay(pdMS_TO_TICKS(8)); //odstep czasowy miedzy probkami, zeby nie zalewac aplikacji danymi
+                    if(counter == 25){
+                        SerialBT.print('B');
+                        SerialBT.println(getAverageBPM()); //wysylamy tez BPM co jakis czas zeby aplikacja mogla wyswietlic aktualny BPM
+                        counter = 0;
+                    }
+                    counter++;
                 }
 
             //jak ESP zobaczy taka komende to wysyla plik z danym lub jego czesc
@@ -181,7 +199,7 @@ void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
 }
 
 void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
-    response.clear(); //czyscimy stringa statycznego z odpowiedzią zeby kolejna mogla nadejsc
+    response.clear(); // czyscimy stringa statycznego z odpowiedzią zeby kolejna mogla nadejsc
 
     if (!SerialBT.hasClient()) return;
 
@@ -192,10 +210,10 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
         xSemaphoreGive(sdMutex);
     }
 
-        SerialBT.print("READY ");
-        SerialBT.println(fileSize);
+    SerialBT.print("READY ");
+    SerialBT.println(fileSize);
 
-    Serial.printf("[BT] Wysłano READY %lu, czekam na OK...", fileSize);
+    Serial.printf("[BT] Wysłano READY %lu, czekam na OK...\n", fileSize);
 
     unsigned long waitStart = millis();
     while (!SerialBT.available()) {
@@ -209,7 +227,7 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
     response = SerialBT.readStringUntil('\n');
     response.trim();
 
-    //szukamy komunikatu OK oraz pobieramy z niego dlugosc pliku jakim aktualnie dysponuje aplikacja
+    // szukamy komunikatu OK oraz pobieramy z niego dlugosc pliku jakim aktualnie dysponuje aplikacja
     int32_t fileSizeReceived = 0;
 
     if (response.startsWith("OK ")) { // Sprawdzamy czy zaczyna się od "OK "
@@ -243,24 +261,35 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
                 return;
             }
 
-            //przed wyslaniem danych robimy gigantyczny skok o wartosc podana przez aplikacje
-            _fileToSend.seek(fileSizeReceived); // Ustawiamy wskaźnik na pozycję, od której zaczniemy wysyłać dane
+            // przed wyslaniem danych robimy gigantyczny skok o wartosc podana przez aplikacje
+            _fileToSend.seek(fileSizeReceived); 
+
+            // Obliczamy ile bajtów docelowo zostało do wysłania z tego konkretnego "żądania"
+            uint32_t bytesRemaining = fileSize - fileSizeReceived;
+
 
             // Wysyłanie w porcjach 
             static const size_t bufferSize = 4096; // 4 KB
             static uint8_t buffer[bufferSize];
 
-            while (_fileToSend.available() && SerialBT.hasClient()) {
+            // Pętla wykonuje się dopóki mamy coś do wysłania (bytesRemaining > 0)
+            while (bytesRemaining > 0 && _fileToSend.available() && SerialBT.hasClient()) {
 
-                while (esp_get_free_heap_size() < 20000) { 
+                while (esp_get_free_heap_size() < 10000) { 
                     Serial.printf("[BT] Krytycznie mało RAMu (%lu), wstrzymuję odczyt z SD...\n", esp_get_free_heap_size());
-
-                     xSemaphoreGive(sdMutex);
-                     vTaskDelay(pdMS_TO_TICKS(50)); 
+                    xSemaphoreGive(sdMutex);
+                    vTaskDelay(pdMS_TO_TICKS(50)); 
                     xSemaphoreTake(sdMutex, portMAX_DELAY);
                 }
+                
+                // Zabezpieczamy odczyt z pliku na wypadek, gdyby do końca zostało mniej niż `bufferSize`
+                size_t chunkToRead = (bytesRemaining < bufferSize) ? bytesRemaining : bufferSize;
+                size_t bytesRead = _fileToSend.read(buffer, chunkToRead);
+                
+                if (bytesRead == 0) {
+                    break; // Awaryjne wyjście w przypadku błędów na karcie SD
+                }
 
-                size_t bytesRead = _fileToSend.read(buffer, bufferSize);
                 esp_task_wdt_reset();
 
                 size_t written = 0;
@@ -271,48 +300,40 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
                     vTaskDelay(pdMS_TO_TICKS(1));
                 }
 
+                bytesRemaining -= bytesRead;
+
                 xSemaphoreGive(sdMutex);
                 vTaskDelay(pdMS_TO_TICKS(10)); 
                 xSemaphoreTake(sdMutex, portMAX_DELAY);
             }
+            SerialBT.println("S"); // Koniec transmisji wysyłany jak najszybciej po skończeniu porcji
             _fileToSend.close();
             xSemaphoreGive(sdMutex); // Oddajemy dostęp do karty SD
         }
-
-        SerialBT.println("S"); // Koniec transmisji
-    }else {
+    } else {
         Serial.println("[BT] Otrzymano niepoprawną odpowiedź (nie zaczyna się od OK).");
     }
 }
 
-
 void DeviceManager::BTSendingState()
 {
-    JsonDocument doc;
+    // Tablica znaków na stosie (256 bajtów spokojnie pomieści ten ciąg)
+    char buffer[256];
+    
+    // Pobieramy stan elektrod (wywołujemy funkcję tylko raz dla optymalizacji)
+    bool isOk = !isLeadOff();
 
-    doc["battery"] = getBatteryLevel();
-    doc["signalQuality"] = "Stabilny";
-    doc["isMeasuring"] = holter.isRecording();
+    // Formatowanie tekstu prosto do bufora w formie zgodnej z JSON
+    snprintf(buffer, sizeof(buffer), 
+             "D{\"battery\":%d,\"signalQuality\":\"Stabilny\",\"isMeasuring\":%s,\"electrodes\":[{\"name\":\"RA (prawy)\",\"ok\":%s},{\"name\":\"LA (Lewy)\",\"ok\":%s},{\"name\":\"RL (brzuch)\",\"ok\":%s}]}",
+             getBatteryLevel(),
+             holter.isRecording() ? "true" : "false",
+             isOk ? "true" : "false",
+             isOk ? "true" : "false",
+             isOk ? "true" : "false");
 
-    JsonArray electrodes = doc["electrodes"].to<JsonArray>();
-
-    JsonObject e1 = electrodes.add<JsonObject>();
-    e1["name"] = "RA (prawy)";
-    e1["ok"] = !isLeadOff();
-
-    JsonObject e2 = electrodes.add<JsonObject>();
-    e2["name"] = "LA (Lewy)";
-    e2["ok"] = !isLeadOff();
-
-    JsonObject e3 = electrodes.add<JsonObject>();
-    e3["name"] = "RL (brzuch)";
-    e3["ok"] = !isLeadOff();
-
-    SerialBT.print('D');
-    serializeJson(doc, SerialBT);
-    SerialBT.println();
-
-    doc.clear(); // Zwolnienie pamięci zajmowanej przez dokument
+    // Wysyłamy gotowy ciąg znaków z \n na końcu (println)
+    SerialBT.println(buffer);
 }
 
 uint8_t DeviceManager::getBatteryLevel(){
@@ -439,6 +460,7 @@ void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
 
     // jesli bufor sie zapelnil zamien i wyslij powiadomienie
     if (bufferIndex >= EKG_BUFFER_SIZE) {
+
         readyToWriteBuffer = currentBuffer; // Przekaż pełny bufor do zapisu
         
         // Zamień wskaźniki ze starego bufora na nowy pusty
