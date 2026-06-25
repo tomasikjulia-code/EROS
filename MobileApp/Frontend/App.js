@@ -734,20 +734,22 @@ const handleToggleLiveEcg = () => {
     if (!record) return;
     setActiveReportRecord(record);
 
+    const SNIPPET_LENGTH = 750;
+
     const snippets = [
       { 
         title: "Maksymalne Tętno", 
         description: `Szczyt wysiłku lub arytmii.`, 
         time: record.maxBpmTime, 
         hr: record.maxBpm, 
-        data: getEcgSlice(record.hourlyTrend, record.maxBpmTimeMs, 600)
+        data: getEcgSlice(record.hourlyTrend, record.maxBpmTimeMs, SNIPPET_LENGTH)
       },
       { 
         title: "Minimalne Tętno", 
         description: `Najniższy zarejestrowany rytm.`, 
         time: record.minBpmTime, 
         hr: record.minBpm, 
-        data: getEcgSlice(record.hourlyTrend, record.minBpmTimeMs, 600)
+        data: getEcgSlice(record.hourlyTrend, record.minBpmTimeMs, SNIPPET_LENGTH)
       }
     ];
 
@@ -761,7 +763,7 @@ const handleToggleLiveEcg = () => {
       description: `Czas trwania: ${Math.round(duration / 1000)}s`,
       time: formatMsToTime(ep.start),
       hr: ep.maxBpm,
-      data: getEcgSlice(record.hourlyTrend, centerTime, 600) 
+      data: getEcgSlice(record.hourlyTrend, centerTime, SNIPPET_LENGTH) 
     });
   });
 
@@ -775,7 +777,7 @@ const handleToggleLiveEcg = () => {
       description: `Czas trwania: ${Math.round(duration / 1000)}s`,
       time: formatMsToTime(ep.start),
       hr: ep.minBpm, 
-      data: getEcgSlice(record.hourlyTrend, centerTime, 600)
+      data: getEcgSlice(record.hourlyTrend, centerTime, SNIPPET_LENGTH)
     });
   });
 
@@ -788,7 +790,7 @@ const handleToggleLiveEcg = () => {
       description: `Zgłoszenie pacjenta (zapis 10s przed naciśnięciem)`,
       time: formatMsToTime(ep.start),
       hr: ep.maxBpm || '--', 
-      data: getEcgSlice(record.hourlyTrend, centerTime, 2500)
+      data: getEcgSlice(record.hourlyTrend, centerTime, SNIPPET_LENGTH)
     });
   });
 
