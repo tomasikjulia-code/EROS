@@ -104,8 +104,8 @@ void setup()
     xSemaphoreGive(sdMutex);
 
 
-    xTaskCreatePinnedToCore(measureTask, "Measure Task", 4096, NULL, 2, &measureTaskHandle, 1);
-    xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 4096, NULL, 2, &sdWriteTaskHandle, 0);
+    xTaskCreatePinnedToCore(measureTask, "Measure Task", 4096, NULL, 3, &measureTaskHandle, 1);
+    xTaskCreatePinnedToCore(sdWriteTask, "SD Write Task", 4096, NULL, 2, &sdWriteTaskHandle, 1);
     xTaskCreatePinnedToCore(btTask, "BT Task", 8192, NULL, 2, &btTaskHandle, 0);
     xTaskCreatePinnedToCore(displayTask, "Display Task", 4096, NULL, 1, &displayTaskHandle, 0);
     xTaskCreatePinnedToCore(accelTask, "Accel Task", 2048, NULL, 1, &accelTaskHandle, 0);

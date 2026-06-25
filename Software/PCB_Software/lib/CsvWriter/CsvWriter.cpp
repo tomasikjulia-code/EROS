@@ -93,8 +93,10 @@ void CsvWriter::writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool l
     }
 }
 uint32_t CsvWriter::getFileSize() const {
-    if (!_recording) return 0;
-    return _file.size();
+    if (!_recording){
+        File temp = SD.open("/test_ekg.csv", FILE_READ);
+        return temp.size();
+    }else return _file.size();
 }
 
 void CsvWriter::closeFile() {

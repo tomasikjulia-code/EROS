@@ -60,6 +60,8 @@ class DeviceManager{
         static CsvWriter holter; //klasa zarzadzajaca holterem
         //Epd epd; //klasa zarzadzajaca wyswietlaczem
         DisplayState currentDisplayState; //zmienna okreslajaca aktualny wyswietlany ekran
+
+        static String response; //statyczny string przechowujacy odpowiedz z aplikacji
         
         static MyAccelerometer accel;
         unsigned long lastAccelCheck = 0; 

@@ -9,7 +9,7 @@ MyAccelerometer DeviceManager::accel;
 //Definicje statycznych tablic
 Sample DeviceManager::bufferA[EKG_BUFFER_SIZE];
 Sample DeviceManager::bufferB[EKG_BUFFER_SIZE];
-
+String DeviceManager::response = "";
 
 DeviceManager::DeviceManager(){
 
@@ -23,6 +23,8 @@ DeviceManager::DeviceManager(){
 
     SDcardEnabled = 0; //na początek nic nie ma i dopiero pozneij w inicie sprawdzam czy karta jest
     fileSystemEnabled = 0; //na poczatek nie ma systemu plikow bo nawet nie wiadomo czy jest karta
+
+    response.reserve(50);
 
     EKGTestTime = 1; //na start czas badania ustawiany na jedynkę jak cos bo pierwszy widok urzadzenia bedzie pozwalal ustawic ta wielkosc
     testTimeChosen = false;
@@ -138,7 +140,7 @@ void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
                 vTaskDelay(pdMS_TO_TICKS(100));
             }
 
-            String response = SerialBT.readStringUntil('\n');
+            response = SerialBT.readStringUntil('\n');
             response.trim();
 
             Serial.println("Otrzymano komendę: " + response);
@@ -179,6 +181,8 @@ void DeviceManager::checkBluetooth(SemaphoreHandle_t sdMutex){
 }
 
 void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
+    response.clear(); //czyscimy stringa statycznego z odpowiedzią zeby kolejna mogla nadejsc
+
     if (!SerialBT.hasClient()) return;
 
     uint32_t fileSize = 0;
@@ -202,7 +206,7 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
         vTaskDelay(pdMS_TO_TICKS(100)); // Dajemy czas innym zadaniom
     }
 
-    String response = SerialBT.readStringUntil('\n');
+    response = SerialBT.readStringUntil('\n');
     response.trim();
 
     //szukamy komunikatu OK oraz pobieramy z niego dlugosc pliku jakim aktualnie dysponuje aplikacja
@@ -243,8 +247,8 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             _fileToSend.seek(fileSizeReceived); // Ustawiamy wskaźnik na pozycję, od której zaczniemy wysyłać dane
 
             // Wysyłanie w porcjach 
-            const size_t bufferSize = 1024;
-            uint8_t buffer[bufferSize];
+            static const size_t bufferSize = 4096; // 4 KB
+            static uint8_t buffer[bufferSize];
 
             while (_fileToSend.available() && SerialBT.hasClient()) {
 
@@ -268,7 +272,7 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
                 }
 
                 xSemaphoreGive(sdMutex);
-                vTaskDelay(pdMS_TO_TICKS(20)); 
+                vTaskDelay(pdMS_TO_TICKS(10)); 
                 xSemaphoreTake(sdMutex, portMAX_DELAY);
             }
             _fileToSend.close();
@@ -405,6 +409,7 @@ void DeviceManager::collectAndBufferSample(TaskHandle_t sdTaskHandle) {
         timeout--;
         delayMicroseconds(1);
     }
+    if(isTimeEnded()) return; //jesli czas badania skonczony to juz nie idz dalej 
 
     bool dataReady = processHeartRate(); 
 
@@ -484,7 +489,7 @@ uint8_t DeviceManager::calculateLeftHours()
     uint32_t elapsedHours = (millis() - startTime) / MS_PER_HOUR;
     return (elapsedHours >= EKGTestTime)
            ? 0
-           : (EKGTestTime - elapsedHours);
+           : (EKGTestTime - elapsedHours - 1);
 }
 
 uint8_t DeviceManager::calculateLeftMinutes()
