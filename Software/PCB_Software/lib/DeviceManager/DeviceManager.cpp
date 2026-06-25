@@ -276,7 +276,7 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             while (bytesRemaining > 0 && _fileToSend.available() && SerialBT.hasClient()) {
 
                 while (esp_get_free_heap_size() < 10000) { 
-                    Serial.printf("[BT] Krytycznie mało RAMu (%lu), wstrzymuję odczyt z SD...\n", esp_get_free_heap_size());
+                    //Serial.printf("[BT] Krytycznie mało RAMu (%lu), wstrzymuję odczyt z SD...\n", esp_get_free_heap_size());
                     xSemaphoreGive(sdMutex);
                     vTaskDelay(pdMS_TO_TICKS(50)); 
                     xSemaphoreTake(sdMutex, portMAX_DELAY);
