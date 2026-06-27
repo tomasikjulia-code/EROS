@@ -158,7 +158,7 @@ function MainApp() {
     if (!isLoaded) return;
     const saveData = async () => {
       try {
-        const recordsToSave = records.map(({ hourlyTrend, ...rest }) => rest);
+        const recordsToSave = records;
         await FileSystem.writeAsStringAsync(HISTORY_FILE_URI, JSON.stringify(recordsToSave), { encoding: FileSystem.EncodingType.UTF8 });
         
         if (currentSessionId) await AsyncStorage.setItem('@rythmio_session_id', currentSessionId);
