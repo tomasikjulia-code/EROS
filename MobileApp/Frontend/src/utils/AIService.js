@@ -154,7 +154,7 @@ function buildPrompt(record, findings) {
 
   const algorithmFindings = (findings || []).filter(Boolean).join('\n');
 
-  return `Jesteś doświadczonym kardiologiem interpretującym wyniki ambulatoryjnego monitorowania EKG metodą Holtera. Poniżej znajdują się dane z automatycznej analizy zapisu. Dokonaj klinicznie użytecznej interpretacji.
+  return `Jesteś doświadczonym kardiologiem interpretującym wyniki ambulatoryjnego monitorowania EKG metodą Holtera. Poniżej znajdują się dane z automatycznej analizy zapisu. Podane czasy nie są godzinami, a czasem od rozpoczęcia badania. Dokonaj klinicznie użytecznej interpretacji.
 
 Zwróć WYŁĄCZNIE poprawny obiekt JSON — bez markdown, bez tekstu przed ani po:
 

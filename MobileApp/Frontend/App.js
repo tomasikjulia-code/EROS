@@ -8,6 +8,7 @@ import { styles } from './src/constants/Theme';
 import { createMockReportRecord } from './src/utils/Generators';
 import { USE_MOCK_BT } from './src/config/Config';
 import { analyzeEcgTrend, formatMsToTime, formatDate, getEcgSlice, speakReportSummary, migrateLegacyLlmReport } from './src/utils/EcgAnalysis';
+import { parseEcgFileToTrend } from './src/utils/CsvParser';
 import { generatePdfReport, saveToDownloads } from './src/utils/ReportExporter';
 import * as RealBT from './src/utils/BluetoothSerial';
 import * as MockBT from './src/utils/MockBluetoothSerial';
@@ -93,6 +94,8 @@ function MainApp() {
   const [isLiveEcgActive, setIsLiveEcgActive] = useState(false);
   const [lastConnectedTime, setLastConnectedTime] = useState(null);
 
+  const [currentBpm, setCurrentBpm] = useState('--');
+
   const isReceivingFileRef = useRef(false);
   const readyResolveRef = useRef(null);
   const readyRejectRef = useRef(null);
@@ -155,7 +158,7 @@ function MainApp() {
     if (!isLoaded) return;
     const saveData = async () => {
       try {
-        const recordsToSave = records.map(({ hourlyTrend, ...rest }) => rest);
+        const recordsToSave = records;
         await FileSystem.writeAsStringAsync(HISTORY_FILE_URI, JSON.stringify(recordsToSave), { encoding: FileSystem.EncodingType.UTF8 });
         
         if (currentSessionId) await AsyncStorage.setItem('@rythmio_session_id', currentSessionId);
@@ -370,6 +373,14 @@ function MainApp() {
         return;
       }
 
+      if (trimmed.startsWith('B')) {
+        const bpmVal = parseInt(trimmed.slice(1), 10);
+        if (!isNaN(bpmVal)) {
+          setCurrentBpm(bpmVal);
+        }
+        return;
+      }
+
       if (trimmed === 'S') {
         console.log(`[TRANSFER] 'S' received. received=${receivedFileSize.current} toBeReceived=${toBeReceived.current} ratio=${(receivedFileSize.current/(toBeReceived.current||1)*100).toFixed(1)}%`);
         if (progressIntervalRef.current) {
@@ -412,10 +423,11 @@ function MainApp() {
   }
 
 
-  const handleToggleLiveEcg = () => {
+const handleToggleLiveEcg = () => {
     if (isLiveEcgActive) {
       if (bleState === 'connected' && deviceRef.current) sendData(deviceRef.current.address, "STOP");
       setIsLiveEcgActive(false);
+      setCurrentBpm('--'); 
     } else {
       if (bleState === 'connected' && deviceRef.current) sendData(deviceRef.current.address, "GET_ECG");
       setIsLiveEcgActive(true);
@@ -511,32 +523,16 @@ function MainApp() {
       await flushBuffer();
       console.log('[TRANSFER] flushBuffer done, waiting for fileWriteQueue...');
       await fileWriteQueue.current;
-      console.log('[TRANSFER] fileWriteQueue done, starting analysis. trendRaw.length=', trendRawRef.current.length);
+      console.log('[TRANSFER] fileWriteQueue done, reading full file for analysis.');
 
       showToast('Trwa analiza EKG...', 'analyzing');
       console.log('[TRANSFER] showToast analyzing called');
 
-      const raw = trendRawRef.current;
-      const avgActivity = activityCntRef.current > 0
-        ? activitySumRef.current / activityCntRef.current : 0;
-      const motionNoiseThreshold = Math.max(avgActivity * 3, 6.0);
-      let lastValidBpm = 0;
-      let lastValidTimeMs = 0;
-
-      for (let i = 0; i < raw.length; i++) {
-        const pt = raw[i];
-        let isNoise = false;
-        if (pt.leadOff === 1)                                                                          isNoise = true;
-        else if (pt.activity > motionNoiseThreshold)                                                   isNoise = true;
-        else if (pt.bpm < 20 && pt.activity > 1.0)                                                    isNoise = true;
-        else if (pt.ecgRaw === 0)                                                                      isNoise = true;
-        else if (lastValidBpm > 0 && Math.abs(pt.bpm - lastValidBpm) > 50 && (pt.timeMs - lastValidTimeMs) < 15000) isNoise = true;
-        else if (pt.bpm < 20 || pt.bpm > 250)                                                         isNoise = true;
-        pt.isNoise = isNoise;
-        if (!isNoise) { lastValidBpm = pt.bpm; lastValidTimeMs = pt.timeMs; }
-      }
-
-      const parsedTrend = raw;
+      const fileContent = await FileSystem.readAsStringAsync(FILE_URI, {
+        encoding: FileSystem.EncodingType.UTF8
+      });
+      const parsedTrend = parseEcgFileToTrend(fileContent);
+      trendRawRef.current = parsedTrend;
 
       if (parsedTrend.length === 0) {
         setProgressPercent(0);
@@ -687,7 +683,7 @@ function MainApp() {
 
     fileWriteQueue.current = fileWriteQueue.current.then(async () => {
       try {
-        await RNFS.appendFile(FILE_URI, dataToWrite, 'utf8');
+        await RNFS.appendFile(FILE_URI.replace('file://', ''), dataToWrite, 'utf8');
       } catch (error) {
         console.error('Flush failed:', error);
       } finally {
@@ -738,20 +734,22 @@ function MainApp() {
     if (!record) return;
     setActiveReportRecord(record);
 
+    const SNIPPET_LENGTH = 750;
+
     const snippets = [
       { 
         title: "Maksymalne Tętno", 
         description: `Szczyt wysiłku lub arytmii.`, 
         time: record.maxBpmTime, 
         hr: record.maxBpm, 
-        data: getEcgSlice(record.hourlyTrend, record.maxBpmTimeMs, 600)
+        data: getEcgSlice(record.hourlyTrend, record.maxBpmTimeMs, SNIPPET_LENGTH)
       },
       { 
         title: "Minimalne Tętno", 
         description: `Najniższy zarejestrowany rytm.`, 
         time: record.minBpmTime, 
         hr: record.minBpm, 
-        data: getEcgSlice(record.hourlyTrend, record.minBpmTimeMs, 600)
+        data: getEcgSlice(record.hourlyTrend, record.minBpmTimeMs, SNIPPET_LENGTH)
       }
     ];
 
@@ -765,7 +763,7 @@ function MainApp() {
       description: `Czas trwania: ${Math.round(duration / 1000)}s`,
       time: formatMsToTime(ep.start),
       hr: ep.maxBpm,
-      data: getEcgSlice(record.hourlyTrend, centerTime, 600) 
+      data: getEcgSlice(record.hourlyTrend, centerTime, SNIPPET_LENGTH) 
     });
   });
 
@@ -779,21 +777,20 @@ function MainApp() {
       description: `Czas trwania: ${Math.round(duration / 1000)}s`,
       time: formatMsToTime(ep.start),
       hr: ep.minBpm, 
-      data: getEcgSlice(record.hourlyTrend, centerTime, 600)
+      data: getEcgSlice(record.hourlyTrend, centerTime, SNIPPET_LENGTH)
     });
   });
 
   const importantList = record.importantDetails || [];
   importantList.forEach((ep, index) => { 
-    const duration = (ep.end && ep.end > ep.start) ? (ep.end - ep.start) : 0;
-    const centerTime = ep.start + duration / 2;
+    const centerTime = Math.max(0, ep.start - 5000);
 
     snippets.push({
       title: `Ważne Zdarzenie #${index + 1}`,
-      description: `Zgłoszona anomalia. Czas trwania: ${Math.round(duration / 1000)}s`,
+      description: `Zgłoszenie pacjenta (zapis 10s przed naciśnięciem)`,
       time: formatMsToTime(ep.start),
       hr: ep.maxBpm || '--', 
-      data: getEcgSlice(record.hourlyTrend, centerTime, 600)
+      data: getEcgSlice(record.hourlyTrend, centerTime, SNIPPET_LENGTH)
     });
   });
 
@@ -1025,6 +1022,7 @@ const deleteCurrentFile = async () => {
               refreshDiagnostics={refreshDiagnostics}
               getFileFromDevice={getFileFromDevice}
               isLiveEcgActive={isLiveEcgActive}
+              currentBpm={currentBpm}
               toggleLiveEcg={handleToggleLiveEcg}
               lastConnectedTime={lastConnectedTime}
               openReport={openReport}

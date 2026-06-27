@@ -94,7 +94,7 @@ const EcgStrip = React.memo(({ title, description, time, hr, data }) => {
               points={pts}
               fill="none"
               stroke="#34d399"
-              strokeWidth="2.5"
+              strokeWidth="1"
               strokeLinejoin="round"
             />
           </Svg>

@@ -42,7 +42,7 @@ const ActivityChart = ({ data }) => {
   if (!chartData || chartData.length === 0) return null;
   
   const maxActivityRaw = Math.max(...chartData.map(d => d.activity));
-  const maxActivity = 10.0; 
+  const maxActivity = 5.0; 
   const yMin = 0;
   const yRange = maxActivity - yMin;
   const maxPercentage = maxActivityRaw > 0 ? (maxActivityRaw / maxActivity) * 100 : 0;

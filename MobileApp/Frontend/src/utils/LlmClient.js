@@ -11,7 +11,7 @@
  *   ping(config)          → Promise<boolean>  czy serwer odpowiada
  */
 
-const CALL_TIMEOUT_MS = 120_000; // 2 min (modele lokalne mogą być wolne)
+const CALL_TIMEOUT_MS = 240_000; // 2 min (modele lokalne mogą być wolne)
 const PING_TIMEOUT_MS = 5_000;
 
 // ─── Timeout wrapper ─────────────────────────────────────────────────────────

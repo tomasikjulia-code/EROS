@@ -26,7 +26,8 @@ const HomeScreen = ({
   getFileFromDevice, 
   lastConnectedTime,
   deleteCurrentFile,
-  loadMockReport
+  loadMockReport,
+  currentBpm
 }) => {
 
   const confirmDelete = () => {
@@ -39,6 +40,14 @@ const HomeScreen = ({
       ]
     );
   };
+
+  // Logika blokowania przycisków
+  const isLiveButtonDisabled = bleState !== 'connected' || syncState === 'syncing';
+  const isDownloadButtonDisabled = bleState !== 'connected' || syncState === 'syncing' || isLiveEcgActive;
+
+  // Logika wyświetlania BPM
+  const displayBpm = currentBpm || '--';
+  const isDisconnectedOrEmpty = !isLiveEcgActive;
 
   return (
     <View style={styles.screenContent}>
@@ -73,7 +82,9 @@ const HomeScreen = ({
             {bleState === 'connected' ? (
               <View style={[styles.badge, styles.badgeBlue]}>
                 <View style={styles.dotPulse} />
-                <Text style={styles.badgeTextBlue}>Monitorowanie Aktywne</Text>
+                <Text style={styles.badgeTextBlue}>
+                  {isLiveEcgActive ? 'Monitorowanie na żywo' : 'Połączono z urządzeniem'}
+                </Text>
               </View>
             ) : (
               <View style={[styles.badge, styles.badgeZinc]}>
@@ -107,11 +118,21 @@ const HomeScreen = ({
         {/* DOLNY WIERSZ (BPM + Kosz) */}
         <View style={[styles.heroMain, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <Text style={styles.heroBpmText}>{deviceData?.avgBpm || '--'}</Text>
-            <View style={{ paddingBottom: 8 }}>
-              <Text style={styles.heroBpmLabel}>BPM</Text>
-              <Text style={styles.heroBpmSublabel}>Średnio</Text>
+          {/* Sekcja BPM - dynamicznie zmienia styl i wartość */}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[styles.heroBpmText, isDisconnectedOrEmpty && { color: '#71717a' }]}>
+              {displayBpm}
+            </Text>
+            
+            {/* Lekko spychamy prawy blok w dół, aby optycznie wyrównać go z kreskami "--" */}
+            <View style={{ marginLeft: 8, justifyContent: 'center', marginTop: 8 }}>
+              <Text style={[styles.heroBpmLabel, isDisconnectedOrEmpty && { color: '#71717a' }]}>
+                BPM
+              </Text>
+              {isLiveEcgActive && (
+                <Text style={[styles.heroBpmSublabel, isDisconnectedOrEmpty && { color: '#52525b' }]}>
+                </Text>
+              )}
             </View>
           </View>
 
@@ -128,15 +149,16 @@ const HomeScreen = ({
       </View>
 
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+        {/* Przycisk TRYBU LIVE */}
         <TouchableOpacity 
           onPress={toggleLiveEcg}
-          disabled={bleState !== 'connected'}
+          disabled={isLiveButtonDisabled}
           style={{
             flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
             padding: 16, borderRadius: 16, borderWidth: 1,
             backgroundColor: isLiveEcgActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(39, 39, 42, 0.6)',
             borderColor: isLiveEcgActive ? '#10b981' : '#27272a',
-            opacity: bleState !== 'connected' ? 0.4 : 1
+            opacity: isLiveButtonDisabled ? 0.4 : 1
           }}
         >
           <Activity size={18} color={isLiveEcgActive ? "#34d399" : "#a1a1aa"} />
@@ -144,19 +166,20 @@ const HomeScreen = ({
             color: isLiveEcgActive ? '#34d399' : '#a1a1aa',
             fontSize: 12, fontWeight: '800', marginLeft: 8, letterSpacing: 0.5
           }}>
-            {isLiveEcgActive ? 'ZATRZYMAJ LIVE' : 'NA ŻYWO'}
+            {isLiveEcgActive ? 'ZATRZYMAJ' : 'NA ŻYWO'}
           </Text>
         </TouchableOpacity>
 
+        {/* Przycisk POBIERZ BADANIE */}
         <TouchableOpacity
           onPress={getFileFromDevice}
-          disabled={bleState !== 'connected' || syncState === 'syncing'}
+          disabled={isDownloadButtonDisabled}
           style={{
             flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
             padding: 16, borderRadius: 16, borderWidth: 1,
             backgroundColor: bleState === 'connected' ? 'rgba(129, 140, 248, 0.15)' : 'rgba(39, 39, 42, 0.6)',
             borderColor: bleState === 'connected' ? 'rgba(99, 102, 241, 0.4)' : '#27272a',
-            opacity: (bleState !== 'connected' || syncState === 'syncing') ? 0.4 : 1
+            opacity: isDownloadButtonDisabled ? 0.4 : 1
           }}
         >
           <FileDown size={18} color={bleState === 'connected' ? "#818cf8" : "#a1a1aa"} />
