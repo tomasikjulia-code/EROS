@@ -57,6 +57,8 @@ void CsvWriter::writeBuffer(const Sample* samples, size_t count, SemaphoreHandle
             
             _file.write((const uint8_t*)_writeBuf, offset);
 
+            //printf("Wolna pamiec: %lu\n", esp_get_free_heap_size());
+
             _writeCounter++;
             if (_writeCounter % 4 == 0) {
                 _file.flush();
@@ -93,8 +95,10 @@ void CsvWriter::writeSample(uint32_t millisy, uint16_t rawValue, int bpm, bool l
     }
 }
 uint32_t CsvWriter::getFileSize() const {
-    if (!_recording) return 0;
-    return _file.size();
+    if (!_recording){
+        File temp = SD.open("/test_ekg.csv", FILE_READ);
+        return temp.size();
+    }else return _file.size();
 }
 
 void CsvWriter::closeFile() {

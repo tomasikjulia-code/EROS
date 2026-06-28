@@ -4,9 +4,9 @@
 #include "HeartMonitor.h"
 #include "CsvWriter.h" 
 #include "Accelerometer.h"
-#include <ArduinoJson.h>
 #include <BuzzerManager.h>
 #include <driver/adc.h>
+#include "esp_bt.h" 
 
 //definicje pinow do przyciskow
 #define BTN_LCD 39
@@ -60,6 +60,8 @@ class DeviceManager{
         static CsvWriter holter; //klasa zarzadzajaca holterem
         //Epd epd; //klasa zarzadzajaca wyswietlaczem
         DisplayState currentDisplayState; //zmienna okreslajaca aktualny wyswietlany ekran
+
+        static String response; //statyczny string przechowujacy odpowiedz z aplikacji
         
         static MyAccelerometer accel;
         unsigned long lastAccelCheck = 0; 

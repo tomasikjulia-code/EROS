@@ -130,12 +130,12 @@ bool processHeartRate() {
                     readIndex = (readIndex + 1) % NUM_READINGS;
                     averageBPM = totalBPM / NUM_READINGS;
 
-                    Serial.print("BPM chwilowe: ");
-                    Serial.print(currentBPM);
-                    Serial.print("\t| Średnie: ");
-                    Serial.print(averageBPM);
-                    Serial.print("\t| Próg dynamiczny: ");
-                    Serial.println(dynamicThreshold);
+                    // Serial.print("BPM chwilowe: ");
+                    // Serial.print(currentBPM);
+                    // Serial.print("\t| Średnie: ");
+                    // Serial.print(averageBPM);
+                    // Serial.print("\t| Próg dynamiczny: ");
+                    // Serial.println(dynamicThreshold);
                 }
             }
             lastBeatTime = currentTime;

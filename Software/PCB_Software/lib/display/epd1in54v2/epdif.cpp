@@ -40,7 +40,7 @@ int EpdIf::DigitalRead(int pin) {
 }
 
 void EpdIf::DelayMs(unsigned int delaytime) {
-    delay(delaytime);
+    vTaskDelay(pdMS_TO_TICKS(delaytime));
 }
 
 void EpdIf::SpiTransfer(unsigned char data) {
