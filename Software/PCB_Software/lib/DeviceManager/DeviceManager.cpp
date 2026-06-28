@@ -275,7 +275,7 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
             // Pętla wykonuje się dopóki mamy coś do wysłania (bytesRemaining > 0)
             while (bytesRemaining > 0 && _fileToSend.available() && SerialBT.hasClient()) {
 
-                while (esp_get_free_heap_size() < 10000) { 
+                while (esp_get_free_heap_size() < 15000) { 
                     //Serial.printf("[BT] Krytycznie mało RAMu (%lu), wstrzymuję odczyt z SD...\n", esp_get_free_heap_size());
                     xSemaphoreGive(sdMutex);
                     vTaskDelay(pdMS_TO_TICKS(50)); 
@@ -306,6 +306,7 @@ void DeviceManager::BTSendingFile(SemaphoreHandle_t sdMutex) {
                 vTaskDelay(pdMS_TO_TICKS(10)); 
                 xSemaphoreTake(sdMutex, portMAX_DELAY);
             }
+            SerialBT.print("\n");
             SerialBT.println("S"); // Koniec transmisji wysyłany jak najszybciej po skończeniu porcji
             _fileToSend.close();
             xSemaphoreGive(sdMutex); // Oddajemy dostęp do karty SD
