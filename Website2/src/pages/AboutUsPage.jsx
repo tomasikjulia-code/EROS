@@ -46,26 +46,13 @@ const AboutUsPage = ({ isDark, scrollbarStyles, onBack }) => {
           <p className={`text-sm sm:text-base leading-relaxed mb-6 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
             {t('intro.comarch_desc')}
           </p>
-          {/*tutaj bedzie trzebadodac wspolne zdjecie z comarch*/}
-          {/* <div className="flex justify-center w-full mb-8">
+          <div className="flex justify-center w-full mb-8">
             <img
-              src="/logo_comarch_black_w480.svg"
-              alt={t('intro.comarch_alt')}
-              className={`h-7 sm:h-9 w-auto ${isDark ? 'invert' : ''}`}
+              src="/images/COMARCHteam.jpg"
+              alt="Wspólne zdjęcie zespołu Comarch"
+              className="w-full max-w-2xl h-auto rounded-2xl shadow-lg"
             />
-          </div> */}
-
-          {/* <div className="w-full h-44 md:h-52 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg">
-            {t('intro.photo') ? (
-              <img
-                src={t('intro.photo')}
-                alt={t('intro.comarch_alt')}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Placeholder isDark={isDark} h="100%" />
-            )}
-          </div> */}
+          </div>
         </div>
       </section>
 

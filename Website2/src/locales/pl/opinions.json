@@ -22,6 +22,11 @@
       "role": "Lekarz pierwszego kontaktu"
     },
     {
+      "quote": "Projekt oceniam jako ciekawą próbę połączenia monitorowania EKG z wygodnym dostępem do wyników w aplikacji mobilnej. Na uwagę zasługuje przejrzysty interfejs oraz sposób prezentacji danych i raportów. Duży potencjał projektu widzę szczególnie w dalszym dopracowaniu dokładności analizy i praktycznym zastosowaniu w codziennym monitorowaniu pacjentów.",
+      "name": "Wiktor Gawin",
+      "role": "Lekarz medycyny"
+    },
+    {
       "quote": "Uważam, że projekt Rythmio to świetny pomysł. Ułatwiłoby to diagnostykę zarówno pacjentowi, jak i lekarzowi. Dodatkowy plus to niskie koszty. Gratuluję!",
       "name": "Agnieszka Pius",
       "role": "Lekarz Pediatra"
@@ -55,6 +60,11 @@
       "quote": "Wygodne i proste w użyciu urządzenie, które może być bardzo pomocne w wykrywaniu i analizowaniu zaburzeń pracy serca. Dużą zaletą jest łatwa, intuicyjna nawigacja po panelu. Dostępność urządzenia może zmniejszyć kolejki do kardiologa.",
       "name": "Agnieszka Młodziejewska",
       "role": "Pielęgniarka POZ - Centrum Medyczne Borowiczki Sp. z o.o."
+    },
+    {
+      "quote": "Po zapoznaniu się z Rythmio uważam, że to świetna inicjatywa, dzięki której monitorowanie pracy serca staje się bardziej dostępne dla każdego. Zdecydowanie popieram rozszerzenie dostępu do regularnych badań kardiologicznych w całym społeczeństwie – niezależnie od wieku, stylu życia czy dostępu do opieki zdrowotnej – ponieważ mogłoby to pomóc we wcześniejszym wykrywaniu potencjalnych schorzeń serca. Moim zdaniem Rythmio może nie tylko pomagać pacjentom poprzez wczesną diagnostykę i leczenie chorób serca, ale także odciążyć personel medyczny oraz obniżyć koszty związane ze stanami nagłymi i hospitalizacjami.",
+      "name": "Maja Romanowska",
+      "role": "Studentka kierunku lekarskiego"
     },
     {
       "quote": "Po zapoznaniu się z projektem prezentowanego urządzenia myślę, że mogłoby ono znaleźć zastosowanie w codziennej praktyce lekarskiej. Biorąc pod uwagę fakt, iż pacjenci niejednokrotnie wymagają długotrwałego monitoringu w celu wykrycia epizodycznie ujawniających się zaburzeń rytmu, zaproponowany sposób montażu z pewnością podniósłby ich komfort codziennego użytkowania. Oczywiście tego typu urządzenia niosą za sobą ryzyko wystąpienia artefaktów podczas wykonywania przez pacjenta różnych aktywności, w związku z czym dostrzegam dużą wartość wprowadzenia możliwości bieżącego monitoringu w czasie rzeczywistym, który może być od razu weryfikowany przez klinicystę. Jest to też niewątpliwie istotne przy wystąpienia zaburzeń rytmu wymagających natychmiastowej interwencji medycznej. Za duży atut aplikacji uważam także wprowadzenie możliwości dodawania przez pacjenta informacji o wykonywanej aktywności, mogącej wpływać na rejestrowany zapis oraz ewentualnych subiektywnych dolegliwości. Umożliwia to świetną korelację zapisu EKG z objawami manifestowanymi przez badaną osobę i ułatwi z pewnością postawienie trafnej diagnozy przez lekarza analizującego badanie.",

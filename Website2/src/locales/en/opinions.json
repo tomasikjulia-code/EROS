@@ -22,6 +22,11 @@
       "role": "Primary Care Physician"
     },
     {
+      "quote": "I consider the project an interesting attempt to combine ECG monitoring with convenient access to results via a mobile app. The clear interface and the way data and reports are presented are particularly noteworthy. I see great potential in the project, especially regarding the further refinement of analysis accuracy and its practical application in daily patient monitoring.",
+      "name": "Wiktor Gawin",
+      "role": "Physician"
+    },
+    {
       "quote": "I think the Rythmio project is a great idea. It would make diagnostics easier for both the patient and the doctor. An additional plus is the low cost. Congratulations!",
       "name": "Agnieszka Pius",
       "role": "Pediatrician"
@@ -55,6 +60,11 @@
       "quote": "A convenient and easy-to-use device that can be very helpful in detecting and analyzing heart rhythm disorders. A big advantage is the easy, intuitive navigation through the interface. The availability of this device could help reduce waiting lists for cardiologists.",
       "name": "Agnieszka Młodziejewska",
       "role": "Primary Care Nurse - Borowiczki Medical Center Sp. z o.o."
+    },
+    {
+      "quote": "After familiarizing myself with Rythmio, I believe it is a great initiative that makes cardiac monitoring more accessible to everyone. I strongly support expanding access to regular cardiac screening across the population, regardless of age, lifestyle, or access to healthcare services, as this could help identify potential cardiac conditions at an earlier stage. In my opinion, Rythmio could not only help individuals through the early detection and treatment of cardiac conditions but also reduce the workload of healthcare professionals and lower the costs associated with medical emergencies and hospitalizations.",
+      "name": "Maja Romanowska",
+      "role": "Medical Student"
     },
     {
       "quote": "After reviewing the project of the presented device, I think it could find application in daily medical practice. Considering that patients often require long-term monitoring to detect episodic rhythm disorders, the proposed mounting method would definitely increase their comfort in daily use. Of course, devices of this type carry a risk of artifacts occurring during various patient activities, which is why I see great value in introducing the possibility of ongoing, real-time monitoring that can be immediately verified by a clinician. This is also undoubtedly crucial in the event of rhythm disorders requiring immediate medical intervention. I also consider the ability for patients to add information about their performed activities, which might affect the recorded trace, as well as any subjective symptoms, to be a major asset of the application. This allows for an excellent correlation of the ECG recording with the symptoms manifested by the subject and will certainly make it easier for the analyzing physician to make an accurate diagnosis.",
