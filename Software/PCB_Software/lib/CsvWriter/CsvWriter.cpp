@@ -16,7 +16,7 @@ bool CsvWriter::begin(const char* path) {
 
     _file.println("Timestamp_ms,EKG_Raw,BPM,LeadOff,Activity,Important");
     _file.flush();
-    
+
     _recording = true;
     return true;
 }
@@ -63,6 +63,18 @@ void CsvWriter::writeBuffer(const Sample* samples, size_t count, SemaphoreHandle
             if (_writeCounter % 4 == 0) {
                 _file.flush();
             }
+            //logika przełączania plikow po 3 minutach badania
+            if (_writeCounter %225 == 0) { // co rowne 3 min badania zmieniam plik
+                _file.flush();
+                fullFileSize += _file.size();
+                _file.close();
+                char newFileName[32];
+                _fileCounter ++;
+                //Serial.printf(">>> Zmieniam plik na: test_ekg_%d.csv <<<\n", _fileCounter);
+                snprintf(newFileName, sizeof(newFileName), "/test_ekg_%d.csv", _fileCounter);
+                begin(newFileName);
+                
+            }
 
             xSemaphoreGive(sdMutex);
         }
@@ -104,6 +116,7 @@ uint32_t CsvWriter::getFileSize() const {
 void CsvWriter::closeFile() {
     if (!_recording) return;
     _file.flush(); 
+    fullFileSize += _file.size();
     _file.close();
     _recording = false;
 }

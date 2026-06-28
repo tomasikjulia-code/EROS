@@ -29,11 +29,16 @@ public:
     uint32_t getFileSize() const;
 
     static char _writeBuf[MAX_BUFFER_SIZE]; // Stały bufor pamięci do zapisu na kartę SD
-    uint32_t _writeCounter;//licznik zapiosow buforow do sprawdzania kiedy zrobic flush
+    uint32_t _writeCounter = 0;//licznik zapiosow buforow do sprawdzania kiedy zrobic flush
+
+    uint32_t _fileCounter = 0; //licznik plikow do sprawdzania ile mamy plikow i jaki zapisuje sie aktualnie 
+
+    uint32_t fullFileSize = 0; // Zmienna przechowująca pełny rozmiar pliku w bajtach
     
 private:
     File _file;
     bool _recording = false;
+
 };
 
 #endif

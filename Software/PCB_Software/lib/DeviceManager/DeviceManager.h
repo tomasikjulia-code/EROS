@@ -100,6 +100,8 @@ class DeviceManager{
         void collectAndBufferSample(TaskHandle_t sdTaskHandle); 
         void writeBufferToSD(SemaphoreHandle_t sdMutex);
 
+        uint32_t getFileIndexByTimestamp(uint32_t timestamp); //funkcja zwracajaca indeks pliku na podstawie timestampa
+
     private:
         volatile float lastActivityValue = -1.0f; // Przechowuje aktualną wartość do zapisu
         volatile bool newActivityReady = false; // Flaga informująca o nowym pomiarze
