@@ -13,7 +13,7 @@ export const parseEcgFileToTrend = (fileContent) => {
     }
   }
   const averageActivity = activityCount > 0 ? (totalActivity / activityCount) : 0;
-  const motionNoiseThreshold = Math.max(averageActivity * 3, 6.0);
+  const motionNoiseThreshold = Math.max(averageActivity * 3, 3.0);
 
   let lastValidActivity = 0;
   let lastValidBpm = 0;
